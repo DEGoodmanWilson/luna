@@ -38,12 +38,8 @@ class server::server_impl
 {
 public:
 
-    template<typename ...Os>
-    server_impl(Os &&...os) : daemon_{nullptr}, error_handler_{default_error_handler_}
-    {
-        set_option_(std::forward<Os>(os)...);
-//        initialize_();
-    }
+    server_impl() : daemon_{nullptr}, error_handler_{default_error_handler_}
+    { }
 
     ~server_impl();
 
@@ -55,19 +51,12 @@ public:
     void set_error_handler(error_handler_cb handler);
 
 
-private:
-
-    void set_option_(server::port port)
+    void set_option(server::port port)
     {
         port_ = port;
     }
 
-    template<typename O, typename... Os>
-    void set_option_(O &&o, Os &&... os)
-    {
-        set_option_(std::forward<O>(o));
-        set_option_(std::forward<Os>(os)...);
-    }
+private:
 
 
     uint16_t port_;

@@ -16,6 +16,9 @@
 namespace luna
 {
 
+
+
+
 class server
 {
 public:
@@ -23,11 +26,16 @@ public:
     // configuration parameters
     MAKE_UINT16_T_LIKE(port);
 
-    server(uint16_t port);
+    template<typename ...Os>
+    server(Os &&...os)
+    {
+        initialize_();
+        set_option(LUNA_FWD(os)...);
+    }
 
     ~server();
 
-    //TODO need a method to set a defailut response
+    //TODO need a method to set a default response
     using endpoint_handler_cb = std::function<status_code(std::vector<std::string> matches,
                                                           query_params params,
                                                           response &body_out)>;
@@ -55,10 +63,35 @@ public:
     bool start();
 
 
+
+    template <typename T>
+    void set_option(T&& t) {
+        set_option_(LUNA_FWD(t));
+    }
+
+    template <typename T, typename... Ts>
+    void set_option(T&& t, Ts&&... ts) {
+        set_option_(LUNA_FWD(t));
+        set_option(LUNA_FWD(ts)...);
+    }
+
+
 private:
     class server_impl;
+    struct server_impl_deleter { void operator()(server_impl*) const; };
+    std::unique_ptr<server_impl, server_impl_deleter> impl_;
 
-    std::unique_ptr<server_impl> impl_;
+
+    void initialize_();
+
+    void set_option_(server::port port);
+
+    template<typename O, typename... Os>
+    void set_option_(O &&o, Os &&... os)
+    {
+        set_option_(std::forward<O>(o));
+        set_option_(std::forward<Os>(os)...);
+    }
 };
 
 } //namespace luna

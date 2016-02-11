@@ -10,12 +10,23 @@
 namespace luna
 {
 
-server::server(uint16_t port) : impl_{std::make_unique<server_impl>(server::port{port})}
-{ }
+
+void server::initialize_()
+{
+    impl_.reset(new server_impl());
+}
 
 server::~server()
-{ }
+{
 
+}
+
+void server::server_impl_deleter::operator()(server::server_impl* ptr) const { delete ptr; }
+
+void server::set_option_(server::port port)
+{
+    impl_->set_option(port);
+}
 
 void server::handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback)
 {
