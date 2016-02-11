@@ -18,21 +18,7 @@ static const bool is_error_(status_code code)
     return true;
 }
 
-static const server::error_handler_cb default_error_handler_ = [](uint16_t error_code,
-                                                                  request_method method,
-                                                                  const std::string &path) -> response
-    {
-        std::string content_type{"text/html"};
-        //we'd best render it ourselves.
-        switch (error_code)
-        {
-            case 404:
-                return {content_type, "<h1>Not found</h1>"};
-            default:
-                return {content_type, "<h1>So sorry, generic server error</h1>"};
-        }
 
-    };
 
 
 request_method method_str_to_enum(const char *method_str)
@@ -64,11 +50,6 @@ request_method method_str_to_enum(const char *method_str)
 
     return request_method::UNKNOWN;
 }
-
-server::server_impl::server_impl(uint16_t port) : port_{port}, daemon_{nullptr}, error_handler_{default_error_handler_}
-{
-}
-
 
 server::server_impl::~server_impl()
 {

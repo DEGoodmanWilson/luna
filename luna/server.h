@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <luna/types.h>
 #include <string>
 #include <regex>
 #include <memory>
@@ -15,32 +16,14 @@
 namespace luna
 {
 
-
-
-using status_code = uint16_t;
-struct response
-{
-    std::string content_type;
-    std::string content;
-};
-
-enum class request_method
-{
-    UNKNOWN = 0,
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    //Yes, there are more than these. Later, though. Later.
-};
-
-using query_params = std::map<std::string, std::string>;
-
 class server
 {
 public:
-    server(uint16_t port = 8888);
+
+    // configuration parameters
+    MAKE_UINT16_T_LIKE(port);
+
+    server(uint16_t port);
 
     ~server();
 

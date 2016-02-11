@@ -19,10 +19,31 @@ const auto PUT = "PUT";
 const auto PATCH = "PATCH";
 const auto DELETE = "DELETE";
 
+static const server::error_handler_cb default_error_handler_ = [](uint16_t error_code,
+                                                                  request_method method,
+                                                                  const std::string &path) -> response {
+    std::string content_type{"text/html"};
+    //we'd best render it ourselves.
+    switch (error_code)
+    {
+        case 404:
+            return {content_type, "<h1>Not found</h1>"};
+        default:
+            return {content_type, "<h1>So sorry, generic server error</h1>"};
+    }
+
+};
+
 class server::server_impl
 {
 public:
-    server_impl(uint16_t port);
+
+    template<typename ...Os>
+    server_impl(Os &&...os) : daemon_{nullptr}, error_handler_{default_error_handler_}
+    {
+        set_option_(std::forward<Os>(os)...);
+//        initialize_();
+    }
 
     ~server_impl();
 
@@ -35,6 +56,20 @@ public:
 
 
 private:
+
+    void set_option_(server::port port)
+    {
+        port_ = port;
+    }
+
+    template<typename O, typename... Os>
+    void set_option_(O &&o, Os &&... os)
+    {
+        set_option_(std::forward<O>(o));
+        set_option_(std::forward<Os>(os)...);
+    }
+
+
     uint16_t port_;
     struct MHD_Daemon *daemon_;
 
@@ -67,7 +102,11 @@ private:
                                              size_t *upload_data_size,
                                              void **con_cls);
 
-    int render_response_(status_code status_code, response resp, MHD_Connection *connection, const char *url, request_method method) const;
+    int render_response_(status_code status_code,
+                         response resp,
+                         MHD_Connection *connection,
+                         const char *url,
+                         request_method method) const;
 
     int render_error_(uint16_t error_cpde, MHD_Connection *connection, const char *url, request_method method) const;
 

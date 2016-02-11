@@ -32,7 +32,7 @@ int main(void)
     auto port_str = std::getenv("PORT");
     const uint16_t PORT = port_str ? std::stoi(port_str) : 8888;
 
-    server server{PORT};
+    server server{server::port{PORT}};
 
     server.handle_response(request_method::GET, "/ohyeah", [](std::vector<std::string> matches, query_params params, response& response) -> status_code
         {

@@ -6,12 +6,11 @@
 
 #include "server.h"
 #include "server_impl.h"
-#include <functional>
 
 namespace luna
 {
 
-server::server(uint16_t port) : impl_{std::make_unique<server_impl>(port)}
+server::server(uint16_t port) : impl_{std::make_unique<server_impl>(server::port{port})}
 { }
 
 server::~server()
