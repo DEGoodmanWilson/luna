@@ -23,7 +23,7 @@ endif ()
 
 
 if (BUILD_EXAMPLES)
-    set(EXAMPLE_SOURCE_FILES examples/example1.cpp)
+    set(EXAMPLE_SOURCE_FILES examples/example1.cpp luna/types.h)
     add_executable(example1 ${EXAMPLE_SOURCE_FILES})
     target_include_directories(example1 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
     target_link_libraries(example1 luna)

@@ -1,5 +1,5 @@
 //
-// libmicro++
+// luna
 //
 // Copyright © 2016, D.E. Goodman-Wilson
 //
@@ -8,7 +8,7 @@
 #include <microhttpd.h>
 #include <iostream>
 
-namespace microhttpd
+namespace luna
 {
 
 static const bool is_error_(status_code code)
@@ -249,4 +249,4 @@ void server::server_impl::set_error_handler(server::error_handler_cb handler)
     error_handler_ = handler;
 }
 
-} //namespace microhttpd
+} //namespace luna

@@ -1,5 +1,5 @@
 //
-// libmicro++
+// luna
 //
 // Copyright © 2016, D.E. Goodman-Wilson
 //
@@ -8,7 +8,7 @@
 #include "server_impl.h"
 #include <functional>
 
-namespace microhttpd
+namespace luna
 {
 
 server::server(uint16_t port) : impl_{std::make_unique<server_impl>(port)}

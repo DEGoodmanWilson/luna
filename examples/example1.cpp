@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include <microhttpd++/server.h>
+#include <luna/server.h>
 
 //int print_out_key (void *cls, enum MHD_ValueKind kind,
 //                   const char *key, const char *value)
@@ -25,7 +25,7 @@
 //    return MHD_NO;
 //}
 
-using namespace microhttpd;
+using namespace luna;
 
 int main(void)
 {

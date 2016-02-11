@@ -1,5 +1,5 @@
 //
-// libmicro++
+// luna
 //
 // Copyright © 2016, D.E. Goodman-Wilson
 //
@@ -12,7 +12,7 @@
 #include <map>
 #include <functional>
 
-namespace microhttpd
+namespace luna
 {
 
 
@@ -78,4 +78,4 @@ private:
     std::unique_ptr<server_impl> impl_;
 };
 
-} //namespace microhttpd
+} //namespace luna

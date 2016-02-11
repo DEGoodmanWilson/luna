@@ -1,5 +1,5 @@
 //
-// libmicro++
+// luna
 //
 // Copyright © 2016, D.E. Goodman-Wilson
 //
@@ -10,7 +10,7 @@
 #include <microhttpd.h>
 #include <cstring>
 
-namespace microhttpd
+namespace luna
 {
 
 const auto GET = "GET";
@@ -74,4 +74,4 @@ private:
     error_handler_cb error_handler_;
 };
 
-} //namespace microhttpd
+} //namespace luna
