@@ -62,6 +62,8 @@ public:
     template
     void handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
+    explicit operator bool();
+
 private:
     class server_impl;
     struct server_impl_deleter { void operator()(server_impl*) const; };

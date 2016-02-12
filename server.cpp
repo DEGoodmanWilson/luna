@@ -11,6 +11,11 @@ namespace luna
 {
 
 
+server::operator bool()
+{
+    return impl_->is_running();
+}
+
 void server::initialize_()
 {
     impl_.reset(new server_impl());

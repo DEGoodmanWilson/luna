@@ -52,6 +52,8 @@ public:
     ~server_impl();
 
     void start();
+    bool is_running();
+    void stop();
 
     void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
 

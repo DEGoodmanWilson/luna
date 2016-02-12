@@ -6,10 +6,10 @@ An embedded HTTP server in idiomatic C++
 
 A C++ wrapper for libmicrohttpd
 
-#include <string>
-#include <iostream>
-#include <luna/server.h>
-
+    #include <string>
+    #include <iostream>
+    #include <luna/server.h>
+    
     using namespace luna;
     
     int main(void)
@@ -35,5 +35,5 @@ A C++ wrapper for libmicrohttpd
                 return 200;
             });
     
-        while (1); //run until you get killed. Not the best way.
+        while (server); //idle while the server is running. Maybe not the best way? //TODO how to signal to server to die
     }

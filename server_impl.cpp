@@ -58,25 +58,43 @@ server::server_impl::server_impl() :
 void server::server_impl::start()
 {
     //TODO not super happy that this has to come outside the constructor.
+    //TODO NEED TO SET UP MORE OPTIONS!!!!!!!!!
     // Would strongly prefer if the wrapper constructor could just forward all its varargs to this constructor
-    daemon_ = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
+    daemon_ = MHD_start_daemon(MHD_USE_POLL_INTERNALLY,
                      port_,
                      access_policy_callback_shim_,
                      this,
                      access_handler_callback_shim_,
                      this,
+                     MHD_OPTION_THREAD_POOL_SIZE,
+                     10, //use 10 threads
                      MHD_OPTION_END);
     //TODO check if daemon_ is null. It should not be null.
+    if(!daemon_)
+    {
+        std::cout << "Daemon failed to start" << std::endl;
+    }
     //TODO better logging facilities than cout
     std::cout << "New server on port " << port_ << std::endl;
 }
 
-server::server_impl::~server_impl()
+bool server::server_impl::is_running()
+{
+    return(!!daemon_);
+}
+
+void server::server_impl::stop()
 {
     if (daemon_)
     {
         MHD_stop_daemon(daemon_);
+        daemon_ = nullptr;
     }
+}
+
+server::server_impl::~server_impl()
+{
+    stop();
 }
 
 
