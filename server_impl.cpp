@@ -11,14 +11,14 @@
 namespace luna
 {
 
+std::string default_mime_type{"text/html"};
+
 static const bool is_error_(status_code code)
 {
     if ((code >= 200) && (code < 300)) return false;
 
     return true;
 }
-
-
 
 
 request_method method_str_to_enum(const char *method_str)
@@ -224,10 +224,19 @@ int server::server_impl::access_policy_callback_shim_(void *cls, const struct so
     return static_cast<server_impl *>(cls)->access_policy_callback_(addr, addrlen);
 }
 
+void server::server_impl::set_option(server::mime_type mime_type)
+{
+    default_mime_type = mime_type;
+}
 
-void server::server_impl::set_error_handler(server::error_handler_cb handler)
+void server::server_impl::set_option(server::error_handler_cb handler)
 {
     error_handler_ = handler;
+}
+
+void server::server_impl::set_option(server::port port)
+{
+    port_ = port;
 }
 
 } //namespace luna

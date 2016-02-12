@@ -23,7 +23,18 @@ server::~server()
 
 void server::server_impl_deleter::operator()(server::server_impl* ptr) const { delete ptr; }
 
-void server::set_option_(server::port port)
+
+void server::set_option_(mime_type mime_type)
+{
+    impl_->set_option(mime_type);
+}
+
+void server::set_option_(error_handler_cb handler)
+{
+    impl_->set_option(handler);
+}
+
+void server::set_option_(port port)
 {
     impl_->set_option(port);
 }
@@ -41,12 +52,6 @@ void server::handle_response(request_method method, std::regex &&path, endpoint_
 bool server::start()
 {
     return impl_->start();
-}
-
-
-void server::set_error_handler(server::error_handler_cb handler)
-{
-    impl_->set_error_handler(handler);
 }
 
 }

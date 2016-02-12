@@ -25,6 +25,7 @@ public:
 
     // configuration parameters
     MAKE_UINT16_T_LIKE(port);
+    MAKE_STRING_LIKE(mime_type);
 
     template<typename ...Os>
     server(Os &&...os)
@@ -57,9 +58,6 @@ public:
     template
     void handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
-
-    void set_error_handler(error_handler_cb handler);
-
     bool start();
 
 
@@ -84,14 +82,9 @@ private:
 
     void initialize_();
 
+    void set_option_(mime_type mime_type);
+    void set_option_(error_handler_cb handler);
     void set_option_(server::port port);
-
-    template<typename O, typename... Os>
-    void set_option_(O &&o, Os &&... os)
-    {
-        set_option_(std::forward<O>(o));
-        set_option_(std::forward<Os>(os)...);
-    }
 };
 
 } //namespace luna

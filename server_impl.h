@@ -47,22 +47,17 @@ public:
 
     bool start();
 
-    //TODO could this be in the constructor?
-    void set_error_handler(error_handler_cb handler);
+    void set_option(mime_type mime_type);
+    void set_option(error_handler_cb handler);
+    void set_option(server::port port);
 
-
-    void set_option(server::port port)
-    {
-        port_ = port;
-    }
 
 private:
-
+    struct MHD_Daemon *daemon_;
+    std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>> response_handlers_;
 
     uint16_t port_;
-    struct MHD_Daemon *daemon_;
-
-    std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>> response_handlers_;
+    error_handler_cb error_handler_;
 
     static int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value);
 
@@ -99,7 +94,6 @@ private:
 
     int render_error_(uint16_t error_cpde, MHD_Connection *connection, const char *url, request_method method) const;
 
-    error_handler_cb error_handler_;
 };
 
 } //namespace luna

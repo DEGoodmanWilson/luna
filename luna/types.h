@@ -12,26 +12,6 @@
 namespace luna
 {
 
-using status_code = uint16_t;
-struct response
-{
-    std::string content_type;
-    std::string content;
-};
-
-enum class request_method
-{
-    UNKNOWN = 0,
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    //Yes, there are more than these. Later, though. Later.
-};
-
-using query_params = std::map<std::string, std::string>;
-
 #define LUNA_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 #define MAKE_STRING_LIKE(x) class x : public std::string \
@@ -82,5 +62,32 @@ public: \
 private: \
     uint16_t value; \
 }
+
+using status_code = uint16_t;
+
+extern std::string default_mime_type;
+
+struct response
+{
+    std::string content_type;
+    std::string content;
+
+    response() = default;
+    response(std::string content_type, std::string content) : content_type{content_type}, content{content} {}
+    response(std::string content) : content_type{default_mime_type}, content{content} {}
+};
+
+enum class request_method
+{
+    UNKNOWN = 0,
+    GET,
+    POST,
+    PUT,
+    PATCH,
+    DELETE,
+    //Yes, there are more than these. Later, though. Later.
+};
+
+using query_params = std::map<std::string, std::string>;
 
 } //namespace luna
