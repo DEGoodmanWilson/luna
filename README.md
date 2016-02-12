@@ -6,19 +6,25 @@ An embedded HTTP server in idiomatic C++
 
 A C++ wrapper for libmicrohttpd
 
-    #include <string>
-    #include <iostream>
-    #include <luna/server.h>
-    
+#include <string>
+#include <iostream>
+#include <luna/server.h>
+
     using namespace luna;
     
     int main(void)
     {
-        server server{server::port{8443}};
+        server server{server::mime_type{"text/json"}, server::port{8443}, [](uint16_t error_code,
+                                                                             request_method method,
+                                                                             const std::string &path) -> response
+            {
+                return {"<h1>Oh, that's a problem</h1>"};
+            }
+        };
     
         server.handle_response(request_method::GET, "/ohyeah", [](std::vector<std::string> matches, query_params params, response& response) -> status_code
             {
-                response = {"text/json", "{\"koolade\": true}"};
+                response = {"{\"koolade\": true}"};
                 return 200;
             });
     

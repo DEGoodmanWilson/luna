@@ -11,7 +11,8 @@ int main(void)
                                                                          const std::string &path) -> response
         {
             return {"<h1>Oh, that's a problem</h1>"};
-        }};
+        }
+    };
 
     server.handle_response(request_method::GET, "/ohyeah", [](std::vector<std::string> matches, query_params params, response& response) -> status_code
         {
