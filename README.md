@@ -35,7 +35,5 @@ A C++ wrapper for libmicrohttpd
                 return 200;
             });
     
-        server.start();
-    
         while (1); //run until you get killed. Not the best way.
     }

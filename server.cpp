@@ -16,6 +16,11 @@ void server::initialize_()
     impl_.reset(new server_impl());
 }
 
+void server::start_()
+{
+    impl_->start();
+}
+
 server::~server()
 {
 
@@ -53,11 +58,6 @@ void server::handle_response(request_method method, const std::regex &path, endp
 void server::handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback)
 {
     impl_->handle_response(method, std::regex{std::move(path)}, callback);
-}
-
-bool server::start()
-{
-    return impl_->start();
 }
 
 }

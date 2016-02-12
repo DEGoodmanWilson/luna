@@ -5,8 +5,6 @@
 //
 
 #include "server_impl.h"
-#include <microhttpd.h>
-#include <iostream>
 
 namespace luna
 {
@@ -51,6 +49,28 @@ request_method method_str_to_enum(const char *method_str)
     return request_method::UNKNOWN;
 }
 
+
+server::server_impl::server_impl() :
+        error_handler_{default_error_handler_}, access_policy_handler_{default_access_policy_handler_}, daemon_{}
+{ }
+
+
+void server::server_impl::start()
+{
+    //TODO not super happy that this has to come outside the constructor.
+    // Would strongly prefer if the wrapper constructor could just forward all its varargs to this constructor
+    daemon_ = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
+                     port_,
+                     access_policy_callback_shim_,
+                     this,
+                     access_handler_callback_shim_,
+                     this,
+                     MHD_OPTION_END);
+    //TODO check if daemon_ is null. It should not be null.
+    //TODO better logging facilities than cout
+    std::cout << "New server on port " << port_ << std::endl;
+}
+
 server::server_impl::~server_impl()
 {
     if (daemon_)
@@ -65,20 +85,6 @@ void server::server_impl::handle_response(request_method method,
                                           server::endpoint_handler_cb callback)
 {
     response_handlers_[method].emplace_back(std::make_pair(path, callback));
-}
-
-
-bool server::server_impl::start()
-{
-    daemon_ = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
-                               port_,
-                               access_policy_callback_shim_,
-                               this,
-                               access_handler_callback_shim_,
-                               this,
-                               MHD_OPTION_END); //TODO set up parameters
-
-    return !daemon_; // true if not null.
 }
 
 

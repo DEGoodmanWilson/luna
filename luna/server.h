@@ -43,7 +43,8 @@ public:
     server(Os &&...os)
     {
         initialize_();
-        set_option(LUNA_FWD(os)...);
+        set_options_(LUNA_FWD(os)...);
+        start_();
     }
 
     ~server();
@@ -61,22 +62,6 @@ public:
     template
     void handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
-    bool start();
-
-
-
-    template <typename T>
-    void set_option(T&& t) {
-        set_option_(LUNA_FWD(t));
-    }
-
-    template <typename T, typename... Ts>
-    void set_option(T&& t, Ts&&... ts) {
-        set_option_(LUNA_FWD(t));
-        set_option(LUNA_FWD(ts)...);
-    }
-
-
 private:
     class server_impl;
     struct server_impl_deleter { void operator()(server_impl*) const; };
@@ -84,6 +69,19 @@ private:
 
 
     void initialize_();
+    void start_();
+
+    template <typename T>
+    void set_options_(T&& t) {
+        set_option_(LUNA_FWD(t));
+    }
+
+    template <typename T, typename... Ts>
+    void set_options_(T&& t, Ts&&... ts) {
+        set_options_(LUNA_FWD(t));
+        set_options_(LUNA_FWD(ts)...);
+    }
+
 
     void set_option_(mime_type mime_type);
     void set_option_(error_handler_cb handler);
