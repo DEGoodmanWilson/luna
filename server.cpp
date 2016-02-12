@@ -39,6 +39,12 @@ void server::set_option_(port port)
     impl_->set_option(port);
 }
 
+
+void server::set_option_(access_policy_cb handler)
+{
+    impl_->set_option(handler);
+}
+
 void server::handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback)
 {
     impl_->handle_response(method, std::regex{path}, callback);

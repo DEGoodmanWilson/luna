@@ -89,12 +89,6 @@ int server::server_impl::parse_kv_(void *cls, enum MHD_ValueKind kind, const cha
     return MHD_YES;
 }
 
-
-int server::server_impl::access_policy_callback_(const struct sockaddr *addr, socklen_t addrlen)
-{
-    return MHD_YES; //TODO for now. Allow custom callbacks to be attached.
-}
-
 int server::server_impl::access_handler_callback_(struct MHD_Connection *connection,
                                                   const char *url,
                                                   const char *method_str,
@@ -221,7 +215,7 @@ int server::server_impl::access_policy_callback_shim_(void *cls, const struct so
 {
     if (!cls) return MHD_NO;
 
-    return static_cast<server_impl *>(cls)->access_policy_callback_(addr, addrlen);
+    return static_cast<server_impl *>(cls)->access_policy_handler_(addr, addrlen);
 }
 
 void server::server_impl::set_option(server::mime_type mime_type)
@@ -237,6 +231,11 @@ void server::server_impl::set_option(server::error_handler_cb handler)
 void server::server_impl::set_option(server::port port)
 {
     port_ = port;
+}
+
+void server::server_impl::set_option(server::access_policy_cb handler)
+{
+    access_policy_handler_ = handler;
 }
 
 } //namespace luna

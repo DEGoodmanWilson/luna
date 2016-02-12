@@ -21,24 +21,31 @@ const auto DELETE = "DELETE";
 
 static const server::error_handler_cb default_error_handler_ = [](uint16_t error_code,
                                                                   request_method method,
-                                                                  const std::string &path) -> response {
-    std::string content_type{"text/html"};
-    //we'd best render it ourselves.
-    switch (error_code)
+                                                                  const std::string &path) -> response
     {
-        case 404:
-            return {content_type, "<h1>Not found</h1>"};
-        default:
-            return {content_type, "<h1>So sorry, generic server error</h1>"};
-    }
+        std::string content_type{"text/html"};
+        //we'd best render it ourselves.
+        switch (error_code)
+        {
+            case 404:
+                return {content_type, "<h1>Not found</h1>"};
+            default:
+                return {content_type, "<h1>So sorry, generic server error</h1>"};
+        }
 
-};
+    };
+
+static const server::access_policy_cb default_access_policy_handler_ = [](const struct sockaddr *addr,
+                                                                            socklen_t len) -> bool
+    {
+        return true;
+    };
 
 class server::server_impl
 {
 public:
 
-    server_impl() : daemon_{nullptr}, error_handler_{default_error_handler_}
+    server_impl() : daemon_{nullptr}, error_handler_{default_error_handler_}, access_policy_handler_{default_access_policy_handler_}
     { }
 
     ~server_impl();
@@ -48,9 +55,12 @@ public:
     bool start();
 
     void set_option(mime_type mime_type);
+
     void set_option(error_handler_cb handler);
+
     void set_option(server::port port);
 
+    void set_option(access_policy_cb handler);
 
 private:
     struct MHD_Daemon *daemon_;
@@ -58,11 +68,9 @@ private:
 
     uint16_t port_;
     error_handler_cb error_handler_;
+    access_policy_cb access_policy_handler_;
 
     static int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value);
-
-    int access_policy_callback_(const struct sockaddr *addr,
-                                socklen_t addrlen);
 
     int access_handler_callback_(struct MHD_Connection *connection,
                                  const char *url,
