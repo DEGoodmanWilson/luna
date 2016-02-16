@@ -38,7 +38,7 @@ static const server::error_handler_cb default_error_handler_ = [](uint16_t error
     };
 
 static const server::access_policy_cb default_access_policy_handler_ = [](const struct sockaddr *addr,
-                                                                            socklen_t len) -> bool
+                                                                          socklen_t len) -> bool
     {
         return true;
     };
@@ -52,7 +52,9 @@ public:
     ~server_impl();
 
     void start();
+
     bool is_running();
+
     void stop();
 
     void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
@@ -156,6 +158,28 @@ private:
                                              const char *upload_data,
                                              size_t *upload_data_size,
                                              void **con_cls);
+
+    static void request_completed_callback_shim_(void *cls,
+                                                 struct MHD_Connection *connection,
+                                                 void **con_cls,
+                                                 enum MHD_RequestTerminationCode toe);
+
+    static void uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con);
+
+    static void logger_callback_shim_(void *cls, const char *fm, va_list ap);
+
+    static size_t unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s);
+
+    //TODO MHD_OPTION_HTTPS_CERT_CALLBACK callback_shim_
+
+    static void notify_connection_callback_shim_(void *cls,
+                                                 struct MHD_Connection *connection,
+                                                 void **socket_context,
+                                                 enum MHD_ConnectionNotificationCode toe);
+
+
+
+
 
     int render_response_(status_code status_code,
                          response resp,

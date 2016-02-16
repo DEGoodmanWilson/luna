@@ -5,6 +5,7 @@
 //
 
 #include "server_impl.h"
+#include <stdarg.h>
 
 namespace luna
 {
@@ -215,6 +216,8 @@ int server::server_impl::render_error_(uint16_t error_code,
 }
 
 
+/////////// callback shims
+
 int server::server_impl::access_handler_callback_shim_(void *cls,
                                                        struct MHD_Connection *connection,
                                                        const char *url,
@@ -242,6 +245,86 @@ int server::server_impl::access_policy_callback_shim_(void *cls, const struct so
 
     return static_cast<server_impl *>(cls)->access_policy_handler_(addr, addrlen);
 }
+
+
+void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD_Connection *connection,
+                                                           void **con_cls,
+                                                           enum MHD_RequestTerminationCode toe)
+{
+    auto this = static_cast<server_impl*>(cls);
+    if(this && this->request_completed_callback_)
+    {
+        return this->request_completed_callback_(connection, cons_cls, toe);
+    }
+}
+
+void server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
+{
+    auto this = static_cast<server_impl*>(cls);
+    if(this && this->logger_callback_)
+    {
+        return this->logger_callback_(uri); //TODO and stuff about the connection too!
+    }
+}
+
+//http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+std::string string_format(const std::string fmt_str, va_list ap)
+{
+    int final_n, n = ((int) fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
+    std::string str;
+    std::unique_ptr<char[]> formatted;
+    while (1)
+    {
+        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
+        strcpy(&formatted[0], fmt_str.c_str());
+        va_start(ap, fmt_str);
+        final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
+        va_end(ap);
+        if (final_n < 0 || final_n >= n)
+        {
+            n += abs(final_n - n + 1);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return std::string(formatted.get());
+}
+
+void server::server_impl::logger_callback_shim_(void *cls, const char *fm, va_list ap)
+{
+    auto this = static_cast<server_impl*>(cls);
+    if(this && this->logger_callback_)
+    {
+        return this->logger_callback_(string_format(fm, ap));
+    }
+}
+
+size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s)
+{
+    auto this = static_cast<server_impl*>(cls);
+    if(this && this->unescaper_callback_)
+    {
+        return this->unescaper_callback_(c, s);
+    }
+}
+
+void server::server_impl::notify_connection_callback_shim_(void *cls,
+                                                           struct MHD_Connection *connection,
+                                                           void **socket_context,
+                                                           enum MHD_ConnectionNotificationCode toe)
+{
+    auto this = static_cast<server_impl*>(cls);
+    if(this && this->notify_connection_callback_)
+    {
+        return this->notify_connection_callback_(connection, socket_context, toe);
+    }
+}
+
+
+
+///// options setting
 
 void server::server_impl::set_option(const server::mime_type &mime_type)
 {

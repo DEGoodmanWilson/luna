@@ -45,7 +45,7 @@ public:
 
     MAKE_INT_LIKE(unsigned int, connection_timeout);
 
-//    MAKE_INT_LIKE(intptr_t, notify_completed); //TOD this actually requires two parameters, do it with a custom class
+    using notify_completed_handler_cb = std::function<>; //TODO
 
     MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
 
