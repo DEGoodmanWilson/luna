@@ -57,13 +57,67 @@ public:
 
     void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
-    void set_option(mime_type mime_type);
+    void set_option(const mime_type &mime_type);
 
     void set_option(error_handler_cb handler);
 
     void set_option(server::port port);
 
     void set_option(access_policy_cb handler);
+
+    // MHD specific options
+
+    void set_option(connection_memory_limit value);
+
+    void set_option(connection_limit value);
+
+    void set_option(connection_timeout value);
+
+//    void set_option(notify_completed value);
+
+    void set_option(per_ip_connection_limit value);
+
+    void set_option(const sockaddr *value);
+
+//    void set_option(uri_log_callback value);
+
+    void set_option(const https_mem_key &value);
+
+    void set_option(const https_mem_cert &value);
+
+//    void set_option(https_cred_type value);
+
+    void set_option(const https_priorities &value);
+
+    void set_option(listen_socket value);
+
+//    void set_option(external_logger value);
+
+    void set_option(thread_pool_size value);
+
+//    void set_option(unescape_callback value);
+
+//    void set_option(digest_auth_random value);
+
+    void set_option(nonce_nc_size value);
+
+    void set_option(thread_stack_size value);
+
+    void set_option(const https_mem_trust &value);
+
+    void set_option(connection_memory_increment value);
+
+//    void set_option(https_cert_callback value);
+
+    void set_option(tcp_fastopen_queue_size value);
+
+    void set_option(const https_mem_dhparams &value);
+
+    void set_option(listening_address_reuse value);
+
+    void set_option(const https_key_password &value);
+
+//    void set_option(notify_connection value);
 
 private:
     std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>> response_handlers_;
@@ -72,6 +126,9 @@ private:
     error_handler_cb error_handler_;
     access_policy_cb access_policy_handler_;
 
+
+    std::vector<std::string> options_string_cache_;
+    std::vector<MHD_OptionItem> options_;
 
     struct MHD_Daemon *daemon_;
 

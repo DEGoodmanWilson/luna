@@ -11,6 +11,7 @@ option(BUILD_EXAMPLES "Build the example server" ON)
 ##### Exported googies
 set(LIB_LUNA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR})
 
+# TODO script to find libmicrohttpd
 
 # luna
 set(LIB_LUNA_SOURCE_FILES luna/types.h server.cpp luna/server.h server_impl.cpp server_impl.h)

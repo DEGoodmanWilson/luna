@@ -31,7 +31,8 @@ server::~server()
 
 }
 
-void server::server_impl_deleter::operator()(server::server_impl* ptr) const { delete ptr; }
+void server::server_impl_deleter::operator()(server::server_impl *ptr) const
+{ delete ptr; }
 
 
 void server::set_option_(mime_type mime_type)
@@ -49,11 +50,144 @@ void server::set_option_(port port)
     impl_->set_option(port);
 }
 
-
 void server::set_option_(access_policy_cb handler)
 {
     impl_->set_option(handler);
 }
+
+void server::set_option_(connection_memory_limit value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(connection_limit value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(connection_timeout value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(notify_completed value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(per_ip_connection_limit value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(const sockaddr *value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(uri_log_callback value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(https_mem_key value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(https_mem_cert value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(https_cred_type value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(https_priorities value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(listen_socket value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(external_logger value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(thread_pool_size value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(array value)
+//{
+//    impl_->set_option(value);
+//}
+
+//void server::set_option_(unescape_callback value)
+//{
+//    impl_->set_option(value);
+//}
+
+//void server::set_option_(digest_auth_random value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(nonce_nc_size value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(thread_stack_size value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(const https_mem_trust &value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(connection_memory_increment value)
+{
+    impl_->set_option(value);
+}
+
+//void server::set_option_(https_cert_callback value)
+//{
+//    impl_->set_option(value);
+//}
+
+void server::set_option_(tcp_fastopen_queue_size value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(const https_mem_dhparams &value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(listening_address_reuse value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(const https_key_password &value)
+{
+    impl_->set_option(value);
+}
+//void server::set_option_(notify_connection value)
+//{
+//    impl_->set_option(value);
+//}
 
 void server::handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback)
 {

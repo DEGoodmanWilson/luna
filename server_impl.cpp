@@ -61,16 +61,17 @@ void server::server_impl::start()
     //TODO NEED TO SET UP MORE OPTIONS!!!!!!!!!
     // Would strongly prefer if the wrapper constructor could just forward all its varargs to this constructor
     daemon_ = MHD_start_daemon(MHD_USE_POLL_INTERNALLY,
-                     port_,
-                     access_policy_callback_shim_,
-                     this,
-                     access_handler_callback_shim_,
-                     this,
-                     MHD_OPTION_THREAD_POOL_SIZE,
-                     10, //use 10 threads
-                     MHD_OPTION_END);
+                               port_,
+                               access_policy_callback_shim_,
+                               this,
+                               access_handler_callback_shim_,
+                               this,
+                               MHD_OPTION_THREAD_POOL_SIZE,
+                               10, //use 10 threads
+                               MHD_OPTION_END);
+
     //TODO check if daemon_ is null. It should not be null.
-    if(!daemon_)
+    if (!daemon_)
     {
         std::cout << "Daemon failed to start" << std::endl;
     }
@@ -80,7 +81,7 @@ void server::server_impl::start()
 
 bool server::server_impl::is_running()
 {
-    return(!!daemon_);
+    return (!!daemon_);
 }
 
 void server::server_impl::stop()
@@ -242,7 +243,7 @@ int server::server_impl::access_policy_callback_shim_(void *cls, const struct so
     return static_cast<server_impl *>(cls)->access_policy_handler_(addr, addrlen);
 }
 
-void server::server_impl::set_option(server::mime_type mime_type)
+void server::server_impl::set_option(const server::mime_type &mime_type)
 {
     default_mime_type = mime_type;
 }
@@ -261,5 +262,140 @@ void server::server_impl::set_option(server::access_policy_cb handler)
 {
     access_policy_handler_ = handler;
 }
+
+void server::server_impl::set_option(server::connection_memory_limit value)
+{
+    //this is a narrowing cast, so ugly! What to do, though?
+    options_.push_back({MHD_OPTION_CONNECTION_MEMORY_LIMIT, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option(server::connection_limit value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_LIMIT, value, NULL});
+}
+
+void server::server_impl::set_option(server::connection_timeout value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, value, NULL});
+}
+
+//void server::server_impl::set_option(server::notify_completed value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option(server::per_ip_connection_limit value)
+{
+    options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, value, NULL});
+}
+
+void server::server_impl::set_option(const sockaddr *value)
+{
+    //why are we casting away the constness? Because MHD isn'T going to modify this, and I want the caller
+    // to be assured of this fact.
+    options_.push_back({MHD_OPTION_SOCK_ADDR, 0, const_cast<sockaddr*>(value)});
+}
+
+//void server::server_impl::set_option(server::uri_log_callback value)
+//{
+//    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, value, NULL});
+//}
+
+void server::server_impl::set_option(const server::https_mem_key& value)
+{
+    //TODO this feel very dodgy to me. But I can't quite put my finger on the case where this pointer becomes prematurely invalid
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char*>(value.c_str())});
+}
+
+void server::server_impl::set_option(const server::https_mem_cert& value)
+{
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char*>(value.c_str())});
+}
+
+//void server::server_impl::set_option(server::https_cred_type value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option(const server::https_priorities& value)
+{
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char*>(value.c_str())});
+}
+
+void server::server_impl::set_option(server::listen_socket value)
+{
+    options_.push_back({MHD_OPTION_LISTEN_SOCKET, value, NULL});
+}
+
+//void server::server_impl::set_option(server::external_logger value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option(server::thread_pool_size value)
+{
+    options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, value, NULL});
+}
+
+//void server::server_impl::set_option(server::unescape_callback value)
+//{
+//    //TODO
+//}
+
+//void server::server_impl::set_option(server::digest_auth_random value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option(server::nonce_nc_size value)
+{
+    options_.push_back({MHD_OPTION_NONCE_NC_SIZE, value, NULL});
+}
+
+void server::server_impl::set_option(server::thread_stack_size value)
+{
+    options_.push_back({MHD_OPTION_THREAD_STACK_SIZE, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option(const server::https_mem_trust &value)
+{
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char*>(value.c_str())});
+}
+
+void server::server_impl::set_option(server::connection_memory_increment value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_MEMORY_INCREMENT, static_cast<intptr_t>(value), NULL});
+}
+
+//void server::server_impl::set_option(server::https_cert_callback value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option(server::tcp_fastopen_queue_size value)
+{
+    options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
+}
+
+void server::server_impl::set_option(const server::https_mem_dhparams &value)
+{
+    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char*>(value.c_str())});
+}
+
+void server::server_impl::set_option(server::listening_address_reuse value)
+{
+    options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
+}
+
+void server::server_impl::set_option(const server::https_key_password &value)
+{
+    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char*>(value.c_str())});
+}
+
+//void server::server_impl::set_option(server::notify_connection value)
+//{
+//    //TODO
+//}
+
 
 } //namespace luna

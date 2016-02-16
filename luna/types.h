@@ -63,6 +63,20 @@ private: \
     uint16_t value; \
 }
 
+#define MAKE_INT_LIKE(T, x) class x\
+{ \
+public: \
+    x() = default; \
+    x(const x &rhs) = default; \
+    x(x &&rhs) = default; \
+    x &operator=(const x &rhs) = default; \
+    x &operator=(x &&rhs) = default; \
+    x(T new_val) : value{new_val} {} \
+    operator T() {return value;} \
+private: \
+    T value; \
+}
+
 using status_code = uint16_t;
 
 extern std::string default_mime_type;
