@@ -6,6 +6,12 @@
 
 #include "server_impl.h"
 
+//TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
+#define LOG(mesg) if (logger_callback_) \
+{ \
+    logger_callback_(mesg); \
+}
+
 namespace luna
 {
 
@@ -82,25 +88,33 @@ server::server_impl::server_impl() :
 void server::server_impl::start()
 {
     //TODO not super happy that this has to come outside the constructor.
-    //TODO NEED TO SET UP MORE OPTIONS!!!!!!!!!
     // Would strongly prefer if the wrapper constructor could just forward all its varargs to this constructor
+
+    MHD_OptionItem options[options_.size() + 1];
+    uint16_t idx = 0;
+    for (const auto &opt : options_)
+    {
+        options[idx++] = opt; //copy it in, whee.
+    }
+    options[idx] = {MHD_OPTION_END, 0, nullptr};
+
     daemon_ = MHD_start_daemon(MHD_USE_POLL_INTERNALLY,
                                port_,
                                access_policy_callback_shim_,
                                this,
                                access_handler_callback_shim_,
                                this,
-                               MHD_OPTION_THREAD_POOL_SIZE,
-                               10, //use 10 threads
+                               MHD_OPTION_ARRAY,
+                               options,
                                MHD_OPTION_END);
 
-    //TODO check if daemon_ is null. It should not be null.
     if (!daemon_)
     {
-        std::cout << "Daemon failed to start" << std::endl;
+        LOG("Daemon failed to start"); //TODO set some real error flags perhaps?
+        return;
     }
-    //TODO better logging facilities than cout
-    std::cout << "New server on port " << port_ << std::endl;
+
+    LOG("New server on port " + std::to_string(port_));
 }
 
 bool server::server_impl::is_running()
@@ -171,12 +185,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         if (std::regex_match(url_str, pieces_match, path_regex))
         {
             std::vector<std::string> matches;
-            std::cout << "match: " << url << '\n';
+            LOG(std::string{"match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
                 std::ssub_match sub_match = pieces_match[i];
                 std::string piece = sub_match.str();
-                std::cout << "  submatch " << i << ": " << piece << '\n';
+                LOG(std::string{"  submatch "} + std::to_string(i) + ": " + piece);
                 matches.emplace_back(sub_match.str());
             }
 
@@ -449,8 +463,9 @@ void server::server_impl::set_option(server::logger_cb value)
 {
     logger_callback_ = value;
 
-    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t)&logger_callback_shim_, this}); //YES this must be a C-style cast to work.
-    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, (intptr_t)&uri_logger_callback_shim_, this});
+    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t) &logger_callback_shim_,
+                        this}); //YES this must be a C-style cast to work.
+    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, (intptr_t) &uri_logger_callback_shim_, this});
 }
 
 void server::server_impl::set_option(server::thread_pool_size value)
@@ -461,7 +476,7 @@ void server::server_impl::set_option(server::thread_pool_size value)
 void server::server_impl::set_option(server::unescaper_cb value)
 {
     unescaper_callback_ = value;
-    options_.push_back({MHD_OPTION_UNESCAPE_CALLBACK, (intptr_t)&unescaper_callback_shim_, this});
+    options_.push_back({MHD_OPTION_UNESCAPE_CALLBACK, (intptr_t) &unescaper_callback_shim_, this});
 }
 
 //void server::server_impl::set_option(server::digest_auth_random value)
