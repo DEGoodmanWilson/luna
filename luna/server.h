@@ -28,7 +28,7 @@ public:
 
     MAKE_STRING_LIKE(mime_type);
 
-    using access_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
+    using accept_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
 
 
     using endpoint_handler_cb = std::function<status_code(std::vector<std::string> matches,
@@ -39,19 +39,25 @@ public:
                                                     request_method method,
                                                     const std::string &path)>;
     // MHD config options
+
+    using logger_cb = std::function<void(const std::string& message)>;
+
+    using unescaper_cb = std::function<std::string(std::string)>;
+
+    //TODO just not going to try to support these two for now
+    //TODO MHD_OPTION_HTTPS_CERT_CALLBACK cbshim_
+    //    using notify_connection_cb = std::function<void(struct MHD_Connection *connection, void **socket_context, enum MHD_ConnectionNotificationCode toe)>;
+
+
     MAKE_INT_LIKE(size_t, connection_memory_limit);
 
     MAKE_INT_LIKE(unsigned int, connection_limit);
 
     MAKE_INT_LIKE(unsigned int, connection_timeout);
 
-    using notify_completed_handler_cb = std::function<>; //TODO
-
     MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
 
-//    MAKE_INT_LIKE(unsigned int, sock_addr); //TODO struct sockaddr *
-
-//    MAKE_INT_LIKE(unsigned int, uri_log_callback); //void * my_logger(void *cls, const char *uri, struct MHD_Connection *con) TODO do this one like the callbacks above
+    // struct sockaddr * is a configuration option here! Just letting you know.
 
     MAKE_STRING_LIKE(https_mem_key);
 
@@ -63,13 +69,9 @@ public:
 
     MAKE_INT_LIKE(int, listen_socket);
 
-//    MAKE_INT_LIKE(unsigned int, external_logger); //TODO another two-parameter beast. We need to redefine this one pretty good
-
     MAKE_INT_LIKE(unsigned int, thread_pool_size);
 
-//    MAKE_INT_LIKE(unsigned int, unescape_callback); //TODO callback
-
-//    MAKE_INT_LIKE(unsigned int, digest_auth_random); //TODO two args, size_t and a pointer that gets dealloc'd later. Make it a unique_ptr
+//    MAKE_INT_LIKE(unsigned int, digest_auth_random); //TODO unsure how best to support this one
 
     MAKE_INT_LIKE(unsigned int, nonce_nc_size);
 
@@ -79,8 +81,6 @@ public:
 
     MAKE_INT_LIKE(size_t, connection_memory_increment);
 
-//    MAKE_INT_LIKE(unsigned int, https_cert_callback); //ugh a callback of gnutls_certificate_retrieve_function2 *
-
     MAKE_INT_LIKE(unsigned int, tcp_fastopen_queue_size);
 
     MAKE_STRING_LIKE(https_mem_dhparams);
@@ -88,8 +88,6 @@ public:
     MAKE_INT_LIKE(unsigned int, listening_address_reuse);
 
     MAKE_STRING_LIKE(https_key_password);
-
-//    MAKE_INT_LIKE(unsigned int, notify_connection); //Anohter callback with a void* closure
 
 
     template<typename ...Os>
@@ -152,9 +150,9 @@ private:
 
     void set_option_(server::port port);
 
-    void set_option_(access_policy_cb handler);
+    void set_option_(accept_policy_cb handler);
 
-    //MHD options TODO not all of these are ints
+    //MHD options
     void set_option_(connection_memory_limit value);
 
     void set_option_(connection_limit value);
@@ -167,25 +165,23 @@ private:
 
     void set_option_(const sockaddr *value);
 
-//    void set_option_(uri_log_callback value);
+    void set_option_(logger_cb value);
 
     void set_option_(https_mem_key value);
 
     void set_option_(https_mem_cert value);
 
-//    void set_option_(https_cred_type value);
+//    void set_option_(https_cred_type value); //TODO later
 
     void set_option_(https_priorities value);
 
     void set_option_(listen_socket value);
 
-//    void set_option_(external_logger value);
-
     void set_option_(thread_pool_size value);
 
-//    void set_option_(unescape_callback value);
+    void set_option_(unescaper_cb value);
 
-//    void set_option_(digest_auth_random value);
+//    void set_option_(digest_auth_random value); //TODO later
 
     void set_option_(nonce_nc_size value);
 
@@ -195,7 +191,7 @@ private:
 
     void set_option_(connection_memory_increment value);
 
-//    void set_option_(https_cert_callback value);
+//    void set_option_(https_cert_callback value); //TODO later
 
     void set_option_(tcp_fastopen_queue_size value);
 
@@ -205,7 +201,7 @@ private:
 
     void set_option_(const https_key_password &svalue);
 
-//    void set_option_(notify_connection value);
+//    void set_option_(notify_connection value); //TODO later
 
 };
 

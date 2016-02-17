@@ -50,7 +50,7 @@ void server::set_option_(port port)
     impl_->set_option(port);
 }
 
-void server::set_option_(access_policy_cb handler)
+void server::set_option_(accept_policy_cb handler)
 {
     impl_->set_option(handler);
 }
@@ -70,11 +70,6 @@ void server::set_option_(connection_timeout value)
     impl_->set_option(value);
 }
 
-//void server::set_option_(notify_completed value)
-//{
-//    impl_->set_option(value);
-//}
-
 void server::set_option_(per_ip_connection_limit value)
 {
     impl_->set_option(value);
@@ -84,11 +79,6 @@ void server::set_option_(const sockaddr *value)
 {
     impl_->set_option(value);
 }
-
-//void server::set_option_(uri_log_callback value)
-//{
-//    impl_->set_option(value);
-//}
 
 void server::set_option_(https_mem_key value)
 {
@@ -115,25 +105,20 @@ void server::set_option_(listen_socket value)
     impl_->set_option(value);
 }
 
-//void server::set_option_(external_logger value)
-//{
-//    impl_->set_option(value);
-//}
+void server::set_option_(logger_cb value)
+{
+    impl_->set_option(value);
+}
 
 void server::set_option_(thread_pool_size value)
 {
     impl_->set_option(value);
 }
 
-//void server::set_option_(array value)
-//{
-//    impl_->set_option(value);
-//}
-
-//void server::set_option_(unescape_callback value)
-//{
-//    impl_->set_option(value);
-//}
+void server::set_option_(unescaper_cb value)
+{
+    impl_->set_option(value);
+}
 
 //void server::set_option_(digest_auth_random value)
 //{

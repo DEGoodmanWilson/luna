@@ -5,12 +5,33 @@
 //
 
 #include "server_impl.h"
-#include <stdarg.h>
 
 namespace luna
 {
 
 std::string default_mime_type{"text/html"};
+
+static const server::error_handler_cb default_error_handler_callback_ = [](uint16_t error_code,
+                                                                           request_method method,
+                                                                           const std::string &path) -> response
+    {
+        std::string content_type{"text/html"};
+        //we'd best render it ourselves.
+        switch (error_code)
+        {
+            case 404:
+                return {content_type, "<h1>Not found</h1>"};
+            default:
+                return {content_type, "<h1>So sorry, generic server error</h1>"};
+        }
+
+    };
+
+static const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
+                                                                           socklen_t len) -> bool
+    {
+        return true;
+    };
 
 static const bool is_error_(status_code code)
 {
@@ -52,7 +73,9 @@ request_method method_str_to_enum(const char *method_str)
 
 
 server::server_impl::server_impl() :
-        error_handler_{default_error_handler_}, access_policy_handler_{default_access_policy_handler_}, daemon_{}
+        daemon_{},
+        error_handler_callback_{default_error_handler_callback_},
+        accept_policy_callback_{default_accept_policy_callback_}
 { }
 
 
@@ -108,7 +131,7 @@ void server::server_impl::handle_response(request_method method,
 }
 
 
-int server::server_impl::parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
     auto kv = static_cast<query_params *>(cls);
     kv->operator[](key) = value;
@@ -210,13 +233,22 @@ int server::server_impl::render_error_(uint16_t error_code,
 {
     struct MHD_Response *response;
     /* unsupported HTTP method */
-    auto error_page = error_handler_(error_code, method, url);
+    auto error_page = error_handler_callback_(error_code, method, url);
 
     return render_response_(error_code, error_page, connection, url, method);
 }
 
 
+
+
 /////////// callback shims
+
+void server::server_impl::request_completed_callback_(struct MHD_Connection *connection,
+                                                      void **con_cls,
+                                                      enum MHD_RequestTerminationCode toe)
+{
+    //TODO
+}
 
 int server::server_impl::access_handler_callback_shim_(void *cls,
                                                        struct MHD_Connection *connection,
@@ -243,7 +275,7 @@ int server::server_impl::access_policy_callback_shim_(void *cls, const struct so
 {
     if (!cls) return MHD_NO;
 
-    return static_cast<server_impl *>(cls)->access_policy_handler_(addr, addrlen);
+    return static_cast<server_impl *>(cls)->accept_policy_callback_(addr, addrlen);
 }
 
 
@@ -251,19 +283,19 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
                                                            void **con_cls,
                                                            enum MHD_RequestTerminationCode toe)
 {
-    auto this = static_cast<server_impl*>(cls);
-    if(this && this->request_completed_callback_)
+    auto this_ptr = static_cast<server_impl *>(cls);
+    if (this_ptr)
     {
-        return this->request_completed_callback_(connection, cons_cls, toe);
+        return this_ptr->request_completed_callback_(connection, con_cls, toe);
     }
 }
 
 void server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
 {
-    auto this = static_cast<server_impl*>(cls);
-    if(this && this->logger_callback_)
+    auto this_ptr = static_cast<server_impl *>(cls);
+    if (this_ptr && this_ptr->logger_callback_)
     {
-        return this->logger_callback_(uri); //TODO and stuff about the connection too!
+        return this_ptr->logger_callback_(uri); //TODO and stuff about the connection too!
     }
 }
 
@@ -277,9 +309,7 @@ std::string string_format(const std::string fmt_str, va_list ap)
     {
         formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
         strcpy(&formatted[0], fmt_str.c_str());
-        va_start(ap, fmt_str);
         final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
-        va_end(ap);
         if (final_n < 0 || final_n >= n)
         {
             n += abs(final_n - n + 1);
@@ -294,33 +324,38 @@ std::string string_format(const std::string fmt_str, va_list ap)
 
 void server::server_impl::logger_callback_shim_(void *cls, const char *fm, va_list ap)
 {
-    auto this = static_cast<server_impl*>(cls);
-    if(this && this->logger_callback_)
+    auto this_ptr = static_cast<server_impl *>(cls);
+    if (this_ptr && this_ptr->logger_callback_)
     {
-        return this->logger_callback_(string_format(fm, ap));
+        return this_ptr->logger_callback_(string_format(fm, ap));
     }
 }
 
 size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s)
 {
-    auto this = static_cast<server_impl*>(cls);
-    if(this && this->unescaper_callback_)
+    auto this_ptr = static_cast<server_impl *>(cls);
+    if (this_ptr && this_ptr->unescaper_callback_)
     {
-        return this->unescaper_callback_(c, s);
+        auto result = this_ptr->unescaper_callback_(s);
+        auto old_len = strlen(s);
+        memcpy(s, result.c_str(), old_len);
+        return (old_len > result.length()) ? result.length() : old_len;
     }
+
+    return strlen(s); //no change
 }
 
-void server::server_impl::notify_connection_callback_shim_(void *cls,
-                                                           struct MHD_Connection *connection,
-                                                           void **socket_context,
-                                                           enum MHD_ConnectionNotificationCode toe)
-{
-    auto this = static_cast<server_impl*>(cls);
-    if(this && this->notify_connection_callback_)
-    {
-        return this->notify_connection_callback_(connection, socket_context, toe);
-    }
-}
+//void server::server_impl::notify_connection_callback_shim_(void *cls,
+//                                                           struct MHD_Connection *connection,
+//                                                           void **socket_context,
+//                                                           enum MHD_ConnectionNotificationCode toe)
+//{
+//    auto this_ptr = static_cast<server_impl *>(cls);
+//    if (this_ptr && this_ptr->notify_connection_callback_)
+//    {
+//        return this_ptr->notify_connection_callback_(connection, socket_context, toe);
+//    }
+//}
 
 
 
@@ -333,7 +368,7 @@ void server::server_impl::set_option(const server::mime_type &mime_type)
 
 void server::server_impl::set_option(server::error_handler_cb handler)
 {
-    error_handler_ = handler;
+    error_handler_callback_ = handler;
 }
 
 void server::server_impl::set_option(server::port port)
@@ -341,9 +376,9 @@ void server::server_impl::set_option(server::port port)
     port_ = port;
 }
 
-void server::server_impl::set_option(server::access_policy_cb handler)
+void server::server_impl::set_option(server::accept_policy_cb value)
 {
-    access_policy_handler_ = handler;
+    accept_policy_callback_ = value;
 }
 
 void server::server_impl::set_option(server::connection_memory_limit value)
@@ -376,7 +411,7 @@ void server::server_impl::set_option(const sockaddr *value)
 {
     //why are we casting away the constness? Because MHD isn'T going to modify this, and I want the caller
     // to be assured of this fact.
-    options_.push_back({MHD_OPTION_SOCK_ADDR, 0, const_cast<sockaddr*>(value)});
+    options_.push_back({MHD_OPTION_SOCK_ADDR, 0, const_cast<sockaddr *>(value)});
 }
 
 //void server::server_impl::set_option(server::uri_log_callback value)
@@ -384,15 +419,15 @@ void server::server_impl::set_option(const sockaddr *value)
 //    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, value, NULL});
 //}
 
-void server::server_impl::set_option(const server::https_mem_key& value)
+void server::server_impl::set_option(const server::https_mem_key &value)
 {
     //TODO this feel very dodgy to me. But I can't quite put my finger on the case where this pointer becomes prematurely invalid
-    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(value.c_str())});
 }
 
-void server::server_impl::set_option(const server::https_mem_cert& value)
+void server::server_impl::set_option(const server::https_mem_cert &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(value.c_str())});
 }
 
 //void server::server_impl::set_option(server::https_cred_type value)
@@ -400,9 +435,9 @@ void server::server_impl::set_option(const server::https_mem_cert& value)
 //    //TODO
 //}
 
-void server::server_impl::set_option(const server::https_priorities& value)
+void server::server_impl::set_option(const server::https_priorities &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(value.c_str())});
 }
 
 void server::server_impl::set_option(server::listen_socket value)
@@ -410,20 +445,24 @@ void server::server_impl::set_option(server::listen_socket value)
     options_.push_back({MHD_OPTION_LISTEN_SOCKET, value, NULL});
 }
 
-//void server::server_impl::set_option(server::external_logger value)
-//{
-//    //TODO
-//}
+void server::server_impl::set_option(server::logger_cb value)
+{
+    logger_callback_ = value;
+
+    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t)&logger_callback_shim_, this}); //YES this must be a C-style cast to work.
+    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, (intptr_t)&uri_logger_callback_shim_, this});
+}
 
 void server::server_impl::set_option(server::thread_pool_size value)
 {
     options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, value, NULL});
 }
 
-//void server::server_impl::set_option(server::unescape_callback value)
-//{
-//    //TODO
-//}
+void server::server_impl::set_option(server::unescaper_cb value)
+{
+    unescaper_callback_ = value;
+    options_.push_back({MHD_OPTION_UNESCAPE_CALLBACK, (intptr_t)&unescaper_callback_shim_, this});
+}
 
 //void server::server_impl::set_option(server::digest_auth_random value)
 //{
@@ -442,7 +481,7 @@ void server::server_impl::set_option(server::thread_stack_size value)
 
 void server::server_impl::set_option(const server::https_mem_trust &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(value.c_str())});
 }
 
 void server::server_impl::set_option(server::connection_memory_increment value)
@@ -462,7 +501,7 @@ void server::server_impl::set_option(server::tcp_fastopen_queue_size value)
 
 void server::server_impl::set_option(const server::https_mem_dhparams &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(value.c_str())});
 }
 
 void server::server_impl::set_option(server::listening_address_reuse value)
@@ -472,7 +511,7 @@ void server::server_impl::set_option(server::listening_address_reuse value)
 
 void server::server_impl::set_option(const server::https_key_password &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char*>(value.c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(value.c_str())});
 }
 
 //void server::server_impl::set_option(server::notify_connection value)

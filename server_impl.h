@@ -21,27 +21,7 @@ const auto PUT = "PUT";
 const auto PATCH = "PATCH";
 const auto DELETE = "DELETE";
 
-static const server::error_handler_cb default_error_handler_ = [](uint16_t error_code,
-                                                                  request_method method,
-                                                                  const std::string &path) -> response
-    {
-        std::string content_type{"text/html"};
-        //we'd best render it ourselves.
-        switch (error_code)
-        {
-            case 404:
-                return {content_type, "<h1>Not found</h1>"};
-            default:
-                return {content_type, "<h1>So sorry, generic server error</h1>"};
-        }
 
-    };
-
-static const server::access_policy_cb default_access_policy_handler_ = [](const struct sockaddr *addr,
-                                                                          socklen_t len) -> bool
-    {
-        return true;
-    };
 
 class server::server_impl
 {
@@ -65,7 +45,7 @@ public:
 
     void set_option(server::port port);
 
-    void set_option(access_policy_cb handler);
+    void set_option(accept_policy_cb handler);
 
     // MHD specific options
 
@@ -81,8 +61,6 @@ public:
 
     void set_option(const sockaddr *value);
 
-//    void set_option(uri_log_callback value);
-
     void set_option(const https_mem_key &value);
 
     void set_option(const https_mem_cert &value);
@@ -93,11 +71,11 @@ public:
 
     void set_option(listen_socket value);
 
-//    void set_option(external_logger value);
+    void set_option(logger_cb value);
 
     void set_option(thread_pool_size value);
 
-//    void set_option(unescape_callback value);
+    void set_option(unescaper_cb value);
 
 //    void set_option(digest_auth_random value);
 
@@ -125,17 +103,16 @@ private:
     std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>> response_handlers_;
 
     uint16_t port_;
-    error_handler_cb error_handler_;
-    access_policy_cb access_policy_handler_;
 
 
-    std::vector<std::string> options_string_cache_;
+    //options
     std::vector<MHD_OptionItem> options_;
 
     struct MHD_Daemon *daemon_;
 
 
-    static int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value);
+
+    ///// internal use-only callbacks
 
     int access_handler_callback_(struct MHD_Connection *connection,
                                  const char *url,
@@ -145,6 +122,22 @@ private:
                                  size_t *upload_data_size,
                                  void **con_cls);
 
+    void request_completed_callback_ (struct MHD_Connection *connection, void **con_cls, enum MHD_RequestTerminationCode toe);
+
+
+
+    ////// external-use callbacks that can be set with options
+
+    error_handler_cb error_handler_callback_; //has a default value
+
+    accept_policy_cb accept_policy_callback_; //has a default value
+
+    logger_cb logger_callback_;
+
+    unescaper_cb unescaper_callback_;
+
+
+    ///// callback shims
 
     static int access_policy_callback_shim_(void *cls,
                                             const struct sockaddr *addr,
@@ -172,14 +165,16 @@ private:
 
     //TODO MHD_OPTION_HTTPS_CERT_CALLBACK callback_shim_
 
-    static void notify_connection_callback_shim_(void *cls,
-                                                 struct MHD_Connection *connection,
-                                                 void **socket_context,
-                                                 enum MHD_ConnectionNotificationCode toe);
+    //TODO I don't know what to do with this one yet.
+//    static void notify_connection_callback_shim_(void *cls,
+//                                                 struct MHD_Connection *connection,
+//                                                 void **socket_context,
+//                                                 enum MHD_ConnectionNotificationCode toe);
 
 
 
 
+    ///// helpers
 
     int render_response_(status_code status_code,
                          response resp,
