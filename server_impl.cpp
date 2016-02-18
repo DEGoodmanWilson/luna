@@ -1,7 +1,7 @@
 //
 // luna
 //
-// Copyright © 2016, D.E. Goodman-Wilson
+// Copyright © 2016 D.E. Goodman-Wilson
 //
 
 #include "server_impl.h"
@@ -79,7 +79,7 @@ request_method method_str_to_enum(const char *method_str)
 
 
 server::server_impl::server_impl() :
-        daemon_{},
+        daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_}
 { }
@@ -119,7 +119,7 @@ void server::server_impl::start()
 
 bool server::server_impl::is_running()
 {
-    return (!!daemon_);
+    return (daemon_ != nullptr);
 }
 
 void server::server_impl::stop()

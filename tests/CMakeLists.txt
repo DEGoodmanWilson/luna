@@ -8,6 +8,18 @@ cmake_minimum_required(VERSION 3.3)
 
 include(ExternalProject)
 
+set(LIBPREFIX "${CMAKE_STATIC_LIBRARY_PREFIX}")
+set(LIBSUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+### CPR
+
+set(BUILD_CPR_TESTS NO CACHE BOOL "Set to ON to build cpr tests." FORCE)
+set(USE_SYSTEM_CURL YES CACHE BOOL "If ON, this project will look in the system paths for an installed curl library" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/cpr)
+message(STATUS "BUILD_CPR_TESTS: ${BUILD_CPR_TESTS}")
+
+### GTest
+
 set(GTEST_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/tests/gtest")
 ExternalProject_Add(GTestExternal
         #        SVN_REPOSITORY http://googletest.googlecode.com/svn/trunk
@@ -20,8 +32,7 @@ ExternalProject_Add(GTestExternal
         LOG_CONFIGURE ON
         LOG_BUILD ON)
 
-set(LIBPREFIX "${CMAKE_STATIC_LIBRARY_PREFIX}")
-set(LIBSUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
 set(GTEST_LOCATION "${GTEST_PREFIX}/src/GTestExternal-build")
 set(GTEST_INCLUDES "${GTEST_PREFIX}/src/GTestExternal/include")
 set(GTEST_LIBRARY "${GTEST_LOCATION}/${LIBPREFIX}gtest${LIBSUFFIX}")
@@ -42,14 +53,17 @@ set_target_properties(GTestMain PROPERTIES
 add_dependencies(GTest GTestMain)
 
 
-add_executable(luna_tests main.cpp)
+######
 
-add_dependencies(luna_tests GTestExternal luna)
+add_executable(luna_tests main.cpp basic_functioning.cpp)
+
+add_dependencies(luna_tests cpr GTestExternal luna)
 
 target_include_directories(luna_tests SYSTEM
+        PUBLIC ${CPR_INCLUDE_DIRS}
         PUBLIC ${GTEST_INCLUDES}
         PUBLIC ${LIB_LUNA_INCLUDE_DIRS}
         )
 
-target_link_libraries(luna_tests GTestMain luna
+target_link_libraries(luna_tests cpr GTestMain luna
         )
