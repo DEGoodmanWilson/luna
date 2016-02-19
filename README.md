@@ -37,3 +37,8 @@ A C++ wrapper for libmicrohttpd
     
         while (server); //idle while the server is running. Maybe not the best way? //TODO how to signal to server to die
     }
+
+## TODO
+  * Maybe make a CPM
+  * fix coverage testing
+  * docs docs docs
