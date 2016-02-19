@@ -31,13 +31,12 @@ public:
     using accept_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
 
 
-    using endpoint_handler_cb = std::function<status_code(std::vector<std::string> matches,
-                                                          query_params params,
-                                                          response &body_out)>;
+    using endpoint_handler_cb = std::function<response(std::vector<std::string> matches,
+                                                       query_params params)>;
 
-    using error_handler_cb = std::function<response(uint16_t error_code,
-                                                    request_method method,
-                                                    const std::string &path)>;
+    using error_handler_cb = std::function<void(response &response, //a hook for modifying in place to insert default content
+                                                request_method method,
+                                                const std::string &path)>;
     // MHD config options
 
     using logger_cb = std::function<void(const std::string& message)>;

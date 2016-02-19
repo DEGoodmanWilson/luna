@@ -17,31 +17,41 @@ namespace luna
 
 std::string default_mime_type{"text/html"};
 
-static const server::error_handler_cb default_error_handler_callback_ = [](uint16_t error_code,
+static const server::error_handler_cb default_error_handler_callback_ = [](response& response,
                                                                            request_method method,
-                                                                           const std::string &path) -> response
+                                                                           const std::string &path)
+{
+    if(response.content.empty())
     {
-        std::string content_type{"text/html"};
+        response.content_type = "text/html";
         //we'd best render it ourselves.
-        switch (error_code)
+        switch (response.status_code)
         {
             case 404:
-                return {content_type, "<h1>Not found</h1>"};
+                response.content = "<h1>Not found</h1>";
+                break;
             default:
-                return {content_type, "<h1>So sorry, generic server error</h1>"};
+                response.content = "<h1>So sorry, generic server error</h1>";
         }
-
-    };
+    }
+};
 
 static const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
-    {
-        return true;
-    };
-
-static const bool is_error_(status_code code)
 {
-    if ((code >= 200) && (code < 300)) return false;
+    return true;
+};
+
+static status_code default_success_code_(request_method method)
+{
+    if(method == request_method::POST) return 201;
+
+    return 200;
+}
+
+static bool is_error_(status_code code)
+{
+    if (code < 300) return false;
 
     return true;
 }
@@ -195,34 +205,42 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             }
 
             response response;
-            status_code status_code;
             try
             {
-                status_code = callback(matches, query_params, response);
+                response = callback(matches, query_params);
             }
             catch (const std::exception &e)
             {
-                status_code = 500;
+                response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
 
-            if (is_error_(status_code))
+            if(response.status_code == 0) //no status code was provided, find the default for this method
             {
-                return render_error_(status_code, connection, url, method);
+                response.status_code = default_success_code_(method);
             }
 
-            //terminate on first success
-            return render_response_(status_code, response, connection, url, method);
+            if(response.content_type.empty()) //no content type assigned, use the default
+            {
+                response.content_type = default_mime_type;
+            }
+
+            if (is_error_(response.status_code))
+            {
+                return render_error_(response, connection, url, method);
+            }
+
+            //else render success
+            return render_response_(response, connection, url, method);
         }
     }
 
     /* unsupported HTTP method */
-    return render_error_(404, connection, url, method);
+    return render_error_({404}, connection, url, method);
 }
 
 
-int server::server_impl::render_response_(status_code status_code,
-                                          response response,
+int server::server_impl::render_response_(const response &response,
                                           MHD_Connection *connection,
                                           const char *url,
                                           request_method method) const
@@ -231,7 +249,7 @@ int server::server_impl::render_response_(status_code status_code,
                                                         (void *) response.content.c_str(),
                                                         MHD_RESPMEM_MUST_COPY);
     auto ret = MHD_queue_response(connection,
-                                  status_code,
+                                  response.status_code,
                                   mhd_response);
     MHD_add_response_header(mhd_response,
                             MHD_HTTP_HEADER_CONTENT_ENCODING,
@@ -240,18 +258,30 @@ int server::server_impl::render_response_(status_code status_code,
     return ret;
 }
 
-int server::server_impl::render_error_(uint16_t error_code,
+int server::server_impl::render_error_(response& response,
                                        MHD_Connection *connection,
                                        const char *url,
                                        request_method method) const
 {
-    struct MHD_Response *response;
+    struct MHD_Response *mhd_response;
     /* unsupported HTTP method */
-    auto error_page = error_handler_callback_(error_code, method, url);
+    error_handler_callback_(response, method, url); //hook for modifying response
 
-    return render_response_(error_code, error_page, connection, url, method);
+    return render_response_(response, connection, url, method);
 }
 
+int server::server_impl::render_error_(response&& response_r,
+                                       MHD_Connection *connection,
+                                       const char *url,
+                                       request_method method) const
+{
+    auto response = std::move(response_r);
+    struct MHD_Response *mhd_response;
+    /* unsupported HTTP method */
+    error_handler_callback_(response, method, url); //hook for modifying response
+
+    return render_response_(response, connection, url, method);
+}
 
 
 

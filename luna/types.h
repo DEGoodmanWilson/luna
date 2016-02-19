@@ -83,12 +83,18 @@ extern std::string default_mime_type;
 
 struct response
 {
+    status_code status_code;
     std::string content_type;
     std::string content;
 
     response() = default;
-    response(std::string content_type, std::string content) : content_type{content_type}, content{content} {}
+    // explicit status code responses
+    response(::luna::status_code status_code) : status_code{status_code} {}
+    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content{content} {}
+    response(::luna::status_code status_code, std::string content_type, std::string content) : status_code{status_code}, content_type{content_type}, content{content} {}
+    // default success responses
     response(std::string content) : content_type{default_mime_type}, content{content} {}
+    response(std::string content_type, std::string content) : content_type{content_type}, content{content} {}
 };
 
 enum class request_method

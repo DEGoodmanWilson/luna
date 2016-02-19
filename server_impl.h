@@ -176,14 +176,10 @@ private:
 
     ///// helpers
 
-    int render_response_(status_code status_code,
-                         response resp,
-                         MHD_Connection *connection,
-                         const char *url,
-                         request_method method) const;
+    int render_response_(const response &response, MHD_Connection *connection, const char *url, request_method method) const;
 
-    int render_error_(uint16_t error_cpde, MHD_Connection *connection, const char *url, request_method method) const;
-
+    int render_error_(response &response, MHD_Connection *connection, const char *url, request_method method) const;
+    int render_error_(response &&response, MHD_Connection *connection, const char *url, request_method method) const;
 };
 
 } //namespace luna

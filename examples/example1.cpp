@@ -7,12 +7,7 @@ using namespace luna;
 int main(void)
 {
     server server{server::mime_type{"text/json"}, server::port{8443},
-                  [](uint16_t error_code,
-                     request_method method,
-                     const std::string &path) -> response
-                      {
-                          return {"<h1>Oh, that's a problem</h1>"};
-                      },
+                  //custom logger
                   [](const std::string mesg)
                       {
                           std::cout << mesg << std::endl;
@@ -21,19 +16,17 @@ int main(void)
 
     server.handle_response(request_method::GET,
                            "/ohyeah",
-                           [](std::vector<std::string> matches, query_params params, response &response) -> status_code
+                           [](std::vector<std::string> matches, query_params params) -> response
                                {
-                                   response = {"{\"koolade\": true}"};
-                                   return 200;
+                                   return {"{\"koolade\": true}"};
                                });
 
     server.handle_response(request_method::GET,
                            "^/documents/(i[0-9a-f]{6})",
-                           [](std::vector<std::string> matches, query_params params, response &response) -> status_code
+                           [](std::vector<std::string> matches, query_params params) -> response
                                {
                                    auto document_id = matches[1];
-                                   response = {"text/html", "<h1>Serving up document " + document_id + "</h1>"};
-                                   return 200;
+                                   return {"text/html", "<h1>Serving up document " + document_id + "</h1>"};
                                });
 
     while (server); //idle while the server is running. Maybe not the best way? //TODO how to signal to server to die
