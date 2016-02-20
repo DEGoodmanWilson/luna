@@ -14,24 +14,20 @@ option(BUILD_LUNA_EXAMPLES "Build the example server" ON)
 if(BUILD_LUNA_TESTS)
     set(CMAKE_BUILD_TYPE COVERAGE CACHE INTERNAL "Coverage enabled build")
     message(STATUS "Enabling gcov support")
-    message(STATUS ${CMAKE_CXX_COMPILER_ID})
-    if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-        set(COVERAGE_FLAG "--coverage")
-    endif()
     set(CMAKE_CXX_FLAGS_COVERAGE
-            "-g -O0 ${COVERAGE_FLAG} -fprofile-arcs -ftest-coverage"
+            "-g -O0 -fprofile-arcs -ftest-coverage"
             CACHE STRING "Flags used by the C++ compiler during coverage builds."
             FORCE)
     set(CMAKE_C_FLAGS_COVERAGE
-            "-g -O0 ${COVERAGE_FLAG} -fprofile-arcs -ftest-coverage"
+            "-g -O0 -fprofile-arcs -ftest-coverage"
             CACHE STRING "Flags used by the C compiler during coverage builds."
             FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_COVERAGE
-            ""
+            "-fprofile-arcs -ftest-coverage"
             CACHE STRING "Flags used for linking binaries during coverage builds."
             FORCE)
     set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE
-            ""
+            "-fprofile-arcs -ftest-coverage"
             CACHE STRING "Flags used by the shared libraries linker during coverage builds."
             FORCE)
     mark_as_advanced(
