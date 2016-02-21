@@ -50,8 +50,8 @@ set(LIB_LUNA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR})
 # luna
 set(LIB_LUNA_SOURCE_FILES luna/types.h server.cpp luna/server.h server_impl.cpp server_impl.h)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-target_include_directories(luna PRIVATE luna)
-target_include_directories(luna SYSTEM PRIVATE ${LIB_LUNA_INCLUDE_DIRS})
+include_directories(PRIVATE luna)
+include_directories(SYSTEM PRIVATE ${LIB_LUNA_INCLUDE_DIRS})
 target_link_libraries(luna microhttpd)
 
 
@@ -65,6 +65,6 @@ endif ()
 if (BUILD_LUNA_EXAMPLES)
     set(EXAMPLE_SOURCE_FILES examples/example1.cpp)
     add_executable(example1 ${EXAMPLE_SOURCE_FILES})
-    target_include_directories(example1 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
+    include_directories(SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
     target_link_libraries(example1 luna)
 endif ()
