@@ -7,6 +7,8 @@ compiler: clang
 # gcc 4.9 default
 addons: &addons
   apt:
+    sources:
+      - george-edison55-precise-backports
     packages: &packages
       - cmake-3.2.2
       - g++-4.9
@@ -113,9 +115,6 @@ matrix:
     - env: COMPILER=g++-4.6 CCOMPILER=gcc-4.6
     - env: COMPILER=g++-5.2 CCOMPILER=gcc-5.2
     - env: COMPILER=clang++ CCOMPILER=clang LINUX_CLANG=1
-
-before_install:
-  - sudo add-apt-repository ppa:george-edison55/cmake-3.x
 
 #install:
 #  - if [ "$GENERATE_COVERAGE" == "ON" ]; then pip install --user git+git://github.com/eddyxu/cpp-coveralls.git; fi
