@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.2)
 
 #
 #if (APPLE)
@@ -59,7 +59,7 @@ add_executable(luna_tests main.cpp basic_functioning.cpp)
 
 add_dependencies(luna_tests cpr GTestExternal luna)
 
-include_directories(SYSTEM
+target_include_directories(luna_tests SYSTEM
         PUBLIC ${CPR_INCLUDE_DIRS}
         PUBLIC ${GTEST_INCLUDES}
         PUBLIC ${LIB_LUNA_INCLUDE_DIRS}
