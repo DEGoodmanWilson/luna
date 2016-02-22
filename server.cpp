@@ -31,6 +31,12 @@ server::~server()
 
 }
 
+
+server::port server::get_port()
+{
+    return impl_->get_port();
+}
+
 void server::server_impl_deleter::operator()(server::server_impl *ptr) const
 { delete ptr; }
 

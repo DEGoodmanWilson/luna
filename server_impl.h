@@ -37,13 +37,15 @@ public:
 
     void stop();
 
+    server::port get_port();
+
     void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
     void set_option(const mime_type &mime_type);
 
     void set_option(error_handler_cb handler);
 
-    void set_option(server::port port);
+    void set_option(class port port);
 
     void set_option(accept_policy_cb handler);
 

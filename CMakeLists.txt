@@ -6,12 +6,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 ##### Options
 option(BUILD_SHARED_LIBS "Build the library as a dynamic object" OFF)
 option(BUILD_LUNA_TESTS "Build the test suite" ON)
+option(BUILD_LUNA_COVERAGE "Generate test coverage information" OFF)
 option(BUILD_LUNA_EXAMPLES "Build the example server" ON)
 
 
 
 #AND GENERATE_COVERAGE)
-if(BUILD_LUNA_TESTS)
+if(BUILD_LUNA_TESTS AND BUILD_LUNA_COVERAGE)
     set(CMAKE_BUILD_TYPE COVERAGE CACHE INTERNAL "Coverage enabled build")
     message(STATUS "Enabling gcov support")
     set(CMAKE_CXX_FLAGS_COVERAGE

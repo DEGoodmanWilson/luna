@@ -65,5 +65,4 @@ target_include_directories(luna_tests SYSTEM
         PUBLIC ${LIB_LUNA_INCLUDE_DIRS}
         )
 
-target_link_libraries(luna_tests cpr GTestMain luna
-        )
+target_link_libraries(luna_tests ${CPR_LIBRARIES} GTestMain luna)

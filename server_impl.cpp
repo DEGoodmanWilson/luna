@@ -141,6 +141,12 @@ void server::server_impl::stop()
     }
 }
 
+
+server::port server::server_impl::get_port()
+{
+    return port_;
+}
+
 server::server_impl::~server_impl()
 {
     stop();

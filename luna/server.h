@@ -89,6 +89,13 @@ public:
     MAKE_STRING_LIKE(https_key_password);
 
 
+    template
+    server()
+    {
+        initialize_();
+        start_();
+    }
+
     template<typename ...Os>
     server(Os &&...os)
     {
@@ -98,6 +105,8 @@ public:
     }
 
     ~server();
+
+    server::port get_port();
 
 
     template<typename T>
