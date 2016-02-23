@@ -190,7 +190,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
 //        std::cout << "Preliminaries" << std::endl;
 
-        connection_info_struct *con_info = new connection_info_struct();
+        connection_info_struct *con_info = new(std::nothrow) connection_info_struct();
         if (!con_info) return MHD_NO; //TODO
 
         con_info->connectiontype = method;
