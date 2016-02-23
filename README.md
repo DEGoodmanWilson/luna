@@ -31,6 +31,7 @@ A C++ wrapper for libmicrohttpd
     }
 
 ## TODO
+  * Fix the way POSTDATA is handled so that we have a default handler, and a more sophisticated handler. Not super happy with the current flow.
   * Maybe make a CPM
   * fix coverage testing
   * docs docs docs
