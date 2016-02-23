@@ -21,6 +21,13 @@ int main(void)
                                    return {"{\"koolade\": true}"};
                                });
 
+    server.handle_response(luna::request_method::POST,
+                           "/test",
+                           [](std::vector<std::string> matches, luna::query_params params) -> luna::response
+                               {
+                                   return {"hello"};
+                               });
+
     server.handle_response(request_method::GET,
                            "^/documents/(i[0-9a-f]{6})",
                            [](std::vector<std::string> matches, query_params params) -> response

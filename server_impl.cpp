@@ -4,6 +4,7 @@
 // Copyright © 2016 D.E. Goodman-Wilson
 //
 
+#include <netinet/tcp.h>
 #include "server_impl.h"
 
 //TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
@@ -15,36 +16,43 @@
 namespace luna
 {
 
+struct connection_info_struct
+{
+    request_method connectiontype;
+    query_params post_params;
+    MHD_PostProcessor *postprocessor;
+};
+
 std::string default_mime_type{"text/html"};
 
-static const server::error_handler_cb default_error_handler_callback_ = [](response& response,
+static const server::error_handler_cb default_error_handler_callback_ = [](response &response,
                                                                            request_method method,
                                                                            const std::string &path)
-{
-    if(response.content.empty())
     {
-        response.content_type = "text/html";
-        //we'd best render it ourselves.
-        switch (response.status_code)
+        if (response.content.empty())
         {
-            case 404:
-                response.content = "<h1>Not found</h1>";
-                break;
-            default:
-                response.content = "<h1>So sorry, generic server error</h1>";
+            response.content_type = "text/html";
+            //we'd best render it ourselves.
+            switch (response.status_code)
+            {
+                case 404:
+                    response.content = "<h1>Not found</h1>";
+                    break;
+                default:
+                    response.content = "<h1>So sorry, generic server error</h1>";
+            }
         }
-    }
-};
+    };
 
 static const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
-{
-    return true;
-};
+    {
+        return true;
+    };
 
 static status_code default_success_code_(request_method method)
 {
-    if(method == request_method::POST) return 201;
+    if (method == request_method::POST) return 201;
 
     return 200;
 }
@@ -57,7 +65,7 @@ static bool is_error_(status_code code)
 }
 
 
-request_method method_str_to_enum(const char *method_str)
+static request_method method_str_to_enum_(const char *method_str)
 {
     if (!std::strcmp(method_str, GET))
     {
@@ -87,6 +95,7 @@ request_method method_str_to_enum(const char *method_str)
     return request_method::UNKNOWN;
 }
 
+///////////////////////////
 
 server::server_impl::server_impl() :
         daemon_{nullptr},
@@ -110,12 +119,10 @@ void server::server_impl::start()
 
     daemon_ = MHD_start_daemon(MHD_USE_POLL_INTERNALLY,
                                port_,
-                               access_policy_callback_shim_,
-                               this,
-                               access_handler_callback_shim_,
-                               this,
-                               MHD_OPTION_ARRAY,
-                               options,
+                               access_policy_callback_shim_, this,
+                               access_handler_callback_shim_, this,
+                               MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback_shim_, this,
+                               MHD_OPTION_ARRAY, options,
                                MHD_OPTION_END);
 
     if (!daemon_)
@@ -137,6 +144,7 @@ void server::server_impl::stop()
     if (daemon_)
     {
         MHD_stop_daemon(daemon_);
+//        std::cout << "Daemon stopped" << std::endl;
         daemon_ = nullptr;
     }
 }
@@ -176,8 +184,36 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                                                   size_t *upload_data_size,
                                                   void **con_cls)
 {
-    //TODO
-    // if(!con_cls) return 0; //TODO WTF
+    request_method method = method_str_to_enum_(method_str);
+
+    if (!*con_cls)
+    {
+//        std::cout << "Preliminaries" << std::endl;
+
+        connection_info_struct *con_info = new connection_info_struct();
+        if (!con_info) return MHD_NO; //TODO
+
+        con_info->connectiontype = method;
+
+        if (method == request_method::POST)
+        {
+            con_info->postprocessor = MHD_create_post_processor (connection, 65536, iterate_postdata_shim_, con_info);
+
+            if (!con_info->postprocessor)
+            {
+                delete con_info;
+                return MHD_NO;
+            }
+        }
+
+        *con_cls = con_info;
+
+        return MHD_YES;
+    }
+    /////////
+
+
+//    std::cout << "Received method " << method_str << std::endl;
 
     //parse the query params:
     std::map<std::string, std::string> header;
@@ -186,10 +222,31 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
 
     //find the route, and hit the right callback
-    request_method method = method_str_to_enum(method_str);
 
     query_params query_params;
-    MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, &parse_kv_, &query_params);
+
+    //In case of GET
+    if (method == request_method::GET)
+    {
+        MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, &parse_kv_, &query_params);
+    }
+
+    //In case of POST
+//    https://gnunet.org/svn/libmicrohttpd/doc/examples/simplepost.c
+    else if (method == request_method::POST)
+    {
+        auto con_info = static_cast<connection_info_struct*>(*con_cls);
+        if (*upload_data_size != 0)
+        {
+            MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
+            *upload_data_size = 0;
+            return MHD_YES; //THIS FLOW IS SO TORTURED. WHAT!? Yet this is how it must be. We will flow through here many times.
+        }
+        else //we're done getting postdata, add it to the query params
+        {
+            std::swap(query_params, con_info->post_params); //swap it, for it will soon be destroyed.
+        }
+    }
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     for (const auto &handler_pair : response_handlers_[method])
@@ -217,16 +274,17 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             }
             catch (const std::exception &e)
             {
+                LOG(e.what());
                 response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
 
-            if(response.status_code == 0) //no status code was provided, find the default for this method
+            if (response.status_code == 0) //no status code was provided, find the default for this method
             {
                 response.status_code = default_success_code_(method);
             }
 
-            if(response.content_type.empty()) //no content type assigned, use the default
+            if (response.content_type.empty()) //no content type assigned, use the default
             {
                 response.content_type = default_mime_type;
             }
@@ -245,7 +303,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     return render_error_({404}, connection, url, method);
 }
 
-
 int server::server_impl::render_response_(const response &response,
                                           MHD_Connection *connection,
                                           const char *url,
@@ -254,6 +311,9 @@ int server::server_impl::render_response_(const response &response,
     auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                         (void *) response.content.c_str(),
                                                         MHD_RESPMEM_MUST_COPY);
+
+//    std::cout << "render_response_ " << response.status_code << " " << response.content << std::endl;
+
     auto ret = MHD_queue_response(connection,
                                   response.status_code,
                                   mhd_response);
@@ -264,19 +324,24 @@ int server::server_impl::render_response_(const response &response,
     return ret;
 }
 
-int server::server_impl::render_error_(response& response,
-                                       MHD_Connection *connection,
-                                       const char *url,
-                                       request_method method) const
+int server::server_impl::render_error_(response & response,
+                                       MHD_Connection * connection,
+        const
+char *url,
+        request_method
+method) const
 {
-    struct MHD_Response *mhd_response;
-    /* unsupported HTTP method */
-    error_handler_callback_(response, method, url); //hook for modifying response
+struct MHD_Response *mhd_response;
+/* unsupported HTTP method */
+error_handler_callback_(response, method, url
+); //hook for modifying response
 
-    return render_response_(response, connection, url, method);
+return
+render_response_(response, connection, url, method
+);
 }
 
-int server::server_impl::render_error_(response&& response_r,
+int server::server_impl::render_error_(response &&response_r,
                                        MHD_Connection *connection,
                                        const char *url,
                                        request_method method) const
@@ -292,13 +357,6 @@ int server::server_impl::render_error_(response&& response_r,
 
 
 /////////// callback shims
-
-void server::server_impl::request_completed_callback_(struct MHD_Connection *connection,
-                                                      void **con_cls,
-                                                      enum MHD_RequestTerminationCode toe)
-{
-    //TODO
-}
 
 int server::server_impl::access_handler_callback_shim_(void *cls,
                                                        struct MHD_Connection *connection,
@@ -333,11 +391,18 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
                                                            void **con_cls,
                                                            enum MHD_RequestTerminationCode toe)
 {
-    auto this_ptr = static_cast<server_impl *>(cls);
-    if (this_ptr)
+    auto con_info = static_cast<connection_info_struct *>(*con_cls);
+
+    if (!con_info)
+        return;
+
+    if (con_info->postprocessor)
     {
-        return this_ptr->request_completed_callback_(connection, con_cls, toe);
+        MHD_destroy_post_processor (con_info->postprocessor);
     }
+
+    delete con_info;
+    *con_cls = NULL;
 }
 
 void server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
@@ -347,6 +412,30 @@ void server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, 
     {
         return this_ptr->logger_callback_(uri); //TODO and stuff about the connection too!
     }
+}
+
+int server::server_impl::iterate_postdata_shim_(void *cls,
+                                                enum MHD_ValueKind kind,
+                                                const char *key,
+                                                const char *filename,
+                                                const char *content_type,
+                                                const char *transfer_encoding,
+                                                const char *data,
+                                                uint64_t off,
+                                                size_t size)
+{
+    auto con_info = static_cast<connection_info_struct *>(cls);
+    //TODO we need a better way to handle things like multipart data, than keeping it all in memory. This is a great place for a callback!
+//    std::cout << key << " " << data << std::endl;
+    if(con_info->post_params.count(key)) //we have already seen this key. Append data!
+    {
+        con_info->post_params[key] += data;
+    }
+    else //we haven't yet seen this key
+    {
+        con_info->post_params[key] = data;
+    }
+    return MHD_YES;
 }
 
 //http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf

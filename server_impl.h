@@ -124,9 +124,6 @@ private:
                                  size_t *upload_data_size,
                                  void **con_cls);
 
-    void request_completed_callback_ (struct MHD_Connection *connection, void **con_cls, enum MHD_RequestTerminationCode toe);
-
-
 
     ////// external-use callbacks that can be set with options
 
@@ -137,7 +134,6 @@ private:
     logger_cb logger_callback_;
 
     unescaper_cb unescaper_callback_;
-
 
     ///// callback shims
 
@@ -164,6 +160,16 @@ private:
     static void logger_callback_shim_(void *cls, const char *fm, va_list ap);
 
     static size_t unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s);
+
+    static int iterate_postdata_shim_(void *cls,
+                                      enum MHD_ValueKind kind,
+                                      const char *key,
+                                      const char *filename,
+                                      const char *content_type,
+                                      const char *transfer_encoding,
+                                      const char *data,
+                                      uint64_t off,
+                                      size_t size);
 
     //TODO MHD_OPTION_HTTPS_CERT_CALLBACK callback_shim_
 
