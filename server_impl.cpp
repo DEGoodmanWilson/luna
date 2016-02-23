@@ -52,7 +52,10 @@ static const server::accept_policy_cb default_accept_policy_callback_ = [](const
 
 static status_code default_success_code_(request_method method)
 {
-    if (method == request_method::POST) return 201;
+    if (method == request_method::POST)
+    {
+        return 201;
+    }
 
     return 200;
 }
@@ -279,7 +282,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 //TODO render the stack trace, etc.
             }
 
-            if (response.status_code == 0) //no status code was provided, find the default for this method
+            if (response.status_code == 0) //no status code was provided, assume success
             {
                 response.status_code = default_success_code_(method);
             }
