@@ -64,8 +64,13 @@ endif ()
 
 
 if (BUILD_LUNA_EXAMPLES)
-    set(EXAMPLE_SOURCE_FILES examples/example1.cpp)
-    add_executable(example1 ${EXAMPLE_SOURCE_FILES})
+    set(EXAMPLE1_SOURCE_FILES examples/example1.cpp)
+    add_executable(example1 ${EXAMPLE1_SOURCE_FILES})
     target_include_directories(example1 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
     target_link_libraries(example1 luna)
+
+    set(EXAMPLE2_SOURCE_FILES examples/example2.cpp)
+    add_executable(example2 ${EXAMPLE2_SOURCE_FILES})
+    target_include_directories(example2 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
+    target_link_libraries(example2 luna)
 endif ()

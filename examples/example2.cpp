@@ -1,4 +1,5 @@
 #include <string>
+#include <sstream>
 #include <luna/server.h>
 
 using namespace luna;
@@ -6,7 +7,16 @@ using namespace luna;
 response hello_world(const endpoint_matches &matches,
                      const query_params     &params)
 {
-    return {"<h1>Hello, World!</h1>"};
+    std::stringstream body;
+    body << "<h1>Hello, World!</h1>\n<ul>\n";
+
+    for(auto& kv : params)
+    {
+        body << "<li><b>" << kv.first << "</b> " << kv.second << "</li>\n";
+    }
+
+    body << "</ul>";
+    return {body.str()};
 }
 
 int main(void)
