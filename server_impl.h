@@ -22,7 +22,6 @@ const auto PATCH = "PATCH";
 const auto DELETE = "DELETE";
 
 
-
 class server::server_impl
 {
 public:
@@ -39,7 +38,7 @@ public:
 
     server::port get_port();
 
-    void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
     void set_option(const mime_type &mime_type);
 
@@ -184,9 +183,13 @@ private:
 
     ///// helpers
 
-    int render_response_(const response &response, MHD_Connection *connection, const char *url, request_method method) const;
+    int render_response_(const response &response,
+                         MHD_Connection *connection,
+                         const char *url,
+                         request_method method) const;
 
     int render_error_(response &response, MHD_Connection *connection, const char *url, request_method method) const;
+
     int render_error_(response &&response, MHD_Connection *connection, const char *url, request_method method) const;
 };
 

@@ -8,12 +8,9 @@
 
 #include <luna/types.h>
 #include <sys/socket.h>
-#include <string>
-#include <regex>
-#include <memory>
-#include <map>
 #include <functional>
 #include <microhttpd.h>
+#include <memory>
 
 namespace luna
 {
@@ -31,7 +28,7 @@ public:
     using accept_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
 
 
-    using endpoint_handler_cb = std::function<response(std::vector<std::string> matches,
+    using endpoint_handler_cb = std::function<response(endpoint_matches matches,
                                                        query_params params)>;
 
     using error_handler_cb = std::function<void(response &response, //a hook for modifying in place to insert default content
@@ -110,16 +107,16 @@ public:
 
 
     template<typename T>
-    void handle_response(request_method method, T path, endpoint_handler_cb callback)
+    void handle_request(request_method method, T path, endpoint_handler_cb callback)
     {
-        handle_response(method, std::regex{std::forward<T>(path)}, callback);
+        handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
 
     template
-    void handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
     template
-    void handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback);
+    void handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
     explicit operator bool();
 

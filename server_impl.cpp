@@ -164,9 +164,9 @@ server::server_impl::~server_impl()
 }
 
 
-void server::server_impl::handle_response(request_method method,
-                                          const std::regex &path,
-                                          server::endpoint_handler_cb callback)
+void server::server_impl::handle_request(request_method method,
+                                         const std::regex &path,
+                                         server::endpoint_handler_cb callback)
 {
     response_handlers_[method].emplace_back(std::make_pair(path, callback));
 }
@@ -200,7 +200,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
         if (method == request_method::POST)
         {
-            con_info->postprocessor = MHD_create_post_processor (connection, 65536, iterate_postdata_shim_, con_info);
+            con_info->postprocessor = MHD_create_post_processor(connection, 65536, iterate_postdata_shim_, con_info);
 
             if (!con_info->postprocessor)
             {
@@ -234,11 +234,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, &parse_kv_, &query_params);
     }
 
-    //In case of POST
+        //In case of POST
 //    https://gnunet.org/svn/libmicrohttpd/doc/examples/simplepost.c
     else if (method == request_method::POST)
     {
-        auto con_info = static_cast<connection_info_struct*>(*con_cls);
+        auto con_info = static_cast<connection_info_struct *>(*con_cls);
         if (*upload_data_size != 0)
         {
             MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
@@ -397,11 +397,13 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
 
     if (!con_info)
+    {
         return;
+    }
 
     if (con_info->postprocessor)
     {
-        MHD_destroy_post_processor (con_info->postprocessor);
+        MHD_destroy_post_processor(con_info->postprocessor);
     }
 
     delete con_info;
@@ -430,7 +432,7 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     auto con_info = static_cast<connection_info_struct *>(cls);
     //TODO we need a better way to handle things like multipart data, than keeping it all in memory. This is a great place for a callback!
 //    std::cout << key << " " << data << std::endl;
-    if(con_info->post_params.count(key)) //we have already seen this key. Append data!
+    if (con_info->post_params.count(key)) //we have already seen this key. Append data!
     {
         con_info->post_params[key] += data;
     }

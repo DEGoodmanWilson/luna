@@ -180,14 +180,14 @@ void server::set_option_(const https_key_password &value)
 //    impl_->set_option(value);
 //}
 
-void server::handle_response(request_method method, const std::regex &path, endpoint_handler_cb callback)
+void server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback)
 {
-    impl_->handle_response(method, std::regex{path}, callback);
+    impl_->handle_request(method, std::regex{path}, callback);
 }
 
-void server::handle_response(request_method method, std::regex &&path, endpoint_handler_cb callback)
+void server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback)
 {
-    impl_->handle_response(method, std::regex{std::move(path)}, callback);
+    impl_->handle_request(method, std::regex{std::move(path)}, callback);
 }
 
 }
