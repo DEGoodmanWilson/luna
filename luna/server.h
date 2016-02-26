@@ -28,8 +28,8 @@ public:
     using accept_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
 
 
-    using endpoint_handler_cb = std::function<response(endpoint_matches matches,
-                                                       query_params params)>;
+    using endpoint_handler_cb = std::function<response(const endpoint_matches &matches,
+                                                       const query_params &params)>;
 
     using error_handler_cb = std::function<void(response &response, //a hook for modifying in place to insert default content
                                                 request_method method,
