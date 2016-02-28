@@ -25,7 +25,7 @@ public:
 
     MAKE_STRING_LIKE(mime_type);
 
-    using accept_policy_cb = std::function<bool(const struct sockaddr *, socklen_t)>;
+    using accept_policy_cb = std::function<bool(const struct sockaddr *add, socklen_t len)>;
 
 
     using endpoint_handler_cb = std::function<response(const endpoint_matches &matches,
@@ -36,9 +36,9 @@ public:
                                                 const std::string &path)>;
     // MHD config options
 
-    using logger_cb = std::function<void(const std::string& message)>;
+    using logger_cb = std::function<void(const std::string &message)>;
 
-    using unescaper_cb = std::function<std::string(std::string)>;
+    using unescaper_cb = std::function<std::string(const std::string &text)>;
 
     //TODO just not going to try to support these two for now
     //TODO MHD_OPTION_HTTPS_CERT_CALLBACK cbshim_
