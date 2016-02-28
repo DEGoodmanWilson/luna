@@ -53,6 +53,7 @@ public:
 
     MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
 
+    using sockaddr_ptr = ::sockaddr*;
     // struct sockaddr * is a configuration option here! Just letting you know.
 
     MAKE_STRING_LIKE(https_mem_key);
@@ -168,7 +169,7 @@ private:
 
     void set_option_(per_ip_connection_limit value);
 
-    void set_option_(const sockaddr *value);
+    void set_option_(const sockaddr_ptr value);
 
     void set_option_(logger_cb value);
 

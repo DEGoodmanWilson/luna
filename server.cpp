@@ -81,7 +81,7 @@ void server::set_option_(per_ip_connection_limit value)
     impl_->set_option(value);
 }
 
-void server::set_option_(const sockaddr *value)
+void server::set_option_(const sockaddr_ptr value)
 {
     impl_->set_option(value);
 }
