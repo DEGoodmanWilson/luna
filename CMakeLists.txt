@@ -1,5 +1,4 @@
-#cmake_minimum_required(VERSION 3.2)
-#project(luna)
+cmake_minimum_required(VERSION 3.2)
 
 ##### CPM
 #-----------------------------------------------------------------------
