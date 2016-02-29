@@ -8,6 +8,11 @@ include(cpm.cmake)
 ##### Use C++14
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
+##### External dependencies
+
+## libmicrohttpd
+
+
 ##### Options
 option(BUILD_SHARED_LIBS "Build the library as a dynamic object" OFF)
 option(BUILD_LUNA_TESTS "Build the test suite" ON)
@@ -45,10 +50,7 @@ endif()
 
 
 
-
-# TODO script to find libmicrohttpd
-
-# luna
+##### luna
 set(LIB_LUNA_SOURCE_FILES luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 target_include_directories(luna PRIVATE luna/private)
