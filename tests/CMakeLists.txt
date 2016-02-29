@@ -57,11 +57,11 @@ add_dependencies(GTest GTestMain)
 
 add_executable(luna_tests main.cpp basic_functioning.cpp advanced_functioning.cpp)
 
-add_dependencies(luna_tests cpr GTestExternal luna)
+add_dependencies(luna_tests cpr GTestExternal ${CPM_LIB_TARGET_NAME})
 
 target_include_directories(luna_tests SYSTEM
         PUBLIC ${CPR_INCLUDE_DIRS}
         PUBLIC ${GTEST_INCLUDES}
         )
 
-target_link_libraries(luna_tests ${CPR_LIBRARIES} GTestMain luna)
+target_link_libraries(luna_tests ${CPR_LIBRARIES} GTestMain ${CPM_LIB_TARGET_NAME})
