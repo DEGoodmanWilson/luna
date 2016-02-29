@@ -62,7 +62,6 @@ add_dependencies(luna_tests cpr GTestExternal luna)
 target_include_directories(luna_tests SYSTEM
         PUBLIC ${CPR_INCLUDE_DIRS}
         PUBLIC ${GTEST_INCLUDES}
-        PUBLIC ${LIB_LUNA_INCLUDE_DIRS}
         )
 
 target_link_libraries(luna_tests ${CPR_LIBRARIES} GTestMain luna)

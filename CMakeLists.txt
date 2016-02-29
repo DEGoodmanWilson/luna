@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.2)
 project(luna)
 
+##### CPM
+include(cpm.cmake)
+
+
+##### Use C++14
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 ##### Options
@@ -41,18 +46,13 @@ endif()
 
 
 
-
-
-##### Exported googies
-set(LIB_LUNA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR})
-
 # TODO script to find libmicrohttpd
 
 # luna
-set(LIB_LUNA_SOURCE_FILES luna/types.h server.cpp luna/server.h server_impl.cpp server_impl.h)
+set(LIB_LUNA_SOURCE_FILES luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-target_include_directories(luna PRIVATE luna)
-target_include_directories(luna SYSTEM PRIVATE ${LIB_LUNA_INCLUDE_DIRS})
+target_include_directories(luna PRIVATE luna/private)
+target_include_directories(luna SYSTEM PRIVATE luna)
 target_link_libraries(luna microhttpd)
 
 
@@ -66,11 +66,9 @@ endif ()
 if (BUILD_LUNA_EXAMPLES)
     set(EXAMPLE1_SOURCE_FILES examples/example1.cpp)
     add_executable(example1 ${EXAMPLE1_SOURCE_FILES})
-    target_include_directories(example1 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
     target_link_libraries(example1 luna)
 
     set(EXAMPLE2_SOURCE_FILES examples/example2.cpp)
     add_executable(example2 ${EXAMPLE2_SOURCE_FILES})
-    target_include_directories(example2 SYSTEM PUBLIC ${LIB_LUNA_INCLUDE_DIRS})
     target_link_libraries(example2 luna)
 endif ()
