@@ -55,7 +55,7 @@ add_dependencies(GTest GTestMain)
 
 ######
 
-add_executable(luna_tests main.cpp basic_functioning.cpp advanced_functioning.cpp)
+add_executable(luna_tests main.cpp basic_functioning.cpp advanced_functioning.cpp crashers.cpp.cpp)
 
 add_dependencies(luna_tests cpr GTestExternal ${CPM_LIB_TARGET_NAME})
 

@@ -82,20 +82,3 @@ TEST(basic_functioning, default_201_with_post_check_params)
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
-
-TEST(basic_functioning, logging_can_cause_crashes)
-{
-    luna::server server{luna::server::port{8080}, luna::server::logger_cb{[](const std::string &mesg)
-                                                            {
-                                                                std::cout << mesg << std::endl;
-                                                            }}};
-
-    server.handle_request(luna::request_method::GET, "/hello", [](auto matches, auto params) -> luna::response
-        {
-            return {"<h1>Hello, world!</h1>"};
-        });
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("<h1>Hello, world!</h1>", res.text);
-}
