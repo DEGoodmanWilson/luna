@@ -21,6 +21,29 @@ struct connection_info_struct
     request_method connectiontype;
     query_params post_params;
     MHD_PostProcessor *postprocessor;
+
+    connection_info_struct(request_method method,
+                           struct MHD_Connection *connection,
+                           size_t buffer_size,
+                           MHD_PostDataIterator iter) :
+            connectiontype{method}, postprocessor{nullptr}
+    {
+//        std::cout << "connection_info_struct CONSTRUCTOR" << std::endl;
+        if (method == request_method::POST)
+        {
+            postprocessor = MHD_create_post_processor(connection, buffer_size, iter, this);
+        }
+    }
+
+    ~connection_info_struct()
+    {
+//        std::cout << "connection_info_struct DESTRUCTOR" << std::endl;
+
+        if (postprocessor)
+        {
+            MHD_destroy_post_processor(postprocessor);
+        }
+    }
 };
 
 std::string default_mime_type{"text/html"};
@@ -191,23 +214,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
     if (!*con_cls)
     {
-//        std::cout << "Preliminaries" << std::endl;
+//        std::cout << "setting up con_info" << std::endl;
 
-        connection_info_struct *con_info = new(std::nothrow) connection_info_struct();
-        if (!con_info) return MHD_NO; //TODO
-
-        con_info->connectiontype = method;
-
-        if (method == request_method::POST)
-        {
-            con_info->postprocessor = MHD_create_post_processor(connection, 65536, iterate_postdata_shim_, con_info);
-
-            if (!con_info->postprocessor)
-            {
-                delete con_info;
-                return MHD_NO;
-            }
-        }
+        connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method, connection, 65535, iterate_postdata_shim_);
+        if (!con_info) return MHD_NO; //TODO what does this mean?
+        if(method == request_method::POST && !con_info->postprocessor) return MHD_NO; //failure to initialize
 
         *con_cls = con_info;
 
@@ -394,29 +405,25 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
                                                            void **con_cls,
                                                            enum MHD_RequestTerminationCode toe)
 {
+    //TODO we need to know now, at this point, whether this was a POST
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
 
-    if (!con_info)
+    if (con_info && con_info)
     {
-        return;
+        delete con_info;
+        *con_cls = NULL;
     }
-
-    if (con_info->postprocessor)
-    {
-        MHD_destroy_post_processor(con_info->postprocessor);
-    }
-
-    delete con_info;
-    *con_cls = NULL;
 }
 
-void server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
+void * server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
 {
     auto this_ptr = static_cast<server_impl *>(cls);
     if (this_ptr && this_ptr->logger_callback_)
     {
-        return this_ptr->logger_callback_(uri); //TODO and stuff about the connection too!
+        this_ptr->logger_callback_(uri); //TODO and stuff about the connection too!
     }
+
+    return nullptr;
 }
 
 int server::server_impl::iterate_postdata_shim_(void *cls,
@@ -593,8 +600,8 @@ void server::server_impl::set_option(server::logger_cb value)
 {
     logger_callback_ = value;
 
-    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t) &logger_callback_shim_,
-                        this}); //YES this must be a C-style cast to work.
+    //YES this must be a C-style cast to work.
+    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t) &logger_callback_shim_, this});
     options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, (intptr_t) &uri_logger_callback_shim_, this});
 }
 

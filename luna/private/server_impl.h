@@ -154,7 +154,7 @@ private:
                                                  void **con_cls,
                                                  enum MHD_RequestTerminationCode toe);
 
-    static void uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con);
+    static void * uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con);
 
     static void logger_callback_shim_(void *cls, const char *fm, va_list ap);
 
