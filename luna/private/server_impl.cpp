@@ -121,6 +121,15 @@ static request_method method_str_to_enum_(const char *method_str)
     return request_method::UNKNOWN;
 }
 
+static MHD_ValueKind method_to_value_kind_enum_(request_method method)
+{
+    if (method == request_method::GET)
+    {
+        return MHD_GET_ARGUMENT_KIND;
+    }
+
+    return MHD_POSTDATA_KIND;
+}
 ///////////////////////////
 
 server::server_impl::server_impl() :
@@ -239,30 +248,27 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
     query_params query_params;
 
-    //In case of GET
-    if (method == request_method::GET)
-    {
-        //TODO what if there are query params on a POST or other method!?
-        MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, &parse_kv_, &query_params);
-    }
+    //Query params handling
+    MHD_get_connection_values(connection, method_to_value_kind_enum_(method), &parse_kv_, &query_params);
 
-    //In case of POST
-    else if (method == request_method::POST)
+    //POST data handling. This is a tortured flow, and not really MHD' high point.
+    auto con_info = static_cast<connection_info_struct *>(*con_cls);
+    if (*upload_data_size != 0)
     {
-        auto con_info = static_cast<connection_info_struct *>(*con_cls);
-        if (*upload_data_size != 0)
+        //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
+        MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
+        *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
+        return MHD_YES;
+    }
+    else if (!con_info->post_params.empty())//we're done getting postdata, and we have some query params to handle, do something with it
+    {
+        //Add it to the query params
+        for (const auto &kv : con_info->post_params)
         {
-            MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
-            *upload_data_size = 0;
-            return MHD_YES; //THIS FLOW IS SO TORTURED. WHAT!? Yet this is how it must be. We will flow through here many times.
-        }
-        else //we're done getting postdata, add it to the query params
-        {
-            std::swap(query_params, con_info->post_params); //swap it, for it will soon be destroyed.
+            query_params[kv.first] = kv.second; //just nuke any existing keys that are the same
         }
     }
 
-    //TODO what about parameters passed to _other_ methods!?
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     for (const auto &handler_pair : response_handlers_[method])
@@ -407,7 +413,6 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
                                                            void **con_cls,
                                                            enum MHD_RequestTerminationCode toe)
 {
-    //TODO we need to know now, at this point, whether this was a POST
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
 
     if (con_info && con_info)
@@ -439,16 +444,17 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
                                                 size_t size)
 {
     auto con_info = static_cast<connection_info_struct *>(cls);
-    //TODO we need a better way to handle things like multipart data, than keeping it all in memory. This is a great place for a callback!
-//    std::cout << key << " " << data << std::endl;
-    if (con_info->post_params.count(key)) //we have already seen this key. Append data!
+    //TODO this is where we would process binary data. This needs to be implemented
+    //TODO unsure how to differentiate between binary (multi-part) post data, and query params, so I am going to wing it
+    //  ANnoyingly, when query params are sent here, content_type is nil. As is transfer_encoding. So.
+
+    if(key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
     {
-        con_info->post_params[key] += data;
+        auto con_info = static_cast<connection_info_struct *>(cls);
+        parse_kv_(&con_info->post_params, kind, key, data);
+        return MHD_YES;
     }
-    else //we haven't yet seen this key
-    {
-        con_info->post_params[key] = data;
-    }
+
     return MHD_YES;
 }
 
