@@ -221,6 +221,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 {
     request_method method = method_str_to_enum_(method_str);
 
+    if(method == request_method::PUT)
+    {
+        std::cout <<"PUT" << std::endl;
+    }
+
     if (!*con_cls)
     {
 //        std::cout << "setting up con_info" << std::endl;
@@ -242,7 +247,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     std::map<std::string, std::string> header;
 
     MHD_get_connection_values(connection, MHD_HEADER_KIND, &parse_kv_, &header);
-
 
     //find the route, and hit the right callback
 
@@ -447,6 +451,8 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     //TODO this is where we would process binary data. This needs to be implemented
     //TODO unsure how to differentiate between binary (multi-part) post data, and query params, so I am going to wing it
     //  ANnoyingly, when query params are sent here, content_type is nil. As is transfer_encoding. So.
+
+    std::cout << "***" << key << ":" << (data ? data : "[null]") << std::endl;
 
     if(key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
     {
