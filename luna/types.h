@@ -120,6 +120,8 @@ enum class request_method
     PATCH,
     DELETE,
     //Yes, there are more than these. Later, though. Later.
+    //HEAD,
+    //OPTIONS,
 };
 
 using endpoint_matches = std::vector<std::string>;
