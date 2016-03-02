@@ -29,10 +29,7 @@ struct connection_info_struct
             connectiontype{method}, postprocessor{nullptr}
     {
 //        std::cout << "connection_info_struct CONSTRUCTOR" << std::endl;
-        if (method == request_method::POST)
-        {
-            postprocessor = MHD_create_post_processor(connection, buffer_size, iter, this);
-        }
+        postprocessor = MHD_create_post_processor(connection, buffer_size, iter, this);
     }
 
     ~connection_info_struct()
@@ -221,11 +218,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 {
     request_method method = method_str_to_enum_(method_str);
 
-    if(method == request_method::PUT)
-    {
-        std::cout <<"PUT" << std::endl;
-    }
-
     if (!*con_cls)
     {
 //        std::cout << "setting up con_info" << std::endl;
@@ -259,8 +251,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
     if (*upload_data_size != 0)
     {
+//        std::cout << "===" << upload_data << std::endl;
         //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
         MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
+//        std::cout << "======" << std::endl;
+
         *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
         return MHD_YES;
     }
@@ -452,7 +447,7 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     //TODO unsure how to differentiate between binary (multi-part) post data, and query params, so I am going to wing it
     //  ANnoyingly, when query params are sent here, content_type is nil. As is transfer_encoding. So.
 
-    std::cout << "***" << key << ":" << (data ? data : "[null]") << std::endl;
+//    std::cout << "***" << key << ":" << (data ? data : "[null]") << std::endl;
 
     if(key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
     {

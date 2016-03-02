@@ -43,7 +43,7 @@ TEST(patch, default_200_check_params)
                                   EXPECT_EQ("", params.at("key2"));
                                   return {"hello"};
                               });
-    auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}, {"key2", ""}});
+    auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key2", ""}, {"key", "value"}});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
