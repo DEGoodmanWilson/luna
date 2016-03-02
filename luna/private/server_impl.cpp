@@ -198,7 +198,7 @@ void server::server_impl::handle_request(request_method method,
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
     auto kv = static_cast<query_params *>(cls);
-    kv->operator[](key) = value;
+    kv->operator[](key) = value ? value : "";
     return MHD_YES;
 }
 
@@ -242,11 +242,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     //In case of GET
     if (method == request_method::GET)
     {
+        //TODO what if there are query params on a POST or other method!?
         MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, &parse_kv_, &query_params);
     }
 
-        //In case of POST
-//    https://gnunet.org/svn/libmicrohttpd/doc/examples/simplepost.c
+    //In case of POST
     else if (method == request_method::POST)
     {
         auto con_info = static_cast<connection_info_struct *>(*con_cls);
@@ -261,6 +261,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             std::swap(query_params, con_info->post_params); //swap it, for it will soon be destroyed.
         }
     }
+
+    //TODO what about parameters passed to _other_ methods!?
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     for (const auto &handler_pair : response_handlers_[method])
