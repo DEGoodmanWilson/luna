@@ -154,7 +154,7 @@ private:
                                                  void **con_cls,
                                                  enum MHD_RequestTerminationCode toe);
 
-    static void * uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con);
+    static void *uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con);
 
     static void logger_callback_shim_(void *cls, const char *fm, va_list ap);
 
@@ -186,7 +186,8 @@ private:
     int render_response_(const response &response,
                          MHD_Connection *connection,
                          const char *url,
-                         request_method method) const;
+                         request_method method,
+                         headers headers = {}) const;
 
     int render_error_(response &response, MHD_Connection *connection, const char *url, request_method method) const;
 

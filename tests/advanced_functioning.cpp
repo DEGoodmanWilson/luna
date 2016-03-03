@@ -72,3 +72,31 @@ TEST(advanced_functioning, putting_it_together)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ(path, res.text);
 }
+
+TEST(advanced_functioning, simple_redirect)
+{
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::GET, "/redirect",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {luna::response::URI{"http://www.google.com/"}};
+                              });
+    std::string path = "redirect";
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
+    ASSERT_EQ(200, res.status_code); //This is going to require an internet connection to work!!
+    ASSERT_EQ("http://www.google.com/", res.url);
+}
+
+TEST(advanced_functioning, temporary_redirect)
+{
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::GET, "/redirect",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {307, luna::response::URI{"http://www.google.com/"}};
+                              });
+    std::string path = "redirect";
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
+    ASSERT_EQ(200, res.status_code); //This is going to require an internet connection to work!!
+    ASSERT_EQ("http://www.google.com/", res.url);
+}

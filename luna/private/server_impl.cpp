@@ -87,6 +87,13 @@ static bool is_error_(status_code code)
     return true;
 }
 
+static bool is_redirect_(status_code code)
+{
+    if ((code >= 300) && code < 400) return true;
+
+    return false;
+}
+
 
 static request_method method_str_to_enum_(const char *method_str)
 {
@@ -310,6 +317,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 response.content_type = default_mime_type;
             }
 
+            if (is_redirect_(response.status_code))
+            {
+                return render_response_(response, connection, url, method, {{"Location", response.redirect.uri}});
+            }
+
             if (is_error_(response.status_code))
             {
                 return render_error_(response, connection, url, method);
@@ -324,14 +336,21 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     return render_error_({404}, connection, url, method);
 }
 
+//TODO this should be a static non-class function, I think.
 int server::server_impl::render_response_(const response &response,
                                           MHD_Connection *connection,
                                           const char *url,
-                                          request_method method) const
+                                          request_method method,
+                                          headers headers) const
 {
     auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                         (void *) response.content.c_str(),
                                                         MHD_RESPMEM_MUST_COPY);
+
+    for(const auto&header : headers)
+    {
+        MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
+    }
 
 //    std::cout << "render_response_ " << response.status_code << " " << response.content << std::endl;
 

@@ -89,6 +89,15 @@ struct response
     std::string content_type;
     std::string content;
 
+    struct URI
+    {
+        URI() = default;
+        URI(std::string location) : uri{location} {}
+        std::string uri;
+    };
+
+    URI redirect;
+
     response() = default;
 
     // explicit status code responses
@@ -109,6 +118,15 @@ struct response
     response(std::string content_type, std::string content) :
             status_code{0}, content_type{content_type}, content{content}
     { }
+
+    // responses with redirects
+    response(URI redirect) :
+            status_code{301}, redirect{redirect}
+    { }
+
+    response(::luna::status_code status_code, URI redirect) :
+            status_code{status_code}, redirect{redirect}
+    { }
 };
 
 enum class request_method
@@ -126,5 +144,5 @@ enum class request_method
 
 using endpoint_matches = std::vector<std::string>;
 using query_params = std::map<std::string, std::string>;
-
+using headers = std::map<std::string, std::string>;
 } //namespace luna
