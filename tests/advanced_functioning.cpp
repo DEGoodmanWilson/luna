@@ -83,8 +83,13 @@ TEST(advanced_functioning, simple_redirect)
                               });
     std::string path = "redirect";
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
-    ASSERT_EQ(200, res.status_code); //This is going to require an internet connection to work!!
+
+    //This is going to require an internet connection to work!!
+    if(res.status_code != 200) ASSERT_EQ(301, res.status_code);
+    else ASSERT_EQ(200, res.status_code);
+
     ASSERT_EQ("http://www.google.com/", res.url);
+
 }
 
 TEST(advanced_functioning, temporary_redirect)
@@ -97,6 +102,40 @@ TEST(advanced_functioning, temporary_redirect)
                               });
     std::string path = "redirect";
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
-    ASSERT_EQ(200, res.status_code); //This is going to require an internet connection to work!!
+    if(res.status_code != 200) ASSERT_EQ(307, res.status_code);
+    else ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("http://www.google.com/", res.url);
 }
+
+TEST(advanced_functioning, get_and_post)
+{
+    // POST params prevent GET params from being parsed. Weirdly. They just go away.
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::POST,
+                          "/test",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  EXPECT_EQ(0, params.count("key1"));
+                                  EXPECT_EQ(1, params.count("key2"));
+                                  EXPECT_EQ("2", params.at("key2"));
+                                  return {"hello"};
+                              });
+    auto res = cpr::Post(cpr::Url{"http://localhost:8080/test?key1=1"}, cpr::Payload{{"key2", "2"}});
+    ASSERT_EQ(201, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+//TEST(advanced_functioning, json_blob_in_request_body)
+//{
+//    std::cout << "HI============ " << std::endl;
+//    luna::server server{luna::server::port{8080}};
+//    server.handle_request(luna::request_method::POST,
+//                          "/test",
+//                          [](auto matches, auto params) -> luna::response
+//                              {
+//                                  return {"hello"};
+//                              });
+//    auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"This is the body"});
+//    ASSERT_EQ(201, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//}

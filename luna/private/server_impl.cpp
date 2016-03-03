@@ -268,13 +268,9 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
     else if (!con_info->post_params.empty())//we're done getting postdata, and we have some query params to handle, do something with it
     {
-        //Add it to the query params
-        for (const auto &kv : con_info->post_params)
-        {
-            query_params[kv.first] = kv.second; //just nuke any existing keys that are the same
-        }
+        //if we have post_params, then MHD has ignored the query params. So just overwrite it.
+        std::swap(query_params, con_info->post_params);
     }
-
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     for (const auto &handler_pair : response_handlers_[method])
@@ -474,6 +470,10 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
         parse_kv_(&con_info->post_params, kind, key, data);
         return MHD_YES;
     }
+//    else
+//    {
+//        std::cout << "OHNO" << std::endl;
+//    }
 
     return MHD_YES;
 }
