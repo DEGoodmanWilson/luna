@@ -6,15 +6,40 @@
 
 #include <netinet/tcp.h>
 #include "server_impl.h"
+#include "config.h"
 
-//TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
-#define LOG(mesg) if (logger_callback_) \
-{ \
-    logger_callback_(mesg); \
-}
 
 namespace luna
 {
+
+extern logger_cb logger_;
+
+//TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
+#define LOG(level, mesg) if (logger_) \
+{ \
+    logger_(level, mesg); \
+}
+
+#define LOG_FATAL(mesg) if (logger_) \
+{ \
+    logger_(log_level::FATAL, mesg); \
+}
+
+#define LOG_ERROR(mesg) if (logger_) \
+{ \
+    logger_(log_level::ERROR, mesg); \
+}
+
+#define LOG_INFO(mesg) if (logger_) \
+{ \
+    logger_(log_level::INFO, mesg); \
+}
+
+#define LOG_DEBUG(mesg) if (logger_) \
+{ \
+    logger_(log_level::DEBUG, mesg); \
+}
+
 
 struct connection_info_struct
 {
@@ -161,16 +186,20 @@ void server::server_impl::start()
                                access_policy_callback_shim_, this,
                                access_handler_callback_shim_, this,
                                MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback_shim_, this,
+                               MHD_OPTION_EXTERNAL_LOGGER, logger_callback_shim_, nullptr,
+                               MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
                                MHD_OPTION_ARRAY, options,
                                MHD_OPTION_END);
 
     if (!daemon_)
     {
-        LOG("Daemon failed to start"); //TODO set some real error flags perhaps?
+        LOG_FATAL("Daemon failed to start"); //TODO set some real error flags perhaps?
         return;
     }
 
-    LOG("New server on port " + std::to_string(port_));
+
+
+    LOG_INFO("New server on port " + std::to_string(port_));
 }
 
 bool server::server_impl::is_running()
@@ -282,12 +311,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         if (std::regex_match(url_str, pieces_match, path_regex))
         {
             std::vector<std::string> matches;
-            LOG(std::string{"match: "} + url);
+            LOG_DEBUG(std::string{"match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
                 std::ssub_match sub_match = pieces_match[i];
                 std::string piece = sub_match.str();
-                LOG(std::string{"  submatch "} + std::to_string(i) + ": " + piece);
+                LOG_DEBUG(std::string{"  submatch "} + std::to_string(i) + ": " + piece);
                 matches.emplace_back(sub_match.str());
             }
 
@@ -298,7 +327,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             }
             catch (const std::exception &e)
             {
-                LOG(e.what());
+                LOG_ERROR(e.what());
                 response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
@@ -438,11 +467,7 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
 
 void * server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
 {
-    auto this_ptr = static_cast<server_impl *>(cls);
-    if (this_ptr && this_ptr->logger_callback_)
-    {
-        this_ptr->logger_callback_(uri); //TODO and stuff about the connection too!
-    }
+    LOG_DEBUG(uri); //TODO and stuff about the connection too!
 
     return nullptr;
 }
@@ -503,11 +528,7 @@ std::string string_format(const std::string fmt_str, va_list ap)
 
 void server::server_impl::logger_callback_shim_(void *cls, const char *fm, va_list ap)
 {
-    auto this_ptr = static_cast<server_impl *>(cls);
-    if (this_ptr && this_ptr->logger_callback_)
-    {
-        return this_ptr->logger_callback_(string_format(fm, ap));
-    }
+    LOG_DEBUG(string_format(fm, ap));
 }
 
 size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s)
@@ -622,15 +643,6 @@ void server::server_impl::set_option(const server::https_priorities &value)
 void server::server_impl::set_option(server::listen_socket value)
 {
     options_.push_back({MHD_OPTION_LISTEN_SOCKET, value, NULL});
-}
-
-void server::server_impl::set_option(server::logger_cb value)
-{
-    logger_callback_ = value;
-
-    //YES this must be a C-style cast to work.
-    options_.push_back({MHD_OPTION_EXTERNAL_LOGGER, (intptr_t) &logger_callback_shim_, this});
-    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, (intptr_t) &uri_logger_callback_shim_, this});
 }
 
 void server::server_impl::set_option(server::thread_pool_size value)

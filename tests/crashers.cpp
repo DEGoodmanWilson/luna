@@ -11,10 +11,12 @@
 
 TEST(crashers, 1_logging)
 {
-    luna::server server{luna::server::port{8080}, luna::server::logger_cb{[](const std::string &mesg)
-                                                                              {
-                                                                                  std::cout << mesg << std::endl;
-                                                                              }}};
+    luna::set_logger([](luna::log_level level, const std::string &mesg)
+                         {
+                             std::cout << to_string(level) << ": " << mesg << std::endl;
+                         });
+
+    luna::server server{luna::server::port{8080}};
 
     server.handle_request(luna::request_method::GET, "/hello", [](auto matches, auto params) -> luna::response
         {
@@ -24,6 +26,8 @@ TEST(crashers, 1_logging)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
+
+    luna::reset_logger();
 }
 
 TEST(crashers, 2_query_params_with_no_values)

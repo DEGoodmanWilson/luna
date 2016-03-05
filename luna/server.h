@@ -36,8 +36,6 @@ public:
                                                 const std::string &path)>;
     // MHD config options
 
-    using logger_cb = std::function<void(const std::string &message)>;
-
     using unescaper_cb = std::function<std::string(const std::string &text)>;
 
     //TODO just not going to try to support these two for now
@@ -170,8 +168,6 @@ private:
     void set_option_(per_ip_connection_limit value);
 
     void set_option_(const sockaddr_ptr value);
-
-    void set_option_(logger_cb value);
 
     void set_option_(https_mem_key value);
 

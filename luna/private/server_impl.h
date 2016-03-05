@@ -72,8 +72,6 @@ public:
 
     void set_option(listen_socket value);
 
-    void set_option(logger_cb value);
-
     void set_option(thread_pool_size value);
 
     void set_option(unescaper_cb value);
@@ -129,8 +127,6 @@ private:
     error_handler_cb error_handler_callback_; //has a default value
 
     accept_policy_cb accept_policy_callback_; //has a default value
-
-    logger_cb logger_callback_;
 
     unescaper_cb unescaper_callback_;
 

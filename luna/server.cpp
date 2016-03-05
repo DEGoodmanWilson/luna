@@ -111,11 +111,6 @@ void server::set_option_(listen_socket value)
     impl_->set_option(value);
 }
 
-void server::set_option_(logger_cb value)
-{
-    impl_->set_option(value);
-}
-
 void server::set_option_(thread_pool_size value)
 {
     impl_->set_option(value);

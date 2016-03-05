@@ -7,4 +7,5 @@
 #pragma once
 
 #include <luna/types.h>
+#include <luna/config.h>
 #include <luna/server.h>
