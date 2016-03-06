@@ -1,3 +1,0 @@
-[submodule "tests/cpr"]
-	path = tests/cpr
-	url = https://github.com/whoshuu/cpr.git
