@@ -42,4 +42,4 @@ class LunaConan(ConanFile):
         self.copy("*.a", dst="lib", src="lib")
 
     def package_info(self):
-        self.cpp_info.libs = ["luna"]
+        self.cpp_info.libs = ["luna", "microhttpd"]
