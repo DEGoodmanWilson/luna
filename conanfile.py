@@ -24,7 +24,7 @@ class LunaConan(ConanFile):
             if "gtest" in self.requires:
                 del self.requires["gtest"]
             if "cpr" in self.requires:
-                del self.requires["cpm"]
+                del self.requires["cpr"]
 
     def build(self):
         cmake = CMake(self.settings)
