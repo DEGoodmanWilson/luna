@@ -11,13 +11,14 @@ class LunaConan(ConanFile):
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
     default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False"
+    generators = "cmake"
 
     def source(self):
         self.run("git clone https://github.com/DEGoodmanWilson/luna.git --branch conan") #v%s" % (self.version))
 
     def config(self):
         if self.options.build_luna_tests:
-            self.requires.add("cpr/1.2.0@cpr/testing", private=False)
+            self.requires.add("cpr/1.2.0@local/testing", private=False)
             self.requires.add("gtest/1.7.0@lasote/stable", private=False)
             self.options["gtest"].shared = False
         else:
