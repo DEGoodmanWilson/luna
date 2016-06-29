@@ -88,13 +88,13 @@ public:
 
 //    void set_option(https_cert_callback value);
 
-    void set_option(tcp_fastopen_queue_size value);
+//    void set_option(tcp_fastopen_queue_size value);
 
-    void set_option(const https_mem_dhparams &value);
+//    void set_option(const https_mem_dhparams &value);
 
-    void set_option(listening_address_reuse value);
+//    void set_option(listening_address_reuse value);
 
-    void set_option(const https_key_password &value);
+//    void set_option(const https_key_password &value);
 
 //    void set_option(notify_connection value);
 

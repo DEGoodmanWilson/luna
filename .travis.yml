@@ -14,10 +14,15 @@ addons: &addons
     packages: &packages
       # install toolchains
       - g++-4.9
+      - g++-5
       - clang-format-3.7
+      - clang-3.6
+      - clang-3.7
+      - clang-3.8
       - python-pip
       - libmicrohttpd-dev
       - libmicrohttpd10
+      - libssl-dev
 
 install:
   # Download conan
@@ -36,7 +41,7 @@ matrix:
           sources:
             *sources
           packages:
-            - g++-4.9
+            *packages
       env: COMPILER=g++-4.9
     - compiler: gcc
       addons:
@@ -44,7 +49,6 @@ matrix:
           sources:
             *sources
           packages:
-            - g++-5
       env: COMPILER=g++-5
     - compiler: clang
       addons:
@@ -52,7 +56,7 @@ matrix:
           sources:
             *sources
           packages:
-            - clang-3.6
+            *packages
       env: COMPILER=clang++-3.6
     - compiler: clang
       addons:
@@ -60,7 +64,7 @@ matrix:
           sources:
             *sources
           packages:
-            - clang-3.7
+            *packages
       env: COMPILER=clang++-3.7
     - compiler: clang
       addons:
@@ -68,7 +72,7 @@ matrix:
           sources:
             *sources
           packages:
-            - clang-3.8
+            *packages
       env: COMPILER=clang++-3.8
 
 script:
