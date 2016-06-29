@@ -80,8 +80,10 @@ message(STATUS "=======================================================")
 ##### luna
 set(LIB_LUNA_SOURCE_FILES luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h luna/config.cpp luna/config.h)
 add_library(${CPM_LIB_TARGET_NAME} ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-target_include_directories(${CPM_LIB_TARGET_NAME} PRIVATE luna/private)
-target_include_directories(${CPM_LIB_TARGET_NAME} SYSTEM PRIVATE luna)
+#target_include_directories(${CPM_LIB_TARGET_NAME} PRIVATE luna/private)
+#target_include_directories(${CPM_LIB_TARGET_NAME} SYSTEM PRIVATE luna)
+include_directories(PRIVATE luna/private)
+include_directories(SYSTEM PRIVATE luna)
 target_link_libraries(${CPM_LIB_TARGET_NAME} microhttpd)
 
 
