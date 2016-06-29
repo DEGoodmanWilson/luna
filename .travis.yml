@@ -6,16 +6,16 @@ compiler: clang
 addons:
   apt:
     sources:
-    # add PPAs with more up-to-date toolchains
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.6
+      # add PPAs with more up-to-date toolchains
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
+      - llvm-toolchain-precise-3.7
+      - llvm-toolchain-precise-3.8
     packages:
-    # install toolchains
-    - gcc-5
-    - g++-5
-    - clang-3.6
-    - clang-3.7
-    - clang-3.8
+      # install toolchains
+      - g++-4.9
+      - clang-format-3.7
+      - python-pip
 
 install:
   # Download conan
@@ -26,14 +26,13 @@ install:
   # Automatic detection of your arch, compiler, etc
   - conan install --options build_luna_tests=True --options build_luna_coverage=True --build=missing
 
-
 matrix:
   include:
     - compiler: gcc
       addons:
         apt:
           sources:
-            - ubuntu-toolchain-r-test
+            *sources
           packages:
             - g++-4.9
       env: COMPILER=g++-4.9
@@ -41,7 +40,7 @@ matrix:
       addons:
         apt:
           sources:
-            - ubuntu-toolchain-r-test
+            *sources
           packages:
             - g++-5
       env: COMPILER=g++-5
@@ -49,8 +48,7 @@ matrix:
       addons:
         apt:
           sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
+            *sources
           packages:
             - clang-3.6
       env: COMPILER=clang++-3.6
@@ -58,11 +56,18 @@ matrix:
       addons:
         apt:
           sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
+            *sources
           packages:
             - clang-3.7
       env: COMPILER=clang++-3.7
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            *sources
+          packages:
+            - clang-3.8
+      env: COMPILER=clang++-3.8
 
 script:
   - conan build
