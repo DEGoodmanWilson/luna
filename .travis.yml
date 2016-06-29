@@ -28,6 +28,16 @@ env:
 #  matrix:
 #    - COMPILER=g++-4.9 CCOMPILER=gcc-4.9 GENERATE_COVERAGE=ON FORMAT_CHECK=ON
 
+install:
+  # Download conan
+  - wget http://downloads.conan.io/latest_debian -O conan.deb
+  - sudo dpkg -i conan.deb
+  - rm conan.deb
+
+  # Automatic detection of your arch, compiler, etc
+  - conan install --options build_luna_tests=True --options build_luna_coverage=True --build cpr
+
+
 matrix:
   include:
     # gcc 4.6
@@ -121,13 +131,13 @@ before_script:
   - export CXX=$COMPILER CC=$CCOMPILER
   - if [ "$BREW_CMAKE" == "ON" ]; then brew update && brew install cmake; fi
   - cmake --version
-  - mkdir build
-  - cd build
-  - cmake -LAH ..
+#  - mkdir build
+#  - cd build
+#  - cmake -LAH ..
 
 script:
-  - make VERBOSE=1
-  - ctest -V
+  - conan build
+  - ./bin/luna_tests
 
 #after_success:
 #  - if [ "$GENERATE_COVERAGE" == "ON" ]; then coveralls -i 'luna' -i 'include' -e '../include/luna.h' --root '../' --verbose --gcov-options '\-lp' --gcov 'gcov-4.9'; fi
