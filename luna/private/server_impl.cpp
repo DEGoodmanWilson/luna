@@ -686,25 +686,25 @@ void server::server_impl::set_option(server::connection_memory_increment value)
 //    //TODO
 //}
 
-void server::server_impl::set_option(server::tcp_fastopen_queue_size value)
-{
-    options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
-}
+//void server::server_impl::set_option(server::tcp_fastopen_queue_size value)
+//{
+//    options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
+//}
 
-void server::server_impl::set_option(const server::https_mem_dhparams &value)
-{
-    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(value.c_str())});
-}
+//void server::server_impl::set_option(const server::https_mem_dhparams &value)
+//{
+//    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(value.c_str())});
+//}
 
-void server::server_impl::set_option(server::listening_address_reuse value)
-{
-    options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
-}
+//void server::server_impl::set_option(server::listening_address_reuse value)
+//{
+//    options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
+//}
 
-void server::server_impl::set_option(const server::https_key_password &value)
-{
-    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(value.c_str())});
-}
+//void server::server_impl::set_option(const server::https_key_password &value)
+//{
+//    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(value.c_str())});
+//}
 
 //void server::server_impl::set_option(server::notify_connection value)
 //{
