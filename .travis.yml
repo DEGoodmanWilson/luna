@@ -1,5 +1,5 @@
 language: cpp
-sudo: false
+sudo: required
 compiler: clang
 
 addons: &addons

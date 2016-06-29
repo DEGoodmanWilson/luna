@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/DEGoodmanWilson/luna.svg)](https://travis-ci.org/DEGoodmanWilson/luna)
+[![Coverage Status](https://coveralls.io/repos/github/DEGoodmanWilson/luna/badge.svg?branch=master)](https://coveralls.io/github/DEGoodmanWilson/luna?branch=master)
+
 # luna
 
 An embedded HTTP server in idiomatic C++
