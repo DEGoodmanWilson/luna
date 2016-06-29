@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 2.8)
 
 ##### CPM
 #-----------------------------------------------------------------------
@@ -40,6 +40,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 ##### External dependencies
 
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/coveralls/cmake)
+
 ## libmicrohttpd
 
 
@@ -67,32 +69,11 @@ luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              ON)
 message(STATUS "=======================================================")
 
 
-#AND GENERATE_COVERAGE)
-if(BUILD_LUNA_TESTS AND BUILD_LUNA_COVERAGE)
-    set(CMAKE_BUILD_TYPE COVERAGE CACHE INTERNAL "Coverage enabled build")
-    message(STATUS "Enabling gcov support")
-    set(CMAKE_CXX_FLAGS_COVERAGE
-            "-g -O0 -fprofile-arcs -ftest-coverage"
-            CACHE STRING "Flags used by the C++ compiler during coverage builds."
-            FORCE)
-    set(CMAKE_C_FLAGS_COVERAGE
-            "-g -O0 -fprofile-arcs -ftest-coverage"
-            CACHE STRING "Flags used by the C compiler during coverage builds."
-            FORCE)
-    set(CMAKE_EXE_LINKER_FLAGS_COVERAGE
-            "-fprofile-arcs -ftest-coverage"
-            CACHE STRING "Flags used for linking binaries during coverage builds."
-            FORCE)
-    set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE
-            "-fprofile-arcs -ftest-coverage"
-            CACHE STRING "Flags used by the shared libraries linker during coverage builds."
-            FORCE)
-    mark_as_advanced(
-            CMAKE_CXX_FLAGS_COVERAGE
-            CMAKE_C_FLAGS_COVERAGE
-            CMAKE_EXE_LINKER_FLAGS_COVERAGE
-            CMAKE_SHARED_LINKER_FLAGS_COVERAGE)
-endif()
+#AND GENERATE_COVERAGE
+#if(BUILD_LUNA_TESTS AND BUILD_LUNA_COVERAGE)
+#    include(Coveralls)
+#    coveralls_turn_on_coverage()
+#endif()
 
 
 
@@ -104,6 +85,15 @@ target_include_directories(${CPM_LIB_TARGET_NAME} SYSTEM PRIVATE luna)
 target_link_libraries(${CPM_LIB_TARGET_NAME} microhttpd)
 
 
+#if (COVERALLS)
+#    set(COVERAGE_SRCS ${LIB_LUNA_SOURCE_FILES})
+#
+#    # Create the coveralls target.
+#    coveralls_setup(
+#            "${COVERAGE_SRCS}" # The source files.
+#            ON                 # If we should upload.
+#            "${PROJECT_SOURCE_DIR}/coveralls/cmake")
+#endif()
 
 if (BUILD_LUNA_TESTS)
     enable_testing()
