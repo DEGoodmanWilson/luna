@@ -1,10 +1,7 @@
 language: cpp
-
 sudo: false
-
 compiler: clang
 
-# gcc 4.9 default
 addons: &addons
   apt:
 #    sources:
@@ -13,7 +10,7 @@ addons: &addons
 #      - cmake-3.2.2 #Apparently this is disallowed. Wow.
       - g++-4.9
       - clang-format-3.7
-      - python-pip
+#      - python-pip
     sources: &sources
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.5
@@ -24,6 +21,7 @@ addons: &addons
 env:
   global:
     - BUILD_LUNA_TESTS=ON
+    - BUILD_LUNA_COVERAGE=ON
     - GTEST_SHUFFLE=1
     - INSECURE_CURL=ON
     - USE_SYSTEM_CURL=ON

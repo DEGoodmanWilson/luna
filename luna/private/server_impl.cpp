@@ -68,7 +68,7 @@ struct connection_info_struct
     }
 };
 
-std::string default_mime_type{"text/html"};
+std::string default_mime_type{"text/html; charset=UTF-8"};
 
 static const server::error_handler_cb default_error_handler_callback_ = [](response &response,
                                                                            request_method method,
@@ -76,7 +76,7 @@ static const server::error_handler_cb default_error_handler_callback_ = [](respo
     {
         if (response.content.empty())
         {
-            response.content_type = "text/html";
+            response.content_type = "text/html; charset=UTF-8";
             //we'd best render it ourselves.
             switch (response.status_code)
             {
@@ -383,7 +383,7 @@ int server::server_impl::render_response_(const response &response,
                                   response.status_code,
                                   mhd_response);
     MHD_add_response_header(mhd_response,
-                            MHD_HTTP_HEADER_CONTENT_ENCODING,
+                            MHD_HTTP_HEADER_CONTENT_TYPE,
                             response.content_type.c_str());
     MHD_destroy_response(mhd_response);
     return ret;

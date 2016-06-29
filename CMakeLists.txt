@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 2.8)
 project(luna)
 
 ##### Use C++14
@@ -8,6 +8,8 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 ##### External dependencies
+
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/coveralls/cmake)
 
 ## libmicrohttpd
 
@@ -35,17 +37,33 @@ luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              ON)
 message(STATUS "=======================================================")
 
 
+#AND GENERATE_COVERAGE
+#if(BUILD_LUNA_TESTS AND BUILD_LUNA_COVERAGE)
+#    include(Coveralls)
+#    coveralls_turn_on_coverage()
+#endif()
+
+
 ##### luna
 set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 include_directories(SYSTEM ${LUNA_INCLUDE_DIRS})
 
 set(LIB_LUNA_SOURCE_FILES luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h luna/config.cpp luna/config.h)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-target_include_directories(luna PRIVATE luna/private)
-target_include_directories(luna PRIVATE luna)
+include_directories(PRIVATE luna/private)
+include_directories(SYSTEM PRIVATE luna)
 target_link_libraries(luna microhttpd)
 
 
+#if (COVERALLS)
+#    set(COVERAGE_SRCS ${LIB_LUNA_SOURCE_FILES})
+#
+#    # Create the coveralls target.
+#    coveralls_setup(
+#            "${COVERAGE_SRCS}" # The source files.
+#            ON                 # If we should upload.
+#            "${PROJECT_SOURCE_DIR}/coveralls/cmake")
+#endif()
 
 if (BUILD_LUNA_TESTS)
     enable_testing()
