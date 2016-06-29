@@ -18,7 +18,7 @@ class LunaConan(ConanFile):
 
     def config(self):
         if self.options.build_luna_tests:
-            self.requires.add("cpr/1.2.0@local/testing", private=False)
+            self.requires.add("cpr/1.2.0@DEGoodmanWilson/testing", private=False)
             self.requires.add("gtest/1.7.0@lasote/stable", private=False)
             self.options["gtest"].shared = False
         else:
