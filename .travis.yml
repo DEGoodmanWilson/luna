@@ -16,6 +16,8 @@ addons:
       - g++-4.9
       - clang-format-3.7
       - python-pip
+      - libmicrohttpd-dev
+      - libmicrohttpd10
 
 install:
   # Download conan
