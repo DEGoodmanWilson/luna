@@ -24,7 +24,7 @@ install:
   - rm conan.deb
 
   # Automatic detection of your arch, compiler, etc
-  - conan install --options build_luna_tests=True --options build_luna_coverage=True --build cpr
+  - conan install --options build_luna_tests=True --options build_luna_coverage=True --build=missing
 
 
 matrix:
