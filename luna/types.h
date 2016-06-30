@@ -85,7 +85,7 @@ extern std::string default_mime_type;
 
 struct response
 {
-    status_code status_code;
+    luna::status_code status_code;
     std::string content_type;
     std::string content;
 

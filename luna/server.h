@@ -85,7 +85,6 @@ public:
     MAKE_STRING_LIKE(https_key_password);
 
 
-    template
     server()
     {
         initialize_();
@@ -111,10 +110,8 @@ public:
         handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
 
-    template
     void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
-    template
     void handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
     explicit operator bool();

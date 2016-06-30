@@ -11,6 +11,12 @@
 
 TEST(basic_functioning, just_work)
 {
+    luna::server server;
+    ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
+}
+
+TEST(basic_functioning, just_work_with_port)
+{
     luna::server server{luna::server::port{8080}};
     ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
 }
