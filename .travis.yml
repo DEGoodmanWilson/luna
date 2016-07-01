@@ -42,14 +42,14 @@ matrix:
             *sources
           packages:
             *packages
-      env: COMPILER=g++-4.9
+      env: COMPILER=g++-4.9 CCOMPILER=gcc-4.9
     - compiler: gcc
       addons:
         apt:
           sources:
             *sources
           packages:
-      env: COMPILER=g++-5
+      env: COMPILER=g++-5 CCOMPILER=gcc-5
     - compiler: clang
       addons:
         apt:
