@@ -15,6 +15,7 @@ addons: &addons
       # install toolchains
       - g++-4.9
       - g++-5
+      - gdb
       - clang-format-3.7
       - clang-3.6
       - clang-3.7
@@ -79,6 +80,13 @@ matrix:
 script:
   - conan build
   - ./bin/luna_tests
+
+before_script:
+  - ulimit -c unlimited -S       # enable core dumps
+
+after_failure:
+  - COREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
+  - if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" example -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
 
 #after_success:
 #  - if [ "$GENERATE_COVERAGE" == "ON" ]; then coveralls -i 'luna' -i 'include' -e '../include/luna.h' --root '../' --verbose --gcov-options '\-lp' --gcov 'gcov-4.9'; fi
