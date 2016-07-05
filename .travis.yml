@@ -49,6 +49,7 @@ matrix:
           sources:
             *sources
           packages:
+            *packages
       env: COMPILER=g++-5 CCOMPILER=gcc-5
     - compiler: clang
       addons:
