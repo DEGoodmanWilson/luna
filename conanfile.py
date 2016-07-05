@@ -29,10 +29,10 @@ class LunaConan(ConanFile):
 
     def build(self):
         cmake = CMake(self.settings)
-        build_shared_libs = "-DBUILD_SHARED_LIBS=ON" if self.options.build_shared_libs else ""
-        build_luna_tests = "-DBUILD_LUNA_TESTS=OFF" if not self.options.build_luna_tests else ""
-        build_luna_coverage = "-DBUILD_LUNA_COVERAGE=ON" if self.options.build_luna_coverage else ""
-        build_luna_examples = "-DBUILD_LUNA_EXAMPLES=OFF" if not self.options.build_luna_examples else ""
+        build_shared_libs = "-DBUILD_SHARED_LIBS=ON" if self.options.build_shared_libs else "-DBUILD_SHARED_LIBS=OFF"
+        build_luna_tests = "-DBUILD_LUNA_TESTS=ON" if self.options.build_luna_tests else "-DBUILD_LUNA_TESTS=OFF"
+        build_luna_coverage = "-DBUILD_LUNA_COVERAGE=ON" if self.options.build_luna_coverage else "-DBUILD_LUNA_COVERAGE=OFF"
+        build_luna_examples = "-DBUILD_LUNA_EXAMPLES=ON" if self.options.build_luna_examples else "-DBUILD_LUNA_EXAMPLES=OFF"
 
         self.run('cmake %s %s %s %s "%s" %s' % (build_shared_libs, build_luna_tests, build_luna_coverage, build_luna_examples, self.conanfile_directory, cmake.command_line))
         self.run('cmake --build . %s' % cmake.build_config)
