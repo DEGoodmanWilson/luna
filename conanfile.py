@@ -10,7 +10,7 @@ class LunaConan(ConanFile):
                "build_luna_tests":    [True, False],
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
-    default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False"
+    default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False", "cpr:use_system_curl=True"\
     generators = "cmake"
 
     def source(self):
