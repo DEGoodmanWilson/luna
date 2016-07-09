@@ -36,6 +36,8 @@ class LunaConan(ConanFile):
 
         self.run('cmake %s %s %s %s "%s" %s' % (build_shared_libs, build_luna_tests, build_luna_coverage, build_luna_examples, self.conanfile_directory, cmake.command_line))
         self.run('cmake --build . %s' % cmake.build_config)
+        if self.options.build_luna_coverage:
+            self.run('cmake --build . --target coveralls')
 
     def package(self):
         self.copy("*.h", dst="include", src="luna")

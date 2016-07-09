@@ -9,11 +9,6 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 ##### External dependencies
 
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/coveralls/cmake)
-
-## libmicrohttpd
-
-
 ##### Options
 
 macro(luna_option OPTION_NAME OPTION_TEXT OPTION_DEFAULT)
@@ -36,12 +31,12 @@ luna_option(BUILD_LUNA_COVERAGE "Generate test coverage information"    OFF)
 luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              ON)
 message(STATUS "=======================================================")
 
-
-#AND GENERATE_COVERAGE
-#if(BUILD_LUNA_TESTS AND BUILD_LUNA_COVERAGE)
-#    include(Coveralls)
-#    coveralls_turn_on_coverage()
-#endif()
+if (BUILD_LUNA_COVERAGE)
+    set(BUILD_LUNA_TESTS true) # need the tests if coverage is requested!
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/coveralls-cmake)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+endif()
 
 
 ##### luna
@@ -54,18 +49,22 @@ include_directories(PRIVATE luna/private)
 include_directories(SYSTEM PRIVATE luna)
 target_link_libraries(luna microhttpd)
 
+if (BUILD_LUNA_COVERAGE)
+    message(STATUS "Building Luna with Coverage")
 
-#if (COVERALLS)
-#    set(COVERAGE_SRCS ${LIB_LUNA_SOURCE_FILES})
-#
-#    # Create the coveralls target.
-#    coveralls_setup(
-#            "${COVERAGE_SRCS}" # The source files.
-#            ON                 # If we should upload.
-#            "${PROJECT_SOURCE_DIR}/coveralls/cmake")
-#endif()
+    set(COVERAGE_SRCS ${LIB_LUNA_SOURCE_FILES})
+
+    # Create the coveralls target.
+    coveralls_setup(
+            "${COVERAGE_SRCS}" # The source files.
+            OFF                 # If we should upload.
+#            "${PROJECT_SOURCE_DIR}/CMakeModules/" # (Optional) Alternate project cmake module path.
+    )
+endif()
 
 if (BUILD_LUNA_TESTS)
+    message(STATUS "Building Luna with Tests")
+
     enable_testing()
     include(conanbuildinfo.cmake)
     CONAN_BASIC_SETUP()
@@ -74,6 +73,8 @@ endif ()
 
 
 if (BUILD_LUNA_EXAMPLES)
+    message(STATUS "Building Luna with Examples")
+
     set(EXAMPLE1_SOURCE_FILES examples/example1.cpp)
     add_executable(example1 ${EXAMPLE1_SOURCE_FILES})
     target_link_libraries(example1 luna)
