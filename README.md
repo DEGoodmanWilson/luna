@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/DEGoodmanWilson/luna.svg)](https://travis-ci.org/DEGoodmanWilson/luna)
-[![Coverage Status](https://coveralls.io/repos/github/DEGoodmanWilson/luna/badge.svg?branch=master)](https://coveralls.io/github/DEGoodmanWilson/luna?branch=master)
+[![Coverage Status](https://codecov.io/gh/DEGoodmanWilson/luna/branch/master/graph/badge.svg)](https://codecov.io/gh/DEGoodmanWilson/luna)
 
 # luna
 
