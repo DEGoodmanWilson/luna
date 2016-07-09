@@ -4,7 +4,7 @@ class LunaConan(ConanFile):
     name = "luna"
     version = "1.0.0-beta5"
     url = "https://github.com/DEGoodmanWilson/luna.git"
-    license = "Apache 2.0"
+    license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
     options = {"build_shared_libs":   [True, False],
                "build_luna_tests":    [True, False],
@@ -12,9 +12,6 @@ class LunaConan(ConanFile):
                "build_luna_examples": [True, False]}
     default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False", "cpr:use_system_curl=True"
     generators = "cmake"
-
-    def source(self):
-        self.run("git clone https://github.com/DEGoodmanWilson/luna.git --branch conan") #v%s" % (self.version))
 
     def config(self):
         if self.options.build_luna_tests:
