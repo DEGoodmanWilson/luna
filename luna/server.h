@@ -105,12 +105,10 @@ public:
 
 
     template<typename T>
-    void handle_request(request_method method, T path, endpoint_handler_cb callback)
+    void handle_request(request_method method, T&& path, endpoint_handler_cb callback)
     {
         handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
-
-    void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
     void handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
