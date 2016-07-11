@@ -9,6 +9,7 @@
 #include <string>
 #include <regex>
 #include <map>
+#include <stdint.h>
 
 
 namespace luna

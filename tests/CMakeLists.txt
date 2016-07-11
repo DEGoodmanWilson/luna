@@ -8,7 +8,7 @@ add_executable(luna_tests main.cpp
         crashers.cpp
         put.cpp
         patch.cpp
-        )
+        delete.cpp server_options.cpp)
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 target_link_libraries(luna_tests luna ${CONAN_LIBS})

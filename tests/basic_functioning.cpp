@@ -13,12 +13,15 @@ TEST(basic_functioning, just_work)
 {
     luna::server server;
     ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
+    ASSERT_NE(0, static_cast<uint16_t>(server.get_port())); //assert that we have _some_ port, although none specified
 }
 
 TEST(basic_functioning, just_work_with_port)
 {
     luna::server server{luna::server::port{8080}};
     ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
+    ASSERT_EQ(8080, static_cast<uint16_t>(server.get_port()));
+
 }
 
 TEST(basic_functioning, default_404)

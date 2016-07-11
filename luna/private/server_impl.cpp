@@ -164,7 +164,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 server::server_impl::server_impl() :
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
-        accept_policy_callback_{default_accept_policy_callback_}
+        accept_policy_callback_{default_accept_policy_callback_},
+        port_{8080}
 { }
 
 
