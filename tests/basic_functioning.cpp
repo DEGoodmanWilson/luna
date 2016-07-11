@@ -91,3 +91,18 @@ TEST(basic_functioning, default_201_with_post_check_params)
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+TEST(basic_functioning, default_200_with_get_lvalue)
+{
+    luna::server server{luna::server::port{8080}};
+    std::string endpoint{"/test"};
+    server.handle_request(luna::request_method::GET,
+                          endpoint,
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {"hello"};
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}

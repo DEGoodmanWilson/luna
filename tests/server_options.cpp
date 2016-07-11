@@ -8,7 +8,12 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 #include <cpr/cpr.h>
+#include <mutex>
+#include <thread>
+#include <chrono>
 #include "server_impl.h"
+
+using namespace std::chrono_literals;
 
 TEST(server_options, set_mime_type)
 {
@@ -93,3 +98,38 @@ TEST(server_options, set_unescaper_cb)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ("ugh", res.text);
 }
+
+
+//This doesn't work. The maximum measured connections never exceeds 1
+//TEST(server_options, set_connection_limit)
+//{
+//    uint8_t count=0;
+//    uint8_t max_count=0;
+//    std::mutex mutex;
+//
+//    luna::server server{luna::server::connection_limit{2}};
+//    server.handle_request(luna::request_method::GET,
+//                          "/test",
+//                          [&count, &max_count, &mutex](auto matches, auto params) -> luna::response
+//                              {
+//                                  mutex.lock();
+//                                  ++count;
+//                                  if(count > max_count) max_count = count;
+//                                  mutex.unlock();
+//
+//                                  std::this_thread::sleep_for(1000ms);
+//
+//                                  mutex.lock();
+//                                  --count;
+//                                  mutex.unlock();
+//                                  return {"Hello"};
+//                              });
+//
+//    for(int x = 0; x < 10; ++x)
+//    {
+//        cpr::GetAsync(cpr::Url{"http://localhost:8080/test"});
+//    }
+//
+//    ASSERT_EQ(0, count);
+//    ASSERT_EQ(2, max_count);
+//}
