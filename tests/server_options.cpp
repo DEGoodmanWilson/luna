@@ -59,9 +59,15 @@ TEST(server_options, set_accept_policy_cb)
             }
         }
     };
+    server.handle_request(luna::request_method::POST,
+                          "/test",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {"hello"};
+                              });
 
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
-    ASSERT_EQ(cpr::ErrorCode::EMPTY_RESPONSE, res.error.code);
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ("", res.text);
 }
 
 TEST(server_options, set_unescaper_cb)
