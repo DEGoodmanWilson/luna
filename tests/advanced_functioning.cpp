@@ -149,23 +149,24 @@ TEST(advanced_functioning, actual_server_errors)
                           [](auto matches, auto params) -> luna::response
                               {
                                   std::string{}.at(1); //throws out of bounds exception
+                                  return {}; //never hit
                               });
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(500, res.status_code);
     ASSERT_EQ("Internal error", res.text);
 }
 
-//TEST(advanced_functioning, json_blob_in_request_body)
-//{
-//    std::cout << "HI============ " << std::endl;
-//    luna::server server{luna::server::port{8080}};
-//    server.handle_request(luna::request_method::POST,
-//                          "/test",
-//                          [](auto matches, auto params) -> luna::response
-//                              {
-//                                  return {"hello"};
-//                              });
-//    auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"This is the body"});
-//    ASSERT_EQ(201, res.status_code);
-//    ASSERT_EQ("hello", res.text);
-//})
+TEST(advanced_functioning, actual_server_errors2)
+{
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  throw new std::exception;
+                                  return {}; //never hit
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(500, res.status_code);
+    ASSERT_EQ("Unknown internal error", res.text);
+}
