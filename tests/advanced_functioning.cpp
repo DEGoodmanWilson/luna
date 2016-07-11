@@ -73,23 +73,22 @@ TEST(advanced_functioning, putting_it_together)
     ASSERT_EQ(path, res.text);
 }
 
-TEST(advanced_functioning, simple_redirect)
+TEST(advanced_functioning, permanent_redirect)
 {
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET, "/redirect",
                           [](auto matches, auto params) -> luna::response
                               {
-                                  return {luna::response::URI{"http://www.google.com/"}};
+                                  return {301, luna::response::URI{"/foobar"}};
                               });
-    std::string path = "redirect";
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
-
-    //This is going to require an internet connection to work!!
-    if(res.status_code != 200) ASSERT_EQ(301, res.status_code);
-    else ASSERT_EQ(200, res.status_code);
-
-    ASSERT_EQ("http://www.google.com/", res.url);
-
+    server.handle_request(luna::request_method::GET, "/foobar",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {"bazqux"};
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/redirect"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("bazqux", res.text);
 }
 
 TEST(advanced_functioning, temporary_redirect)
@@ -98,13 +97,16 @@ TEST(advanced_functioning, temporary_redirect)
     server.handle_request(luna::request_method::GET, "/redirect",
                           [](auto matches, auto params) -> luna::response
                               {
-                                  return {307, luna::response::URI{"http://www.google.com/"}};
+                                  return {307, luna::response::URI{"/foobar"}};
                               });
-    std::string path = "redirect";
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/" + path});
-    if(res.status_code != 200) ASSERT_EQ(307, res.status_code);
-    else ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("http://www.google.com/", res.url);
+    server.handle_request(luna::request_method::GET, "/foobar",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  return {"bazqux"};
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/redirect"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("bazqux", res.text);
 }
 
 TEST(advanced_functioning, get_and_post)
