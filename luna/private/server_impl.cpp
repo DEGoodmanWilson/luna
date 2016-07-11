@@ -5,6 +5,7 @@
 //
 
 #include <netinet/tcp.h>
+#include <stdarg.h>
 #include "server_impl.h"
 #include "config.h"
 
@@ -164,7 +165,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 server::server_impl::server_impl() :
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
-        accept_policy_callback_{default_accept_policy_callback_}
+        accept_policy_callback_{default_accept_policy_callback_},
+        port_{8080}
 { }
 
 
@@ -325,10 +327,18 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             {
                 response = callback(matches, query_params);
             }
+            //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
                 LOG_ERROR(e.what());
                 response = {500, "text/plain", "Internal error"};
+                //TODO render the stack trace, etc.
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unknown internal error");
+                //TODO use the same error message as above, and just log things differently and test for that.
+                response = {500, "text/plain", "Unknown internal error"};
                 //TODO render the stack trace, etc.
             }
 
@@ -504,16 +514,19 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
 }
 
 //http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-std::string string_format(const std::string fmt_str, va_list ap)
+std::string string_format(const std::string fmt_str, ...)
 {
     int final_n, n = ((int) fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
     std::string str;
     std::unique_ptr<char[]> formatted;
+    va_list ap;
     while (1)
     {
         formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
         strcpy(&formatted[0], fmt_str.c_str());
+        va_start(ap, fmt_str);
         final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
+        va_end(ap);
         if (final_n < 0 || final_n >= n)
         {
             n += abs(final_n - n + 1);

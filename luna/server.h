@@ -105,12 +105,10 @@ public:
 
 
     template<typename T>
-    void handle_request(request_method method, T path, endpoint_handler_cb callback)
+    void handle_request(request_method method, T&& path, endpoint_handler_cb callback)
     {
         handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
-
-    void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
     void handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
 
@@ -203,5 +201,8 @@ private:
 //    void set_option_(notify_connection value); //TODO later
 
 };
+
+//for testing purposes only.
+std::string string_format(const std::string fmt_str, ...);
 
 } //namespace luna
