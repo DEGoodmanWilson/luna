@@ -127,7 +127,7 @@ TEST(advanced_functioning, get_and_post)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(advanced_functioning, server_errors)
+TEST(advanced_functioning, default_server_errors)
 {
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
@@ -139,6 +139,20 @@ TEST(advanced_functioning, server_errors)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(500, res.status_code);
     ASSERT_EQ("<h1>So sorry, generic server error</h1>", res.text);
+}
+
+TEST(advanced_functioning, actual_server_errors)
+{
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto matches, auto params) -> luna::response
+                              {
+                                  std::string{}.at(1); //throws out of bounds exception
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(500, res.status_code);
+    ASSERT_EQ("Internal error", res.text);
 }
 
 //TEST(advanced_functioning, json_blob_in_request_body)

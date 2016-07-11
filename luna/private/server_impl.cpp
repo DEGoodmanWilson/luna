@@ -326,12 +326,19 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             {
                 response = callback(matches, query_params);
             }
+            //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
                 LOG_ERROR(e.what());
                 response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
+//            catch (...)
+//            {
+//                LOG_ERROR("Unknown internal error");
+//                response = {500, "text/plain", "Unknown internal error"};
+//                //TODO render the stack trace, etc.
+//            }
 
             if (response.status_code == 0) //no status code was provided, assume success
             {
