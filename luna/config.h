@@ -24,7 +24,6 @@ enum class log_level
 
 using logger_cb = std::function<void(log_level level, const std::string &message)>;
 
-
 void set_logger(logger_cb logger);
 void reset_logger();
 
