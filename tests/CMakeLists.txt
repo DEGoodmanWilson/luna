@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+enable_testing()
+
 add_executable(luna_tests main.cpp
         basic_functioning.cpp
         advanced_functioning.cpp

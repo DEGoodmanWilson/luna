@@ -25,16 +25,12 @@ install:
 
 
 after_success:
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then echo Uploading coverage to codecov; fi
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then find tests -name "*.gc*" -delete; fi
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then find tests -name "*.o" -delete; fi
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then find . -name "*luna#tests*gcov" -delete; fi
+  # Upload coverage to codecov
   - if [ "$GENERATE_COVERAGE" == "ON" ]; then bash <(curl -s https://codecov.io/bash); fi
 
 script:
   - conan build
   - if [ "$RUN_TESTS" == "ON" ]; then ./bin/luna_tests; fi
-
 
 matrix:
   include:
@@ -120,5 +116,5 @@ matrix:
             - libmicrohttpd10
             - libssl-dev
             - curl
-      env: GCC_VERSION=5 GENERATE_COVERAGE=ON
+      env: GCC_VERSION=5 RUN_TESTS=ON GENERATE_COVERAGE=ON
 

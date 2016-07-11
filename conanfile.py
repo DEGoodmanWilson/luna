@@ -14,6 +14,9 @@ class LunaConan(ConanFile):
     generators = "cmake"
 
     def config(self):
+        if self.options.build_luna_coverage:
+            self.options.build_luna_tests=True
+
         if self.options.build_luna_tests:
             self.requires.add("cpr/1.2.0@DEGoodmanWilson/testing", private=False)
             self.requires.add("gtest/1.7.0@lasote/stable", private=False)
@@ -33,8 +36,6 @@ class LunaConan(ConanFile):
 
         self.run('cmake %s %s %s %s "%s" %s' % (build_shared_libs, build_luna_tests, build_luna_coverage, build_luna_examples, self.conanfile_directory, cmake.command_line))
         self.run('cmake --build . %s' % cmake.build_config)
-        if self.options.build_luna_coverage:
-            self.run('cmake --build . --target coveralls')
 
     def package(self):
         self.copy("*.h", dst="include", src="luna")
