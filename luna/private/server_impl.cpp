@@ -46,6 +46,7 @@ struct connection_info_struct
 {
     request_method connectiontype;
     query_params post_params;
+    std::string json_data;
     MHD_PostProcessor *postprocessor;
 
     connection_info_struct(request_method method,
@@ -262,7 +263,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
         connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method, connection, 65535, iterate_postdata_shim_);
         if (!con_info) return MHD_NO; //TODO what does this mean?
-        if(method == request_method::POST && !con_info->postprocessor) return MHD_NO; //failure to initialize
+//MHD_post_process
 
         *con_cls = con_info;
 
@@ -291,7 +292,22 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
 //        std::cout << "===" << upload_data << std::endl;
         //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
-        MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
+        if( MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) == MHD_NO)
+        {
+            //MHD couldn't parse it, maybe we can.
+            if(header.count("Content-Type") && (header["Content-Type"] == "application/json"))
+            {
+                std::cout << "Hells bells" << std::endl;
+                //TODO parse this out as JSON!
+                con_info->json_data = std::string{upload_data}; //TODO don't trust the null termination here!?
+                *upload_data_size = 0;
+                return MHD_YES;
+            }
+            else
+            {
+                return MHD_NO;
+            }
+        }
 //        std::cout << "======" << std::endl;
 
         *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
@@ -301,6 +317,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
         //if we have post_params, then MHD has ignored the query params. So just overwrite it.
         std::swap(query_params, con_info->post_params);
+    }
+    if(con_info->json_data != "")
+    {
+        query_params["json_data"] = con_info->json_data;
     }
 
     //iterate through the handlers. Could stand being parallelized, I suppose?

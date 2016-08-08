@@ -91,3 +91,17 @@ TEST(basic_functioning, default_201_with_post_check_params)
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+TEST(basic_functioning, default_201_with_post_json_in_body)
+{
+    luna::server server{luna::server::port{8080}};
+    server.handle_request(luna::request_method::POST, "/test", [](auto matches, auto params) -> luna::response
+    {
+        EXPECT_EQ(1, params.count("json_data"));
+        EXPECT_EQ("{\"key\": \"value\"}", params.at("json_data"));
+        return {"hello"};
+    });
+    auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"{\"key\": \"value\"}"}, cpr::Header{{"Content-Type", "application/json"}});
+    ASSERT_EQ(201, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
