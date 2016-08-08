@@ -2,7 +2,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "1.0.0"
+    version = "1.0.1"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
@@ -12,6 +12,7 @@ class LunaConan(ConanFile):
                "build_luna_examples": [True, False]}
     default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False", "cpr:use_system_curl=True"
     generators = "cmake"
+    exports = ["*"]
 
     def config(self):
         if self.options.build_luna_coverage:
@@ -38,7 +39,7 @@ class LunaConan(ConanFile):
         self.run('cmake --build . %s' % cmake.build_config)
 
     def package(self):
-        self.copy("*.h", dst="include", src="luna")
+        self.copy("*.h", dst="include/luna", src="luna")
         self.copy("*.lib", dst="lib", src="lib")
         self.copy("*.a", dst="lib", src="lib")
 
