@@ -297,9 +297,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             //MHD couldn't parse it, maybe we can.
             if(header.count("Content-Type") && (header["Content-Type"] == "application/json"))
             {
-                std::cout << "Hells bells" << std::endl;
-                //TODO parse this out as JSON!
-                con_info->json_data = std::string{upload_data}; //TODO don't trust the null termination here!?
+                //return this JSON as a string, up to the recipient to parse it out.
+                con_info->json_data.append(upload_data, *upload_data_size);
                 *upload_data_size = 0;
                 return MHD_YES;
             }
