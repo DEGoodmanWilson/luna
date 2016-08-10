@@ -290,24 +290,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
     if (*upload_data_size != 0)
     {
-//        std::cout << "===" << upload_data << std::endl;
         //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
         if( MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) == MHD_NO)
         {
             //MHD couldn't parse it, maybe we can.
-            if(header.count("Content-Type") && (header["Content-Type"] == "application/json"))
-            {
-                //return this JSON as a string, up to the recipient to parse it out.
-                con_info->body.append(upload_data, *upload_data_size);
-                *upload_data_size = 0;
-                return MHD_YES;
-            }
-            else
-            {
-                return MHD_NO;
-            }
+            con_info->body.append(upload_data, *upload_data_size);
         }
-//        std::cout << "======" << std::endl;
 
         *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
         return MHD_YES;
