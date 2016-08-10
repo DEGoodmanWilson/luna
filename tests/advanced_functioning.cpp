@@ -170,3 +170,16 @@ TEST(advanced_functioning, actual_server_errors2)
     ASSERT_EQ(500, res.status_code);
     ASSERT_EQ("Unknown internal error", res.text);
 }
+
+TEST(advanced_functioning, check_arbitrary_headers)
+{
+    luna::server server;
+    server.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
+        {
+            EXPECT_EQ(1, req.headers.count("foo"));
+            EXPECT_EQ("bar", req.headers.at("foo"));
+            return {req.headers.at("foo")};
+           });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"foo", "bar"}});
+    ASSERT_EQ("bar", res.text);
+}
