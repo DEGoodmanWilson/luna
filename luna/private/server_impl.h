@@ -183,7 +183,7 @@ private:
                          MHD_Connection *connection,
                          const char *url,
                          request_method method,
-                         headers headers = {}) const;
+                         request_headers headers = {}) const;
 
     int render_error_(response &response, MHD_Connection *connection, const char *url, request_method method) const;
 

@@ -391,7 +391,7 @@ int server::server_impl::render_response_(const response &response,
                                           MHD_Connection *connection,
                                           const char *url,
                                           request_method method,
-                                          headers headers) const
+                                          request_headers headers) const
 {
     auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                         (void *) response.content.c_str(),

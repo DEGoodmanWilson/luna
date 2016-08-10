@@ -86,13 +86,13 @@ extern std::string default_mime_type;
 
 using endpoint_matches = std::vector<std::string>;
 using query_params = std::map<std::string, std::string>;
-using headers = std::map<std::string, std::string>;
+using request_headers = std::map<std::string, std::string>;
 
 struct request
 {
     endpoint_matches matches;
     query_params params;
-    headers headers;
+    request_headers headers;
     std::string body;
 };
 
