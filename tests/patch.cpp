@@ -21,7 +21,7 @@ TEST(patch, default_200)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::PATCH,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
@@ -35,12 +35,12 @@ TEST(patch, default_200_check_params)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::PATCH,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  EXPECT_EQ(1, params.count("key"));
-                                  EXPECT_EQ("value", params.at("key"));
-                                  EXPECT_EQ(1, params.count("key2"));
-                                  EXPECT_EQ("", params.at("key2"));
+                                  EXPECT_EQ(1, req.params.count("key"));
+                                  EXPECT_EQ("value", req.params.at("key"));
+                                  EXPECT_EQ(1, req.params.count("key2"));
+                                  EXPECT_EQ("", req.params.at("key2"));
                                   return {"hello"};
                               });
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key2", ""}, {"key", "value"}});

@@ -21,7 +21,7 @@ TEST(server_options, set_mime_type)
     };
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
@@ -66,7 +66,7 @@ TEST(server_options, set_accept_policy_cb)
     };
     server.handle_request(luna::request_method::POST,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
@@ -89,10 +89,10 @@ TEST(server_options, set_unescaper_cb)
 
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  EXPECT_EQ("ugh", params["key"]);
-                                  return {params["key"]};
+                                  EXPECT_EQ("ugh", req.params["key"]);
+                                  return {req.params["key"]};
                               });
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -108,7 +108,7 @@ TEST(server_options, set_thread_pool_size)
     luna::server server{luna::server::thread_pool_size{5}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [&count, &max_count, &mutex](auto matches, auto params) -> luna::response
+                          [&count, &max_count, &mutex](auto req) -> luna::response
                               {
                                   mutex.lock();
                                   ++count;
@@ -150,7 +150,7 @@ TEST(server_options, set_connection_limit)
     luna::server server{luna::server::connection_limit{2}, luna::server::thread_pool_size{5}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [&count, &max_count, &mutex](auto matches, auto params) -> luna::response
+                          [&count, &max_count, &mutex](auto req) -> luna::response
                               {
                                   mutex.lock();
                                   ++count;
