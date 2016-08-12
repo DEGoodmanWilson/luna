@@ -46,7 +46,7 @@ struct connection_info_struct
 {
     request_method connectiontype;
     query_params post_params;
-    std::string json_data;
+    std::string body;
     MHD_PostProcessor *postprocessor;
 
     connection_info_struct(request_method method,
@@ -290,24 +290,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     auto con_info = static_cast<connection_info_struct *>(*con_cls);
     if (*upload_data_size != 0)
     {
-//        std::cout << "===" << upload_data << std::endl;
         //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
         if( MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) == MHD_NO)
         {
             //MHD couldn't parse it, maybe we can.
-            if(header.count("Content-Type") && (header["Content-Type"] == "application/json"))
-            {
-                //return this JSON as a string, up to the recipient to parse it out.
-                con_info->json_data.append(upload_data, *upload_data_size);
-                *upload_data_size = 0;
-                return MHD_YES;
-            }
-            else
-            {
-                return MHD_NO;
-            }
+            con_info->body.append(upload_data, *upload_data_size);
         }
-//        std::cout << "======" << std::endl;
 
         *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
         return MHD_YES;
@@ -316,10 +304,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
         //if we have post_params, then MHD has ignored the query params. So just overwrite it.
         std::swap(query_params, con_info->post_params);
-    }
-    if(con_info->json_data != "")
-    {
-        query_params["json_data"] = con_info->json_data;
     }
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
@@ -344,7 +328,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             response response;
             try
             {
-                response = callback(matches, query_params);
+                response = callback({matches, query_params, header, con_info->body});
             }
             //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
@@ -395,7 +379,7 @@ int server::server_impl::render_response_(const response &response,
                                           MHD_Connection *connection,
                                           const char *url,
                                           request_method method,
-                                          headers headers) const
+                                          request_headers headers) const
 {
     auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                         (void *) response.content.c_str(),

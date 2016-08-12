@@ -4,13 +4,12 @@
 
 using namespace luna;
 
-response hello_world(const endpoint_matches &matches,
-                     const query_params     &params)
+response hello_world(const request &req)
 {
     std::stringstream body;
     body << "<h1>Hello, World!</h1>\n<ul>\n";
 
-    for(auto& kv : params)
+    for(auto& kv : req.params)
     {
         body << "<li><b>" << kv.first << "</b> " << kv.second << "</li>\n";
     }

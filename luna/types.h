@@ -84,6 +84,18 @@ using status_code = uint16_t;
 
 extern std::string default_mime_type;
 
+using endpoint_matches = std::vector<std::string>;
+using query_params = std::map<std::string, std::string>;
+using request_headers = std::map<std::string, std::string>;
+
+struct request
+{
+    endpoint_matches matches;
+    query_params params;
+    request_headers headers;
+    std::string body;
+};
+
 struct response
 {
     luna::status_code status_code;
@@ -142,10 +154,6 @@ enum class request_method
     //HEAD,
     //OPTIONS,
 };
-
-using endpoint_matches = std::vector<std::string>;
-using query_params = std::map<std::string, std::string>;
-using headers = std::map<std::string, std::string>;
 
 
 } //namespace luna

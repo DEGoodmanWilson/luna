@@ -14,9 +14,9 @@ TEST(advanced_functioning, get_basic_regexes)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  return {matches[1]};
+                                  return {req.matches[1]};
                               });
 
     std::string path = "test";
@@ -30,9 +30,9 @@ TEST(advanced_functioning, post_basic_regexes)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::POST,
                           "/([a-zA-Z0-9]*)",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  return {matches[1]};
+                                  return {req.matches[1]};
                               });
 
     std::string path = "test";
@@ -48,17 +48,17 @@ TEST(advanced_functioning, putting_it_together)
     std::set<std::string> docs;
     server.handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
-                          [&](auto matches, auto params) -> luna::response
+                          [&](auto req) -> luna::response
                               {
-                                  if (docs.count(matches[1])) return {matches[1]};
+                                  if (docs.count(req.matches[1])) return {req.matches[1]};
 
                                   return {404};
                               });
     server.handle_request(luna::request_method::POST,
                           "/([a-zA-Z0-9]*)",
-                          [&](auto matches, auto params) -> luna::response
+                          [&](auto req) -> luna::response
                               {
-                                  docs.emplace(matches[1]);
+                                  docs.emplace(req.matches[1]);
                                   return {201};
                               });
 
@@ -77,12 +77,12 @@ TEST(advanced_functioning, permanent_redirect)
 {
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET, "/redirect",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {301, luna::response::URI{"/foobar"}};
                               });
     server.handle_request(luna::request_method::GET, "/foobar",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"bazqux"};
                               });
@@ -95,12 +95,12 @@ TEST(advanced_functioning, temporary_redirect)
 {
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET, "/redirect",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {307, luna::response::URI{"/foobar"}};
                               });
     server.handle_request(luna::request_method::GET, "/foobar",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"bazqux"};
                               });
@@ -115,11 +115,11 @@ TEST(advanced_functioning, get_and_post)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::POST,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  EXPECT_EQ(0, params.count("key1"));
-                                  EXPECT_EQ(1, params.count("key2"));
-                                  EXPECT_EQ("2", params.at("key2"));
+                                  EXPECT_EQ(0, req.params.count("key1"));
+                                  EXPECT_EQ(1, req.params.count("key2"));
+                                  EXPECT_EQ("2", req.params.at("key2"));
                                   return {"hello"};
                               });
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test?key1=1"}, cpr::Payload{{"key2", "2"}});
@@ -132,7 +132,7 @@ TEST(advanced_functioning, default_server_errors)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {500};
                               });
@@ -146,7 +146,7 @@ TEST(advanced_functioning, actual_server_errors)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   std::string{}.at(1); //throws out of bounds exception
                                   return {}; //never hit
@@ -161,7 +161,7 @@ TEST(advanced_functioning, actual_server_errors2)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   throw new std::exception;
                                   return {}; //never hit
@@ -169,4 +169,17 @@ TEST(advanced_functioning, actual_server_errors2)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(500, res.status_code);
     ASSERT_EQ("Unknown internal error", res.text);
+}
+
+TEST(advanced_functioning, check_arbitrary_headers)
+{
+    luna::server server;
+    server.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
+        {
+            EXPECT_EQ(1, req.headers.count("foo"));
+            EXPECT_EQ("bar", req.headers.at("foo"));
+            return {req.headers.at("foo")};
+           });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"foo", "bar"}});
+    ASSERT_EQ("bar", res.text);
 }

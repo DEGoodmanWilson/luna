@@ -36,7 +36,7 @@ TEST(basic_functioning, default_200_with_get)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
@@ -50,10 +50,10 @@ TEST(basic_functioning, default_200_with_get_check_params)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  EXPECT_EQ(1, params.count("key"));
-                                  EXPECT_EQ("value", params.at("key"));
+                                  EXPECT_EQ(1, req.params.count("key"));
+                                  EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -66,7 +66,7 @@ TEST(basic_functioning, default_201_with_post)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::POST,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
@@ -81,10 +81,10 @@ TEST(basic_functioning, default_201_with_post_check_params)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::POST,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
-                                  EXPECT_EQ(1, params.count("key"));
-                                  EXPECT_EQ("value", params.at("key"));
+                                  EXPECT_EQ(1, req.params.count("key"));
+                                  EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}});
@@ -92,15 +92,15 @@ TEST(basic_functioning, default_201_with_post_check_params)
     ASSERT_EQ("hello", res.text);
 }
 
+
 TEST(basic_functioning, default_201_with_post_json_in_body)
 {
     luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::POST, "/test", [](auto matches, auto params) -> luna::response
-    {
-        EXPECT_EQ(1, params.count("json_data"));
-        EXPECT_EQ("{\"key\": \"value\"}", params.at("json_data"));
-        return {"hello"};
-    });
+    server.handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
+        {
+            EXPECT_EQ("{\"key\": \"value\"}", req.body);
+            return {"hello"};
+        });
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"{\"key\": \"value\"}"}, cpr::Header{{"Content-Type", "application/json"}});
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);

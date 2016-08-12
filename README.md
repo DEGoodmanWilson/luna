@@ -20,14 +20,14 @@ A C++ wrapper for libmicrohttpd
     {
         server server{server::mime_type{"text/json"}, server::port{8443}}
     
-        server.handle_request(request_method::GET, "/ohyeah", [](auto matches, auto params) -> response
+        server.handle_request(request_method::GET, "/ohyeah", [](auto request) -> response
             {
                 return {"{\"koolade\": true}"};
             });
     
-        server.handle_request(request_method::GET, "^/documents/(i[0-9a-f]{6})", [](auto matches, auto params) -> response
+        server.handle_request(request_method::GET, "^/documents/(i[0-9a-f]{6})", [](auto request) -> response
             {
-                auto document_id = matches[1];
+                auto document_id = request.matches[1];
                 return {"text/html", "<h1>Serving up document "+document_id+"</h1>"};
             });
     

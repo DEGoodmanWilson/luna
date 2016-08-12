@@ -3,8 +3,7 @@
 
 using namespace luna;
 
-response hello_world(const endpoint_matches &matches,
-                     const query_params     &params)
+response hello_world(const request &req)
 {
     return {"<h1>Hello, World!</h1>"};
 }

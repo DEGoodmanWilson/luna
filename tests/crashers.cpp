@@ -18,7 +18,7 @@ TEST(crashers, 1_logging)
 
     luna::server server{luna::server::port{8080}};
 
-    server.handle_request(luna::request_method::GET, "/hello", [](auto matches, auto params) -> luna::response
+    server.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
         {
             return {"hello"};
         });
@@ -34,13 +34,13 @@ TEST(crashers, 2_query_params_with_no_values)
 {
     luna::server server{luna::server::port{8080}};
 
-    server.handle_request(luna::request_method::GET, "/hello", [](auto matches, auto params) -> luna::response
+    server.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
         {
-            EXPECT_EQ(2, params.size());
-            EXPECT_EQ(1, params.count("key1"));
-            EXPECT_EQ("", params.at("key1"));
-            EXPECT_EQ(1, params.count("key2"));
-            EXPECT_EQ("foo", params.at("key2"));
+            EXPECT_EQ(2, req.params.size());
+            EXPECT_EQ(1, req.params.count("key1"));
+            EXPECT_EQ("", req.params.at("key1"));
+            EXPECT_EQ(1, req.params.count("key2"));
+            EXPECT_EQ("foo", req.params.at("key2"));
             return {"hello"};
         });
 
@@ -53,13 +53,13 @@ TEST(crashers, 2_query_params_with_no_values_post)
 {
     luna::server server{luna::server::port{8080}};
 
-    server.handle_request(luna::request_method::POST, "/hello", [](auto matches, auto params) -> luna::response
+    server.handle_request(luna::request_method::POST, "/hello", [](auto req) -> luna::response
         {
-            EXPECT_EQ(2, params.size());
-            EXPECT_EQ(1, params.count("key1"));
-            EXPECT_EQ("", params.at("key1"));
-            EXPECT_EQ(1, params.count("key2"));
-            EXPECT_EQ("foo", params.at("key2"));
+            EXPECT_EQ(2, req.params.size());
+            EXPECT_EQ(1, req.params.count("key1"));
+            EXPECT_EQ("", req.params.at("key1"));
+            EXPECT_EQ(1, req.params.count("key2"));
+            EXPECT_EQ("foo", req.params.at("key2"));
             return {"hello"};
         });
 

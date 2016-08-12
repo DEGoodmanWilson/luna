@@ -21,7 +21,7 @@ TEST(delete, default_200)
     luna::server server{luna::server::port{8080}};
     server.handle_request(luna::request_method::DELETE,
                           "/test",
-                          [](auto matches, auto params) -> luna::response
+                          [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
