@@ -102,14 +102,18 @@ public:
 
     server::port get_port();
 
-
+    using request_handlers = std::vector<std::pair<std::regex, endpoint_handler_cb>>;
+    using request_handler_handle = std::pair<request_method, request_handlers::const_iterator>;
+    
     template<typename T>
-    void handle_request(request_method method, T&& path, endpoint_handler_cb callback)
+    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback)
     {
-        handle_request(method, std::regex{std::forward<T>(path)}, callback);
+        return handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
 
-    void handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
+    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
+    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    void remove_request_handler(request_handler_handle item);
 
     explicit operator bool();
 

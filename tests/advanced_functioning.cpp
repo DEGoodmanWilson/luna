@@ -183,3 +183,17 @@ TEST(advanced_functioning, check_arbitrary_headers)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"foo", "bar"}});
     ASSERT_EQ("bar", res.text);
 }
+
+TEST(advanced_functioning, check_request_handler_removal)
+{
+    luna::server server;
+    auto handler = server.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
+        {
+           return {"foo"};
+        });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ("foo", res.text);
+    server.remove_request_handler(handler);
+    res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(404, res.status_code);
+}

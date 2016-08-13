@@ -176,9 +176,19 @@ void server::set_option_(connection_memory_increment value)
 //    impl_->set_option(value);
 //}
 
-void server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback)
+server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback)
 {
-    impl_->handle_request(method, std::regex{std::move(path)}, callback);
+    return impl_->handle_request(method, std::regex{std::move(path)}, callback);
+}
+
+server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback)
+{
+    return impl_->handle_request(method, std::regex{path}, callback);
+}
+
+void server::remove_request_handler(server::request_handler_handle item)
+{
+    impl_->remove_request_handler(item);
 }
 
 }
