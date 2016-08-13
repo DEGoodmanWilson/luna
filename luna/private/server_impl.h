@@ -38,7 +38,12 @@ public:
 
     server::port get_port();
 
-    void handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    using response_handler = std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>>;
+
+    server::response_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
+    server::response_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    void remove_request_handler(response_handler_handle item);
+
 
     void set_option(const mime_type &mime_type);
 
@@ -99,7 +104,7 @@ public:
 //    void set_option(notify_connection value);
 
 private:
-    std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>> response_handlers_;
+    std::map<request_method, server::response_handlers> response_handlers_;
 
     uint16_t port_;
 

@@ -4,6 +4,7 @@
 // Copyright © 2016 D.E. Goodman-Wilson
 //
 
+#include <algorithm>
 #include <netinet/tcp.h>
 #include <stdarg.h>
 #include "server_impl.h"
@@ -232,11 +233,25 @@ server::server_impl::~server_impl()
 }
 
 
-void server::server_impl::handle_request(request_method method,
+server::response_handler_handle server::server_impl::handle_request(request_method method,
+                                         std::regex &&path,
+                                         server::endpoint_handler_cb callback)
+{
+    return std::make_pair(method, response_handlers_[method].insert(std::end(response_handlers_[method]), std::make_pair(std::move(path), callback)));
+}
+
+server::response_handler_handle server::server_impl::handle_request(request_method method,
                                          const std::regex &path,
                                          server::endpoint_handler_cb callback)
 {
-    response_handlers_[method].emplace_back(std::make_pair(path, callback));
+    return std::make_pair(method, response_handlers_[method].insert(std::end(response_handlers_[method]), std::make_pair(path, callback)));
+}
+
+void server::server_impl::remove_request_handler(response_handler_handle item)
+{
+    //TODO this is expensive. Find a better way to store this stuff.
+    //TODO validate we are receiving a valid iterator!!
+    response_handlers_[item.first].erase(item.second);
 }
 
 
