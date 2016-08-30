@@ -5,8 +5,8 @@
 //
 
 #include <algorithm>
-#include <netinet/tcp.h>
-#include <stdarg.h>
+#include <iomanip>
+#include <sstream>
 #include "server_impl.h"
 #include "config.h"
 
@@ -56,14 +56,11 @@ struct connection_info_struct
                            MHD_PostDataIterator iter) :
             connectiontype{method}, postprocessor{nullptr}
     {
-//        std::cout << "connection_info_struct CONSTRUCTOR" << std::endl;
         postprocessor = MHD_create_post_processor(connection, buffer_size, iter, this);
     }
 
     ~connection_info_struct()
     {
-//        std::cout << "connection_info_struct DESTRUCTOR" << std::endl;
-
         if (postprocessor)
         {
             MHD_destroy_post_processor(postprocessor);
@@ -122,7 +119,6 @@ static bool is_redirect_(status_code code)
     return false;
 }
 
-
 static request_method method_str_to_enum_(const char *method_str)
 {
     if (!std::strcmp(method_str, GET))
@@ -151,6 +147,20 @@ static request_method method_str_to_enum_(const char *method_str)
     }
 
     return request_method::UNKNOWN;
+}
+
+//TODO I hate this.
+static request_method method_str_to_enum_(const std::string &method_str)
+{
+    return method_str_to_enum_(method_str.c_str());
+}
+
+static std::string addr_to_str_(const struct sockaddr *addr)
+{
+    //TODO do this better. This is stupid.
+    if(addr->sa_family == 0x02)
+        return std::to_string(addr->sa_data[2])+"."+std::to_string(addr->sa_data[3])+"."+std::to_string(addr->sa_data[4])+"."+std::to_string(addr->sa_data[5]);
+    return "";
 }
 
 static MHD_ValueKind method_to_value_kind_enum_(request_method method)
@@ -197,13 +207,13 @@ void server::server_impl::start()
 
     if (!daemon_)
     {
-        LOG_FATAL("Daemon failed to start"); //TODO set some real error flags perhaps?
+        LOG_FATAL("Luna server failed to start (are you already running something on port" + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
         return;
     }
 
 
 
-    LOG_INFO("New server on port " + std::to_string(port_));
+    LOG_INFO("Luna server created on port " + std::to_string(port_));
 }
 
 bool server::server_impl::is_running()
@@ -216,7 +226,7 @@ void server::server_impl::stop()
     if (daemon_)
     {
         MHD_stop_daemon(daemon_);
-//        std::cout << "Daemon stopped" << std::endl;
+        LOG_INFO("Luna server stopped");
         daemon_ = nullptr;
     }
 }
@@ -264,30 +274,24 @@ int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *v
 
 int server::server_impl::access_handler_callback_(struct MHD_Connection *connection,
                                                   const char *url,
-                                                  const char *method_str,
+                                                  const char *method_char,
                                                   const char *version,
                                                   const char *upload_data,
                                                   size_t *upload_data_size,
                                                   void **con_cls)
 {
-    request_method method = method_str_to_enum_(method_str);
+    request_method method = method_str_to_enum_(method_char);
+    std::string method_str{method_char};
 
     if (!*con_cls)
     {
-//        std::cout << "setting up con_info" << std::endl;
-
         connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method, connection, 65535, iterate_postdata_shim_);
         if (!con_info) return MHD_NO; //TODO what does this mean?
-//MHD_post_process
 
         *con_cls = con_info;
 
         return MHD_YES;
     }
-    /////////
-
-
-//    std::cout << "Received method " << method_str << std::endl;
 
     //parse the query params:
     std::map<std::string, std::string> header;
@@ -295,7 +299,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     MHD_get_connection_values(connection, MHD_HEADER_KIND, &parse_kv_, &header);
 
     //find the route, and hit the right callback
-
     query_params query_params;
 
     //Query params handling
@@ -321,22 +324,28 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         std::swap(query_params, con_info->post_params);
     }
 
+    std::string url_str{url};
+
+    auto start = std::chrono::system_clock::now();
+
+    LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
+
     //iterate through the handlers. Could stand being parallelized, I suppose?
     for (const auto &handler_pair : request_handlers_[method])
     {
         std::smatch pieces_match;
         auto path_regex = std::get<std::regex>(handler_pair);
         auto callback = std::get<endpoint_handler_cb>(handler_pair);
-        std::string url_str{url};
+
         if (std::regex_match(url_str, pieces_match, path_regex))
         {
             std::vector<std::string> matches;
-            LOG_DEBUG(std::string{"match: "} + url);
+            LOG_DEBUG(std::string{"    match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
                 std::ssub_match sub_match = pieces_match[i];
                 std::string piece = sub_match.str();
-                LOG_DEBUG(std::string{"  submatch "} + std::to_string(i) + ": " + piece);
+                LOG_DEBUG(std::string{"      submatch "} + std::to_string(i) + ": " + piece);
                 matches.emplace_back(sub_match.str());
             }
 
@@ -348,7 +357,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
-                LOG_ERROR(e.what());
+                LOG_ERROR(std::string{"Request handler for \"" + url_str + "\" threw an exception: "} + e.what());
                 response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
@@ -372,28 +381,29 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (is_redirect_(response.status_code))
             {
-                return render_response_(response, connection, url, method, {{"Location", response.redirect.uri}});
+                return render_response_(start, response, connection, url_str, method_str, {{"Location", response.redirect.uri}});
             }
 
             if (is_error_(response.status_code))
             {
-                return render_error_(response, connection, url, method);
+                return render_error_(start, response, connection, url_str, method_str);
             }
 
             //else render success
-            return render_response_(response, connection, url, method);
+            return render_response_(start, response, connection, url_str, method_str);
         }
     }
 
     /* unsupported HTTP method */
-    return render_error_({404}, connection, url, method);
+    return render_error_(start, {404}, connection, url, method_str);
 }
 
 //TODO this should be a static non-class function, I think.
-int server::server_impl::render_response_(const response &response,
+int server::server_impl::render_response_(const std::chrono::system_clock::time_point &start,
+                                          response &response,
                                           MHD_Connection *connection,
-                                          const char *url,
-                                          request_method method,
+                                          const std::string &url,
+                                          const std::string &method,
                                           request_headers headers) const
 {
     auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
@@ -405,49 +415,37 @@ int server::server_impl::render_response_(const response &response,
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
 
-//    std::cout << "render_response_ " << response.status_code << " " << response.content << std::endl;
+    auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
+    MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
 
-    auto ret = MHD_queue_response(connection,
-                                  response.status_code,
-                                  mhd_response);
-    MHD_add_response_header(mhd_response,
-                            MHD_HTTP_HEADER_CONTENT_TYPE,
-                            response.content_type.c_str());
+    auto end = std::chrono::system_clock::now();
+
+    // log it
+    auto client_address = addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
+    auto end_c = std::chrono::system_clock::to_time_t(end);
+    std::stringstream sstr;
+    sstr << "[" << std::put_time(std::localtime(&end_c), "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
+    LOG_INFO(sstr.str());
+
     MHD_destroy_response(mhd_response);
     return ret;
 }
 
-int server::server_impl::render_error_(response & response,
-                                       MHD_Connection * connection,
-        const
-char *url,
-        request_method
-method) const
+int server::server_impl::render_error_(const std::chrono::system_clock::time_point &start, response &response, MHD_Connection *connection, const std::string &url, const std::string &method) const
 {
-struct MHD_Response *mhd_response;
-/* unsupported HTTP method */
-error_handler_callback_(response, method, url
-); //hook for modifying response
-
-return
-render_response_(response, connection, url, method
-);
-}
-
-int server::server_impl::render_error_(response &&response_r,
-                                       MHD_Connection *connection,
-                                       const char *url,
-                                       request_method method) const
-{
-    auto response = std::move(response_r);
-    struct MHD_Response *mhd_response;
     /* unsupported HTTP method */
-    error_handler_callback_(response, method, url); //hook for modifying response
+    error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
 
-    return render_response_(response, connection, url, method);
+    return render_response_(start, response, connection, url, method);
 }
 
+int server::server_impl::render_error_(const std::chrono::system_clock::time_point &start, response &&response, MHD_Connection *connection, const std::string &url, const std::string &method) const
+{
+    /* unsupported HTTP method */
+    error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
 
+    return render_response_(start, response, connection, url, method);
+}
 
 /////////// callback shims
 
@@ -495,8 +493,7 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
 
 void * server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
 {
-    LOG_DEBUG(uri); //TODO and stuff about the connection too!
-
+//    LOG_DEBUG(uri); //TODO and stuff about the connection too!
     return nullptr;
 }
 

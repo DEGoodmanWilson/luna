@@ -1,7 +1,13 @@
 #include <string>
-#include <luna/server.h>
+#include <iostream>
+#include <luna/luna.h>
 
 using namespace luna;
+
+void log(log_level level, const std::string &message)
+{
+    std::cout << to_string(level) << " " << message << std::endl;
+}
 
 response hello_world(const request &req)
 {
@@ -11,6 +17,8 @@ response hello_world(const request &req)
 int main(void)
 {
     server server{server::port{8443}};
+
+    set_logger(log);
 
     server.handle_request(request_method::GET, "/hello_world", &hello_world);
 

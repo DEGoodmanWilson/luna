@@ -10,6 +10,7 @@
 #include <microhttpd.h>
 #include <cstring>
 #include <iostream>
+#include <chrono>
 
 
 namespace luna
@@ -184,15 +185,26 @@ private:
 
     ///// helpers
 
-    int render_response_(const response &response,
-                         MHD_Connection *connection,
-                         const char *url,
-                         request_method method,
-                         request_headers headers = {}) const;
+    int render_response_(
+            const std::chrono::system_clock::time_point &start,
+            response &response,
+            MHD_Connection *connection,
+            const std::string &url,
+            const std::string &method,
+            request_headers headers = {}) const;
 
-    int render_error_(response &response, MHD_Connection *connection, const char *url, request_method method) const;
+    int render_error_(const std::chrono::system_clock::time_point &start,
+                      response &response,
+                      MHD_Connection *connection,
+                      const std::string &url,
+                      const std::string &method) const;
 
-    int render_error_(response &&response, MHD_Connection *connection, const char *url, request_method method) const;
+    int render_error_(const std::chrono::system_clock::time_point &start,
+                      response &&response,
+                      MHD_Connection *connection,
+                      const std::string &url,
+                      const std::string &method) const;
+
 };
 
 } //namespace luna
