@@ -4,7 +4,7 @@
 
 using namespace luna;
 
-void log(log_level level, const std::string &message)
+void ex_log(log_level level, const std::string &message)
 {
     std::cout << to_string(level) << " " << message << std::endl;
 }
@@ -18,7 +18,7 @@ int main(void)
 {
     server server{server::port{8443}};
 
-    set_logger(log);
+    set_logger(ex_log);
 
     server.handle_request(request_method::GET, "/hello_world", &hello_world);
 

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gcc49.h"
 #include "server.h"
 #include <microhttpd.h>
 #include <cstring>
