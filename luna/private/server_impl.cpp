@@ -181,6 +181,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 
 server::server_impl::server_impl() :
         lock_{},
+        use_ssl_(false),
+        use_thread_per_connection_(false),
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
@@ -201,7 +203,20 @@ void server::server_impl::start()
     }
     options[idx] = {MHD_OPTION_END, 0, nullptr};
 
-    daemon_ = MHD_start_daemon(MHD_USE_POLL_INTERNALLY,
+    unsigned int flags = 0;
+    if (use_ssl_)
+    {
+        flags |= MHD_USE_SSL;
+    }
+    if (use_thread_per_connection_)
+    {
+        flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
+    }
+    else
+    {
+        flags |= MHD_USE_POLL_INTERNALLY;
+    }
+    daemon_ = MHD_start_daemon(flags,
                                port_,
                                access_policy_callback_shim_, this,
                                access_handler_callback_shim_, this,
@@ -600,6 +615,16 @@ size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Conne
 
 
 ///// options setting
+
+void server::server_impl::set_option(server::use_ssl value)
+{
+    use_ssl_ = bool(value);
+}
+
+void server::server_impl::set_option(server::use_thread_per_connection value)
+{
+    use_thread_per_connection_ = bool(value);
+}
 
 void server::server_impl::set_option(const server::mime_type &mime_type)
 {

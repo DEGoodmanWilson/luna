@@ -49,6 +49,10 @@ public:
     void remove_request_handler(request_handler_handle item);
 
 
+    void set_option(use_ssl value);
+
+    void set_option(use_thread_per_connection value);
+
     void set_option(const mime_type &mime_type);
 
     void set_option(error_handler_cb handler);
@@ -110,6 +114,10 @@ public:
 private:
     std::mutex lock_;
     std::map<request_method, server::request_handlers> request_handlers_;
+
+    bool use_ssl_;
+
+    bool use_thread_per_connection_;
 
     uint16_t port_;
 
