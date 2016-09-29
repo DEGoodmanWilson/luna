@@ -13,7 +13,6 @@
 #include <iostream>
 #include <chrono>
 #include <mutex>
-#include <condition_variable>
 
 
 namespace luna
@@ -110,8 +109,6 @@ public:
 
 private:
     std::mutex lock_;
-    std::condition_variable cv_;
-    uint32_t in_callback_;
     std::map<request_method, server::request_handlers> request_handlers_;
 
     uint16_t port_;
