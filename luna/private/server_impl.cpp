@@ -180,6 +180,9 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 ///////////////////////////
 
 server::server_impl::server_impl() :
+        lock_(),
+        cv_(),
+        in_callback_(0),
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
@@ -252,6 +255,8 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          std::regex &&path,
                                          server::endpoint_handler_cb callback)
 {
+    std::unique_lock<std::mutex> ulock(lock_);
+    cv_.wait(ulock, [this]{return !in_callback_;});
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(std::move(path), callback)));
 }
 
@@ -259,6 +264,8 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          const std::regex &path,
                                          server::endpoint_handler_cb callback)
 {
+    std::unique_lock<std::mutex> ulock(lock_);
+    cv_.wait(ulock, [this]{return !in_callback_;});
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
 
@@ -266,6 +273,8 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
+    std::unique_lock<std::mutex> ulock(lock_);
+    cv_.wait(ulock, [this]{return !in_callback_;});
     request_handlers_[item.first].erase(item.second);
 }
 
@@ -336,6 +345,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
+    std::unique_lock<std::mutex> ulock(lock_);
     for (const auto &handler_pair : request_handlers_[method])
     {
         std::smatch pieces_match;
@@ -357,7 +367,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             response response;
             try
             {
+		in_callback_++;
+		ulock.unlock();
                 response = callback({matches, query_params, header, con_info->body});
+		ulock.lock();
+		in_callback_--;
             }
             //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
@@ -365,6 +379,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 LOG_ERROR(std::string{"Request handler for \"" + url_str + "\" threw an exception: "} + e.what());
                 response = {500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
+		ulock.lock();
+		in_callback_--;
             }
             catch (...)
             {
@@ -372,6 +388,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 //TODO use the same error message as above, and just log things differently and test for that.
                 response = {500, "text/plain", "Unknown internal error"};
                 //TODO render the stack trace, etc.
+		ulock.lock();
+		in_callback_--;
             }
 
             if (response.status_code == 0) //no status code was provided, assume success
@@ -391,13 +409,19 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (is_error_(response.status_code))
             {
+                ulock.unlock();
+                cv_.notify_all();
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
+            ulock.unlock();
+            cv_.notify_all();
             //else render success
             return render_response_(start, response, connection, url_str, method_str, response.headers);
         }
     }
+    ulock.unlock();
+    cv_.notify_all();
 
     /* unsupported HTTP method */
     return render_error_(start, {404}, connection, url, method_str);
