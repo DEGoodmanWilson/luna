@@ -21,10 +21,6 @@ class server
 public:
 
     // configuration parameters
-    MAKE_BOOL_LIKE(use_ssl);
-
-    MAKE_BOOL_LIKE(use_thread_per_connection);
-
     MAKE_UINT16_T_LIKE(port);
 
     MAKE_STRING_LIKE(mime_type);
@@ -149,10 +145,6 @@ private:
         set_options_(LUNA_FWD(ts)...);
     }
 
-
-    void set_option_(use_ssl value);
-
-    void set_option_(use_thread_per_connection value);
 
     void set_option_(mime_type mime_type);
 

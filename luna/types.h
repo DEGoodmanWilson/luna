@@ -99,7 +99,6 @@ struct request
 struct response
 {
     luna::status_code status_code;
-    request_headers headers;
     std::string content_type;
     std::string content;
 
@@ -118,35 +117,15 @@ struct response
     response(::luna::status_code status_code) : status_code{status_code}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers) : status_code{status_code}, headers{headers}
-    { }
-
     response(::luna::status_code status_code, std::string content) : status_code{status_code}, content{content}
-    { }
-
-    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content{content}
     { }
 
     response(::luna::status_code status_code, std::string content_type, std::string content) :
             status_code{status_code}, content_type{content_type}, content{content}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content_type, std::string content) :
-            status_code{status_code}, headers{headers}, content_type{content_type}, content{content}
-    { }
-
     // default success responses
-    response(const ::luna::request_headers& headers, std::string content) : status_code{0}, headers{headers}, content_type{default_mime_type}, content{content}
-    { }
-
-    response(const ::luna::request_headers& headers) : status_code{0}, headers{headers}
-    { }
-
     response(std::string content) : status_code{0}, content_type{default_mime_type}, content{content}
-    { }
-
-    response(const ::luna::request_headers& headers, std::string content_type, std::string content) :
-            status_code{0}, headers{headers}, content_type{content_type}, content{content}
     { }
 
     response(std::string content_type, std::string content) :
@@ -171,9 +150,9 @@ enum class request_method
     PUT,
     PATCH,
     DELETE,
-    OPTIONS,
     //Yes, there are more than these. Later, though. Later.
     //HEAD,
+    //OPTIONS,
 };
 
 
