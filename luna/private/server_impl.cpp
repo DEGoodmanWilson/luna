@@ -248,7 +248,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          std::regex &&path,
                                          server::endpoint_handler_cb callback)
 {
-    std::unique_lock<std::mutex> ulock(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(std::move(path), callback)));
 }
 
@@ -256,7 +256,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          const std::regex &path,
                                          server::endpoint_handler_cb callback)
 {
-    std::unique_lock<std::mutex> ulock(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
 
@@ -264,7 +264,7 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::unique_lock<std::mutex> ulock(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     request_handlers_[item.first].erase(item.second);
 }
 
