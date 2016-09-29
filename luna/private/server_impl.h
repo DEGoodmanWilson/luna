@@ -22,6 +22,7 @@ const auto POST = "POST";
 const auto PUT = "PUT";
 const auto PATCH = "PATCH";
 const auto DELETE = "DELETE";
+const auto OPTIONS = "OPTIONS";
 
 
 class server::server_impl

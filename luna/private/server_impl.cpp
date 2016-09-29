@@ -146,6 +146,11 @@ static request_method method_str_to_enum_(const char *method_str)
         return request_method::DELETE;
     }
 
+    if (!std::strcmp(method_str, OPTIONS))
+    {
+        return request_method::OPTIONS;
+    }
+
     return request_method::UNKNOWN;
 }
 
@@ -415,8 +420,8 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
 
-    auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
+    auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
     auto end = std::chrono::system_clock::now();
 
