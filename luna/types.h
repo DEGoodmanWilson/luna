@@ -150,9 +150,9 @@ enum class request_method
     PUT,
     PATCH,
     DELETE,
+    OPTIONS,
     //Yes, there are more than these. Later, though. Later.
     //HEAD,
-    //OPTIONS,
 };
 
 
