@@ -41,6 +41,16 @@ void server::server_impl_deleter::operator()(server::server_impl *ptr) const
 { delete ptr; }
 
 
+void server::set_option_(use_ssl value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(use_thread_per_connection value)
+{
+    impl_->set_option(value);
+}
+
 void server::set_option_(mime_type mime_type)
 {
     impl_->set_option(mime_type);
