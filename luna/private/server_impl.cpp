@@ -180,7 +180,7 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 ///////////////////////////
 
 server::server_impl::server_impl() :
-        lock_(),
+        lock_{},
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
@@ -253,7 +253,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          std::regex &&path,
                                          server::endpoint_handler_cb callback)
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::mutex> guard{lock_};
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(std::move(path), callback)));
 }
 
@@ -261,7 +261,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                          const std::regex &path,
                                          server::endpoint_handler_cb callback)
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::mutex> guard{lock_};
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
 
@@ -269,7 +269,7 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::mutex> guard{lock_};
     request_handlers_[item.first].erase(item.second);
 }
 
@@ -340,7 +340,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
-    std::unique_lock<std::mutex> ulock(lock_);
+    std::unique_lock<std::mutex> ulock{lock_};
     for (const auto &handler_pair : request_handlers_[method])
     {
         std::smatch pieces_match;
@@ -405,7 +405,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             return render_response_(start, response, connection, url_str, method_str, response.headers);
         }
     }
-    ulock.unlock();
 
     /* unsupported HTTP method */
     return render_error_(start, {404}, connection, url, method_str);
