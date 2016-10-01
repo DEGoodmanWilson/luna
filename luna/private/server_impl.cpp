@@ -180,6 +180,7 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 ///////////////////////////
 
 server::server_impl::server_impl() :
+        debug_output_{false},
         lock_{},
         use_ssl_{false},
         use_thread_per_connection_{false},
@@ -204,6 +205,12 @@ void server::server_impl::start()
     options[idx] = {MHD_OPTION_END, 0, nullptr};
 
     unsigned int flags = MHD_NO_FLAG;
+
+    if (debug_output_)
+    {
+        flags |= MHD_USE_DEBUG;
+    }
+
     if (use_ssl_)
     {
         flags |= MHD_USE_SSL;
@@ -618,14 +625,19 @@ size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Conne
 
 ///// options setting
 
+void server::server_impl::set_option(server::debug_output value)
+{
+    debug_output_ = static_cast<bool>(value);
+}
+
 void server::server_impl::set_option(server::use_ssl value)
 {
-    use_ssl_ = bool(value);
+    use_ssl_ = static_cast<bool>(value);
 }
 
 void server::server_impl::set_option(server::use_thread_per_connection value)
 {
-    use_thread_per_connection_ = bool(value);
+    use_thread_per_connection_ = static_cast<bool>(value);
 }
 
 void server::server_impl::set_option(const server::mime_type &mime_type)

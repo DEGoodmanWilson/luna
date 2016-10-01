@@ -48,6 +48,7 @@ public:
     server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
     void remove_request_handler(request_handler_handle item);
 
+    void set_option(debug_output value);
 
     void set_option(use_ssl value);
 
@@ -113,14 +114,16 @@ public:
 
 private:
     std::mutex lock_;
+
     std::map<request_method, server::request_handlers> request_handlers_;
+
+    bool debug_output_;
 
     bool use_ssl_;
 
     bool use_thread_per_connection_;
 
     uint16_t port_;
-
 
     //options
     std::vector<MHD_OptionItem> options_;

@@ -40,6 +40,10 @@ server::port server::get_port()
 void server::server_impl_deleter::operator()(server::server_impl *ptr) const
 { delete ptr; }
 
+void server::set_option_(debug_output value)
+{
+    impl_->set_option(value);
+}
 
 void server::set_option_(use_ssl value)
 {

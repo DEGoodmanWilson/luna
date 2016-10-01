@@ -21,6 +21,8 @@ class server
 public:
 
     // configuration parameters
+    MAKE_BOOL_LIKE(debug_output);
+
     MAKE_BOOL_LIKE(use_ssl);
 
     MAKE_BOOL_LIKE(use_thread_per_connection);
@@ -149,6 +151,7 @@ private:
         set_options_(LUNA_FWD(ts)...);
     }
 
+    void set_option_(debug_output value);
 
     void set_option_(use_ssl value);
 
