@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <chrono>
+#include <mutex>
 
 
 namespace luna
@@ -106,6 +107,7 @@ public:
 //    void set_option(notify_connection value);
 
 private:
+    std::mutex lock_;
     std::map<request_method, server::request_handlers> request_handlers_;
 
     uint16_t port_;
