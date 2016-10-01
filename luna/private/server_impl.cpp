@@ -181,8 +181,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 
 server::server_impl::server_impl() :
         lock_{},
-        use_ssl_(false),
-        use_thread_per_connection_(false),
+        use_ssl_{false},
+        use_thread_per_connection_{false},
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
@@ -203,11 +203,12 @@ void server::server_impl::start()
     }
     options[idx] = {MHD_OPTION_END, 0, nullptr};
 
-    unsigned int flags = 0;
+    unsigned int flags = MHD_NO_FLAG;
     if (use_ssl_)
     {
         flags |= MHD_USE_SSL;
     }
+
     if (use_thread_per_connection_)
     {
         flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
@@ -216,6 +217,7 @@ void server::server_impl::start()
     {
         flags |= MHD_USE_POLL_INTERNALLY;
     }
+
     daemon_ = MHD_start_daemon(flags,
                                port_,
                                access_policy_callback_shim_, this,
