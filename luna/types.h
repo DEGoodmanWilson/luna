@@ -86,7 +86,9 @@ extern std::string default_mime_type;
 
 using endpoint_matches = std::vector<std::string>;
 using query_params = std::map<std::string, std::string>;
-using request_headers = std::map<std::string, std::string>;
+using headers = std::map<std::string, std::string>;
+using request_headers = headers;
+using response_headers = headers;
 
 struct request
 {
@@ -99,7 +101,7 @@ struct request
 struct response
 {
     luna::status_code status_code;
-    request_headers headers;
+    response_headers headers;
     std::string content_type;
     std::string content;
 
@@ -115,6 +117,7 @@ struct response
     response() = default;
 
     // explicit status code responses
+    // TODO this is now officially messy. Let's use some variadic templates to clean this up. Later.
     response(::luna::status_code status_code) : status_code{status_code}
     { }
 

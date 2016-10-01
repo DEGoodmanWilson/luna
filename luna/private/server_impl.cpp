@@ -390,14 +390,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             }
 
             //else render success
-            if (response.headers.size())
-            {
-                return render_response_(start, response, connection, url_str, method_str, response.headers);
-            }
-            else
-            {
-                return render_response_(start, response, connection, url_str, method_str);
-            }
+            return render_response_(start, response, connection, url_str, method_str, response.headers);
         }
     }
 
