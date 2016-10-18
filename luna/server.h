@@ -27,6 +27,8 @@ public:
 
     MAKE_BOOL_LIKE(use_thread_per_connection);
 
+    MAKE_BOOL_LIKE(use_epoll_if_available);
+
     MAKE_UINT16_T_LIKE(port);
 
     MAKE_STRING_LIKE(mime_type);
@@ -156,6 +158,8 @@ private:
     void set_option_(use_ssl value);
 
     void set_option_(use_thread_per_connection value);
+
+    void set_option_(use_epoll_if_available value);
 
     void set_option_(mime_type mime_type);
 

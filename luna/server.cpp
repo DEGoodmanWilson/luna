@@ -55,6 +55,11 @@ void server::set_option_(use_thread_per_connection value)
     impl_->set_option(value);
 }
 
+void server::set_option_(use_epoll_if_available value)
+{
+    impl_->set_option(value);
+}
+
 void server::set_option_(mime_type mime_type)
 {
     impl_->set_option(mime_type);

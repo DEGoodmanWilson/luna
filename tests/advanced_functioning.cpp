@@ -211,3 +211,18 @@ TEST(advanced_functioning, response_headers)
     ASSERT_EQ(1, res.header.count("foo"));
     ASSERT_EQ("bar", res.header.at("foo"));
 }
+
+//TODO NOTICE that this test behaves differently on Linux and non-Linux
+TEST(advanced_functioning, use_epoll)
+{
+    luna::server server{luna::server::use_epoll_if_available{true}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                              {
+                                  return {"hello"};
+                              });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}

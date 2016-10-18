@@ -184,6 +184,7 @@ server::server_impl::server_impl() :
         lock_{},
         use_ssl_{false},
         use_thread_per_connection_{false},
+        use_epoll_if_available_{false},
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
@@ -220,6 +221,14 @@ void server::server_impl::start()
     {
         flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
     }
+    else if (use_epoll_if_available_)
+    {
+#if defined(__linux__)
+        flags |= MHD_USE_EPOLL_INTERNALLY;
+#else
+        flags |= MHD_USE_POLL_INTERNALLY;
+#endif
+    }
     else
     {
         flags |= MHD_USE_POLL_INTERNALLY;
@@ -234,6 +243,23 @@ void server::server_impl::start()
                                MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
                                MHD_OPTION_ARRAY, options,
                                MHD_OPTION_END);
+
+    if(!daemon_ && use_epoll_if_available_)
+    {
+        //maybe we aren't in Linux. Give this one more go with POLL instead of EPOLL
+        flags ^= MHD_USE_EPOLL_INTERNALLY;
+        flags |= MHD_USE_POLL_INTERNALLY;
+
+        daemon_ = MHD_start_daemon(flags,
+                                   port_,
+                                   access_policy_callback_shim_, this,
+                                   access_handler_callback_shim_, this,
+                                   MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback_shim_, this,
+                                   MHD_OPTION_EXTERNAL_LOGGER, logger_callback_shim_, nullptr,
+                                   MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
+                                   MHD_OPTION_ARRAY, options,
+                                   MHD_OPTION_END);
+    }
 
     if (!daemon_)
     {
@@ -274,16 +300,16 @@ server::server_impl::~server_impl()
 
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                         std::regex &&path,
-                                         server::endpoint_handler_cb callback)
+                                                                   std::regex &&path,
+                                                                   server::endpoint_handler_cb callback)
 {
     std::lock_guard<std::mutex> guard{lock_};
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(std::move(path), callback)));
 }
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                         const std::regex &path,
-                                         server::endpoint_handler_cb callback)
+                                                                   const std::regex &path,
+                                                                   server::endpoint_handler_cb callback)
 {
     std::lock_guard<std::mutex> guard{lock_};
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
@@ -390,7 +416,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             {
                 response = callback({matches, query_params, header, con_info->body});
             }
-            //TODO there is surely a more robust way to do this;
+                //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
                 LOG_ERROR(std::string{"Request handler for \"" + url_str + "\" threw an exception: "} + e.what());
@@ -638,6 +664,13 @@ void server::server_impl::set_option(server::use_ssl value)
 void server::server_impl::set_option(server::use_thread_per_connection value)
 {
     use_thread_per_connection_ = static_cast<bool>(value);
+    use_epoll_if_available_ = false; //not compatible!
+}
+
+void server::server_impl::set_option(use_epoll_if_available value)
+{
+    use_epoll_if_available_ = static_cast<bool>(value);
+    use_thread_per_connection_ = false; //not compatible!
 }
 
 void server::server_impl::set_option(const server::mime_type &mime_type)
