@@ -9,6 +9,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 ##### External dependencies
 
+include(conanbuildinfo.cmake)
+CONAN_BASIC_SETUP()
+
 ##### Options
 
 macro(luna_option OPTION_NAME OPTION_TEXT OPTION_DEFAULT)
@@ -60,9 +63,6 @@ target_link_libraries(luna microhttpd)
 
 if (BUILD_LUNA_TESTS)
     message(STATUS "Building Luna with Tests")
-
-    include(conanbuildinfo.cmake)
-    CONAN_BASIC_SETUP()
     add_subdirectory(tests)
 endif ()
 
