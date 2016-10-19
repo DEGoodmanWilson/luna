@@ -2,7 +2,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "2.4.0"
+    version = "2.4.1"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
@@ -45,4 +45,4 @@ class LunaConan(ConanFile):
         self.copy("*.a", dst="lib", src="lib")
 
     def package_info(self):
-        self.cpp_info.libs = ["luna", "microhttpd"]
+        self.cpp_info.libs = ["luna"]
