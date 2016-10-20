@@ -214,23 +214,28 @@ void server::server_impl::start()
 
     if (use_ssl_)
     {
+        LOG_DEBUG("Enabling SSL");
         flags |= MHD_USE_SSL;
     }
 
     if (use_thread_per_connection_)
     {
+        LOG_DEBUG("Will use one thread per connection");
         flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
     }
     else if (use_epoll_if_available_)
     {
 #if defined(__linux__)
+        LOG_DEBUG("Will use epoll");
         flags |= MHD_USE_EPOLL_INTERNALLY;
 #else
+        LOG_DEBUG("Will use poll");
         flags |= MHD_USE_POLL_INTERNALLY;
 #endif
     }
     else
     {
+        LOG_DEBUG("No threading options set, will use poll");
         flags |= MHD_USE_POLL_INTERNALLY;
     }
 
@@ -243,23 +248,6 @@ void server::server_impl::start()
                                MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
                                MHD_OPTION_ARRAY, options,
                                MHD_OPTION_END);
-
-    if(!daemon_ && use_epoll_if_available_)
-    {
-        //maybe we aren't in Linux. Give this one more go with POLL instead of EPOLL
-        flags ^= MHD_USE_EPOLL_INTERNALLY;
-        flags |= MHD_USE_POLL_INTERNALLY;
-
-        daemon_ = MHD_start_daemon(flags,
-                                   port_,
-                                   access_policy_callback_shim_, this,
-                                   access_handler_callback_shim_, this,
-                                   MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback_shim_, this,
-                                   MHD_OPTION_EXTERNAL_LOGGER, logger_callback_shim_, nullptr,
-                                   MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
-                                   MHD_OPTION_ARRAY, options,
-                                   MHD_OPTION_END);
-    }
 
     if (!daemon_)
     {
@@ -664,13 +652,21 @@ void server::server_impl::set_option(server::use_ssl value)
 void server::server_impl::set_option(server::use_thread_per_connection value)
 {
     use_thread_per_connection_ = static_cast<bool>(value);
-    use_epoll_if_available_ = false; //not compatible!
+    if(use_epoll_if_available_)
+    {
+        LOG_ERROR("Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available");
+        use_epoll_if_available_ = false; //not compatible!
+    }
 }
 
 void server::server_impl::set_option(use_epoll_if_available value)
 {
     use_epoll_if_available_ = static_cast<bool>(value);
-    use_thread_per_connection_ = false; //not compatible!
+    if(use_thread_per_connection_)
+    {
+        LOG_ERROR("Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection");
+        use_thread_per_connection_ = false; //not compatible!
+    }
 }
 
 void server::server_impl::set_option(const server::mime_type &mime_type)

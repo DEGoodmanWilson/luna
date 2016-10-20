@@ -140,6 +140,46 @@ TEST(server_options, set_thread_pool_size)
     ASSERT_EQ(5, max_count);
 }
 
+TEST(server_options, use_thread_per_connection)
+{
+    uint8_t count = 0;
+    uint8_t max_count = 0;
+    std::mutex mutex;
+
+    luna::server server{luna::server::use_thread_per_connection{true}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [&count, &max_count, &mutex](auto req) -> luna::response
+                            {
+                                mutex.lock();
+                                ++count;
+                                if (count > max_count) max_count = count;
+                                mutex.unlock();
+
+                                std::this_thread::sleep_for(10ms);
+
+                                mutex.lock();
+                                --count;
+                                mutex.unlock();
+                                return {"Hello"};
+                          });
+
+    std::thread threads[10];
+    for(int x = 0; x < 10; ++x)
+    {
+        threads[x] = std::thread{[](){
+            cpr::Get(cpr::Url{"http://localhost:8080/test"});
+        }};
+    }
+
+    for(int x = 0; x < 10; ++x)
+    {
+        threads[x].join();
+    }
+
+    ASSERT_EQ(0, count);
+    ASSERT_EQ(10, max_count);
+}
 
 TEST(server_options, set_connection_limit)
 {
