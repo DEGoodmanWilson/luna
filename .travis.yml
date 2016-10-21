@@ -1,0 +1,114 @@
+language: cpp
+
+sudo: false
+cache: ccache
+
+compiler: clang
+
+# gcc 4.9 default
+addons: &addons
+  apt:
+    packages: &packages
+      - g++-4.9
+      - clang-format-3.7
+      - python-pip
+      - libssl-dev
+      - curl
+      - cmake
+      - cmake-data
+    sources: &sources
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.5
+      - llvm-toolchain-precise-3.6
+      - llvm-toolchain-precise-3.7
+      - llvm-toolchain-precise-3.8
+      - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
+
+env:
+  matrix:
+    - COMPILER=g++-4.9 CCOMPILER=gcc-4.9
+
+
+install:
+  - export CXX=$COMPILER CC=$CCOMPILER
+
+  # Install cmake and conan
+  - if [ "$IS_APPLE" == "YES" ]; then brew update && brew install conan; else pip install --user conan; fi
+  - if [ "$BREW_CMAKE" == "ON" ]; then brew install cmake; fi
+
+  - cmake --version
+  - conan --version
+
+  # Automatic detection of your arch, compiler, etc
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build=missing; else conan install -o build_luna_tests=True --build=missing; fi
+
+script:
+  - conan build
+
+after_success:
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then ./bin/luna_tests; bash <(curl -s https://codecov.io/bash); fi
+
+matrix:
+  include:
+    # gcc 5
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5
+      addons:
+        apt:
+          packages:
+            - g++-5
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
+
+    # Clang 3.6
+    - env: COMPILER=clang++-3.6 CCOMPILER=clang-3.6
+      addons:
+        apt:
+          packages:
+            - clang-3.6
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
+
+    # Clang 3.7
+    - env: COMPILER=clang++-3.7 CCOMPILER=clang-3.7
+      addons:
+        apt:
+          packages:
+            - clang-3.7
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
+
+    # Clang 3.8
+    - env: COMPILER=clang++-3.8 CCOMPILER=clang-3.8
+      addons:
+        apt:
+          packages:
+            - clang-3.8
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
+
+    # Xcode 6.4
+    - os: osx
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES
+      osx_image: xcode6.4
+
+    # Xcode 7
+    - os: osx
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES BREW_CMAKE=ON
+      osx_image: xcode7
+
+    # Xcode 8
+    - os: osx
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES GENERATE_COVERAGE=ON
+      osx_image: xcode8
