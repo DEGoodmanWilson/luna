@@ -126,8 +126,6 @@ struct response
         std::string uri;
     };
 
-    URI redirect;
-
     response() = default;
 
     // explicit status code responses
@@ -172,12 +170,24 @@ struct response
 
     // responses with redirects
     response(URI redirect) :
-            status_code{301}, redirect{redirect}
+            status_code{301}, headers{{"Location", redirect.uri}}
     { }
 
     response(::luna::status_code status_code, URI redirect) :
-            status_code{status_code}, redirect{redirect}
+            status_code{status_code}, headers{{"Location", redirect.uri}}
     { }
+};
+
+enum class authorization_kind
+{
+    BASIC =0,
+};
+
+std::string to_string(const authorization_kind kind);
+
+struct unauthorized_response : public response
+{
+    unauthorized_response(const std::string &realm, const authorization_kind kind = authorization_kind::BASIC) : response{401, {{"WWW-Authenticate", to_string(kind) + " realm=\"" + realm + "\""}}} {}
 };
 
 enum class request_method

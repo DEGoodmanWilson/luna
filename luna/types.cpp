@@ -9,6 +9,18 @@
 namespace luna
 {
 
+std::string to_string(const authorization_kind kind)
+{
+    switch (kind)
+    {
+        case authorization_kind::BASIC:
+            return "Basic";
+        default:
+            return "";
+    }
+}
+
+
 basic_authorization get_basic_authorization(const request_headers &headers)
 {
     // First, find the headers

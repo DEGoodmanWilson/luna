@@ -429,18 +429,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 response.content_type = default_mime_type;
             }
 
-            if (is_redirect_(response.status_code))
-            {
-                return render_response_(start, response, connection, url_str, method_str, {{"Location", response.redirect.uri}});
-            }
-
             if (is_error_(response.status_code))
             {
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
             //else render success
-            return render_response_(start, response, connection, url_str, method_str, response.headers);
+            return render_response_(start, response, connection, url_str, method_str);
         }
     }
 
@@ -460,7 +455,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
                                                         (void *) response.content.c_str(),
                                                         MHD_RESPMEM_MUST_COPY);
 
-    for(const auto&header : headers)
+    for(const auto&header : response.headers)
     {
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
