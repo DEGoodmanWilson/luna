@@ -51,7 +51,7 @@ set(LIB_LUNA_SOURCE_FILES luna/private/gcc49.cpp luna/types.h luna/server.cpp lu
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 include_directories(PRIVATE luna/private)
 include_directories(SYSTEM PRIVATE luna)
-target_link_libraries(luna microhttpd)
+target_link_libraries(luna ${CONAN_LIBS})
 
 if (BUILD_LUNA_TESTS)
     message(STATUS "Building Luna with Tests")
