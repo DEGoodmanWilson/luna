@@ -69,13 +69,11 @@ TEST(basic_auth, work_with_auth)
     luna::server server{};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [username, password](auto req) -> luna::response
+                          [=](auto req) -> luna::response
                               {
                                   auto auth = luna::get_basic_authorization(req.headers);
 
                                   EXPECT_TRUE(static_cast<bool>(auth));
-                                  EXPECT_EQ(username, auth.username);
-                                  EXPECT_EQ(password, auth.password);
                                   if(!auth || username != auth.username || password != auth.password) return luna::unauthorized_response{"realm"};
 
                                   return {"hello"};
@@ -93,7 +91,7 @@ TEST(basic_auth, fail_with_401_no_auth_header)
     luna::server server{};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [username, password](auto req) -> luna::response
+                          [=](auto req) -> luna::response
                               {
                                   auto auth = luna::get_basic_authorization(req.headers);
 
@@ -117,7 +115,7 @@ TEST(basic_auth, fail_with_401_baduser)
     luna::server server{};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [username, password](auto req) -> luna::response
+                          [=](auto req) -> luna::response
                               {
                                   auto auth = luna::get_basic_authorization(req.headers);
 
@@ -141,7 +139,7 @@ TEST(basic_auth, fail_with_401_badpass)
     luna::server server{};
     server.handle_request(luna::request_method::GET,
                           "/test",
-                          [username, password](auto req) -> luna::response
+                          [=](auto req) -> luna::response
                               {
                                   auto auth = luna::get_basic_authorization(req.headers);
 
