@@ -91,6 +91,19 @@ using headers = std::map<std::string, std::string>;
 using request_headers = headers;
 using response_headers = headers;
 
+struct basic_authorization
+{
+    std::string username;
+    std::string password;
+    explicit operator bool() {return present_;}
+    basic_authorization(bool present) : present_{present} {}
+    basic_authorization(bool present, const std::string &user, const std::string &pass) : present_{present}, username{user}, password{pass} {}
+private:
+    bool present_;
+};
+
+basic_authorization get_basic_authorization(const request_headers &headers);
+
 struct request
 {
     endpoint_matches matches;

@@ -47,7 +47,7 @@ endif()
 set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 include_directories(SYSTEM ${LUNA_INCLUDE_DIRS})
 
-set(LIB_LUNA_SOURCE_FILES luna/private/gcc49.cpp luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h luna/config.cpp luna/config.h luna/private/gcc49.h)
+set(LIB_LUNA_SOURCE_FILES luna/private/gcc49.cpp luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h luna/config.cpp luna/config.h luna/private/gcc49.h luna/types.cpp)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 include_directories(PRIVATE luna/private)
 include_directories(SYSTEM PRIVATE luna)

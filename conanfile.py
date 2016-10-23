@@ -2,7 +2,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "2.4.2"
+    version = "2.5.0"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
@@ -11,7 +11,7 @@ class LunaConan(ConanFile):
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
     default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False", "cpr:use_system_curl=True"
-    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable"
+    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "base64/1.0.0@DEGoodmanWilson/stable"
     generators = "cmake"
     exports = ["*"]
 
