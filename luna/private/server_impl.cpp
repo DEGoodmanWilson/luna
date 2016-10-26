@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include "server_impl.h"
-#include "config.h"
+#include "luna/private/server_impl.h"
+#include "luna/config.h"
 
 
 namespace luna

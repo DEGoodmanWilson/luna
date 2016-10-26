@@ -4,8 +4,8 @@
 // Copyright © 2016 D.E. Goodman-Wilson
 //
 
-#include "config.h"
-#include "types.h"
+#include "luna/config.h"
+#include "luna/types.h"
 
 namespace luna
 {
