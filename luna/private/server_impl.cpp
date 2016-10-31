@@ -257,7 +257,7 @@ void server::server_impl::start()
 
     if (!daemon_)
     {
-        LOG_FATAL("Luna server failed to start (are you already running something on port" + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
+        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
         return;
     }
 
