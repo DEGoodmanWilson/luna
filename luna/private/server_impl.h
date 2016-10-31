@@ -50,8 +50,6 @@ public:
 
     void set_option(debug_output value);
 
-    void set_option(use_ssl value);
-
     void set_option(use_thread_per_connection value);
 
     void set_option(use_epoll_if_available value);
@@ -121,7 +119,8 @@ private:
 
     bool debug_output_;
 
-    bool use_ssl_;
+    bool ssl_mem_key_set_;
+    bool ssl_mem_cert_set_;
 
     bool use_thread_per_connection_;
 

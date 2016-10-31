@@ -155,8 +155,6 @@ private:
 
     void set_option_(debug_output value);
 
-    void set_option_(use_ssl value);
-
     void set_option_(use_thread_per_connection value);
 
     void set_option_(use_epoll_if_available value);

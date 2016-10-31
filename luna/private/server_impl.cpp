@@ -182,7 +182,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 server::server_impl::server_impl() :
         debug_output_{false},
         lock_{},
-        use_ssl_{false},
+        ssl_mem_cert_set_{false},
+        ssl_mem_key_set_{false},
         use_thread_per_connection_{false},
         use_epoll_if_available_{false},
         daemon_{nullptr},
@@ -212,15 +213,20 @@ void server::server_impl::start()
         flags |= MHD_USE_DEBUG;
     }
 
-    if (use_ssl_)
+    if (ssl_mem_cert_set_ && ssl_mem_key_set_)
     {
         LOG_DEBUG("Enabling SSL");
         flags |= MHD_USE_SSL;
     }
+    else if (ssl_mem_cert_set_ || ssl_mem_key_set_)
+    {
+        LOG_FATAL("Please provide both server::https_mem_key AND server::https_mem_cert");
+        return;
+    }
 
     if (use_thread_per_connection_)
     {
-        LOG_DEBUG("Will use one thread per connection");
+        LOG_DEBUG("Will use one thread per connection")
         flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
     }
     else if (use_epoll_if_available_)
@@ -639,11 +645,6 @@ void server::server_impl::set_option(server::debug_output value)
     debug_output_ = static_cast<bool>(value);
 }
 
-void server::server_impl::set_option(server::use_ssl value)
-{
-    use_ssl_ = static_cast<bool>(value);
-}
-
 void server::server_impl::set_option(server::use_thread_per_connection value)
 {
     use_thread_per_connection_ = static_cast<bool>(value);
@@ -726,11 +727,13 @@ void server::server_impl::set_option(const server::https_mem_key &value)
 {
     //TODO this feel very dodgy to me. But I can't quite put my finger on the case where this pointer becomes prematurely invalid
     options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(value.c_str())});
+    ssl_mem_key_set_ = true;
 }
 
 void server::server_impl::set_option(const server::https_mem_cert &value)
 {
     options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(value.c_str())});
+    ssl_mem_cert_set_ = true;
 }
 
 //void server::server_impl::set_option(server::https_cred_type value)

@@ -45,11 +45,6 @@ void server::set_option_(debug_output value)
     impl_->set_option(value);
 }
 
-void server::set_option_(use_ssl value)
-{
-    impl_->set_option(value);
-}
-
 void server::set_option_(use_thread_per_connection value)
 {
     impl_->set_option(value);
