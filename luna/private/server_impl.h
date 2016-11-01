@@ -104,11 +104,11 @@ public:
 
 //    void set_option(tcp_fastopen_queue_size value);
 
-//    void set_option(const https_mem_dhparams &value);
+    void set_option(const https_mem_dhparams &value);
 
 //    void set_option(listening_address_reuse value);
 
-//    void set_option(const https_key_password &value);
+    void set_option(const https_key_password &value);
 
 //    void set_option(notify_connection value);
 
@@ -134,7 +134,7 @@ private:
     std::vector<std::string> https_priorities_;
     std::vector<std::string> https_mem_trust_;
     std::vector<std::string> https_mem_dhparams_;
-    std::vector<std::string> https_key_password_
+    std::vector<std::string> https_key_password_;
 
     //options
     std::vector<MHD_OptionItem> options_;
