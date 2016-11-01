@@ -208,11 +208,11 @@ private:
 
 //    void set_option_(tcp_fastopen_queue_size value);
 
-//    void set_option_(const https_mem_dhparams &value);
+    void set_option_(const https_mem_dhparams &value);
 
 //    void set_option_(listening_address_reuse value);
 
-//    void set_option_(const https_key_password &svalue);
+    void set_option_(const https_key_password &svalue);
 
 //    void set_option_(notify_connection value); //TODO later
 

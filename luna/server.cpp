@@ -170,20 +170,20 @@ void server::set_option_(connection_memory_increment value)
 //    impl_->set_option(value);
 //}
 
-//void server::set_option_(const https_mem_dhparams &value)
-//{
-//    impl_->set_option(value);
-//}
+void server::set_option_(const https_mem_dhparams &value)
+{
+    impl_->set_option(value);
+}
 
 //void server::set_option_(listening_address_reuse value)
 //{
 //    impl_->set_option(value);
 //}
 
-//void server::set_option_(const https_key_password &value)
-//{
-//    impl_->set_option(value);
-//}
+void server::set_option_(const https_key_password &value)
+{
+    impl_->set_option(value);
+}
 
 //void server::set_option_(notify_connection value)
 //{

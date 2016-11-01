@@ -133,6 +133,8 @@ private:
     std::vector<std::string> https_mem_cert_;
     std::vector<std::string> https_priorities_;
     std::vector<std::string> https_mem_trust_;
+    std::vector<std::string> https_mem_dhparams_;
+    std::vector<std::string> https_key_password_
 
     //options
     std::vector<MHD_OptionItem> options_;
