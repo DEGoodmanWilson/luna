@@ -579,35 +579,12 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     return MHD_YES;
 }
 
-//http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-std::string string_format(const std::string fmt_str, ...)
-{
-    int final_n, n = ((int) fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
-    std::string str;
-    std::unique_ptr<char[]> formatted;
-    va_list ap;
-    while (1)
-    {
-        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
-        strcpy(&formatted[0], fmt_str.c_str());
-        va_start(ap, fmt_str);
-        final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
-        va_end(ap);
-        if (final_n < 0 || final_n >= n)
-        {
-            n += abs(final_n - n + 1);
-        }
-        else
-        {
-            break;
-        }
-    }
-    return std::string(formatted.get());
-}
-
 void server::server_impl::logger_callback_shim_(void *cls, const char *fm, va_list ap)
 {
-    LOG_DEBUG(string_format(fm, ap));
+    //not at all happy with this.
+    char message[4096];
+    std::vsnprintf(message, sizeof(message), fm, ap);
+    LOG_DEBUG(message);
 }
 
 size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s)
@@ -725,14 +702,16 @@ void server::server_impl::set_option(const sockaddr *value)
 
 void server::server_impl::set_option(const server::https_mem_key &value)
 {
-    //TODO this feel very dodgy to me. But I can't quite put my finger on the case where this pointer becomes prematurely invalid
-    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(value.c_str())});
+    // we must make a durable copy of these strings before tossing around char pointers to their internals
+    https_mem_key_ = value;
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(https_mem_key_.c_str())});
     ssl_mem_key_set_ = true;
 }
 
 void server::server_impl::set_option(const server::https_mem_cert &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(value.c_str())});
+    https_mem_cert_ = value;
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(https_mem_cert_.c_str())});
     ssl_mem_cert_set_ = true;
 }
 
@@ -743,7 +722,8 @@ void server::server_impl::set_option(const server::https_mem_cert &value)
 
 void server::server_impl::set_option(const server::https_priorities &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(value.c_str())});
+    https_priorities_ = value;
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(https_priorities_.c_str())});
 }
 
 void server::server_impl::set_option(server::listen_socket value)
@@ -779,7 +759,8 @@ void server::server_impl::set_option(server::thread_stack_size value)
 
 void server::server_impl::set_option(const server::https_mem_trust &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(value.c_str())});
+    https_mem_trust_ = value;
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(https_mem_trust_.c_str())});
 }
 
 void server::server_impl::set_option(server::connection_memory_increment value)

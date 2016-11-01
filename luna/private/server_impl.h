@@ -128,6 +128,12 @@ private:
 
     uint16_t port_;
 
+    // string copies of options
+    std::string https_mem_key_;
+    std::string https_mem_cert_;
+    std::string https_priorities_;
+    std::string https_mem_trust_;
+
     //options
     std::vector<MHD_OptionItem> options_;
 
