@@ -703,15 +703,15 @@ void server::server_impl::set_option(const sockaddr *value)
 void server::server_impl::set_option(const server::https_mem_key &value)
 {
     // we must make a durable copy of these strings before tossing around char pointers to their internals
-    https_mem_key_ = value;
-    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(https_mem_key_.c_str())});
+    https_mem_key_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(https_mem_key_[https_mem_key_.size()-1].c_str())});
     ssl_mem_key_set_ = true;
 }
 
 void server::server_impl::set_option(const server::https_mem_cert &value)
 {
-    https_mem_cert_ = value;
-    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(https_mem_cert_.c_str())});
+    https_mem_cert_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(https_mem_cert_[https_mem_cert_.size()-1].c_str())});
     ssl_mem_cert_set_ = true;
 }
 
@@ -722,8 +722,8 @@ void server::server_impl::set_option(const server::https_mem_cert &value)
 
 void server::server_impl::set_option(const server::https_priorities &value)
 {
-    https_priorities_ = value;
-    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(https_priorities_.c_str())});
+    https_priorities_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(https_priorities_[https_priorities_.size()-1].c_str())});
 }
 
 void server::server_impl::set_option(server::listen_socket value)
@@ -759,8 +759,8 @@ void server::server_impl::set_option(server::thread_stack_size value)
 
 void server::server_impl::set_option(const server::https_mem_trust &value)
 {
-    https_mem_trust_ = value;
-    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(https_mem_trust_.c_str())});
+    https_mem_trust_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(https_mem_trust_[https_mem_trust_.size()-1].c_str())});
 }
 
 void server::server_impl::set_option(server::connection_memory_increment value)
