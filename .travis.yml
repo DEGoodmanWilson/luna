@@ -37,9 +37,6 @@ install:
   - if [ "$IS_APPLE" == "YES" ]; then brew update && brew install conan; else pip install --user conan; fi
   - if [ "$BREW_CMAKE" == "ON" ]; then brew install cmake; fi
 
-  #update binutils
-  - if [ "$UPDATE_BINUTILS" == "YES" ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.26.tar.bz2 && tar jxpf binutils-2.26.tar.bz2 && rm binutils-2.26.tar.bz2 && pushd binutils-2.26 && ./configure --prefix=$HOME/binutils && make && make install && popd && rm -rfv binutils/share && export PATH=$HOME/binutils/bin:$PATH && export LIBRARY_PATH=$HOME/binutils/lib:$LIBRARY_PATH && export LD_LIBRARY_PATH=$HOME/binutils/lib:$LD_LIBRARY_PATH && export CPATH=$HOME/binutils/include:$CPATH; fi
-
   - cmake --version
   - conan --version
 
@@ -55,17 +52,16 @@ after_success:
 matrix:
   include:
     # gcc 5
-    - env: COMPILER=g++-5 CCOMPILER=gcc-5 UPDATE_BINUTILS=YES
-      addons:
-        apt:
-          packages:
-            - g++-5
-            - libc6
-            - libssl-dev
-            - curl
-            - cmake
-            - cmake-data
-          sources: *sources
+#    - env: COMPILER=g++-5 CCOMPILER=gcc-5
+#      addons:
+#        apt:
+#          packages:
+#            - g++-5
+#            - libssl-dev
+#            - curl
+#            - cmake
+#            - cmake-data
+#          sources: *sources
 
     # Clang 3.6
     - env: COMPILER=clang++-3.6 CCOMPILER=clang-3.6
