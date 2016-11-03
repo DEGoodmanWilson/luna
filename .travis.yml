@@ -37,6 +37,9 @@ install:
   - if [ "$IS_APPLE" == "YES" ]; then brew update && brew install conan; else pip install --user conan; fi
   - if [ "$BREW_CMAKE" == "ON" ]; then brew install cmake; fi
 
+  #update binutils
+  - if ["$UPDATE_BINUTILS" == "YES"]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.26.tar.bz2 && tar jxpf binutils-2.26.tar.bz2 && rm binutils-2.26.tar.bz2 && pushd binutils-2.26 && ./configure && make && make install && popd && rm -rfv binutils/share; fi
+
   - cmake --version
   - conan --version
 
@@ -52,12 +55,11 @@ after_success:
 matrix:
   include:
     # gcc 5
-    - env: COMPILER=g++-5 CCOMPILER=gcc-5
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5 UPDATE_BINUTILS=YES
       addons:
         apt:
           packages:
             - g++-5
-            - binutils
             - libssl-dev
             - curl
             - cmake
