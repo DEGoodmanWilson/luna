@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Luna</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <a href="index.html"><img src="img/luna.png" alt="luna" /></a>
+        <p class="view"><a href="https://github.com/DEGoodmanWilson/luna">View the Project on GitHub <small>DEGoodmanWilson/luna</small></a></p>
+        <h1>An embedded HTTP server in C++14</h1>
+
+        <h2>Getting Started</h2>
+        <ul>
+          <li><a href="using.html">Using in your project</a></li>
+        </ul>
+        <h2>Using Luna</h2>
+        <ul>
+          <li><a href="configuration.html">Configuration options</a></li>
+          <li><a href="simple_api_endpoint.html">Simple API endpoints</a></li>
+          <li><a href="regexes.html">Endpoints using regexes</a></li>
+          <li>HTTPS</li>
+        </ul>
+        <h2>Changelog</h2>
+        <ul>
+          <li><a href="1.0.0.html">1.0.x</a></li>
+          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+        </ul>
+      </header>
+      <section>
+      <h1 id="using-luna-with-your-project">Using Luna with your project</h1>
+
+<p>Luna has been built and tested on macOS and Linux. (I’d like some help getting it working on Windows, if you have the time and inclination!)</p>
+
+<p>Luna uses libmicrohttpd, so please make sure you have that installed first:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="c"># Debian, Ubuntu, &amp;c.</span>
+<span class="gp">$ </span>sudo apt-get install libmicrohttpd-dev
+
+<span class="c"># Mac</span>
+<span class="gp">$ </span>brew install libmicrohttpd 
+</code></pre>
+</div>
+
+<p>Luna also depends upon the cmake build system, and optionally (and ideally) Conan.</p>
+
+<h2 id="conan-preferred">Conan (preferred)</h2>
+
+<p>Luna is available from (and makes use of the) the <a href="https://www.conan.io">Conan</a> dependency manager. And so should you.</p>
+
+<p>To incorprate Luna into your project using Conan, simply add the following to your <code class="highlighter-rouge">conanfile.txt</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[requires]
+luna/1.0.0@DEGoodmanWilson/stable
+</code></pre>
+</div>
+
+<p>or if you are using the Pythonic version, add this to your <code class="highlighter-rouge">conanfile.py</code></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyAwesomeProject</span><span class="p">(</span><span class="n">ConanFile</span><span class="p">)</span>
+    <span class="n">requires</span> <span class="o">=</span> <span class="s">"luna/1.0.0@DEGoodmanWilson/stable"</span>
+    <span class="o">...</span>
+</code></pre>
+</div>
+
+<p>Then run</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>conan install --build<span class="o">=</span>missing
+</code></pre>
+</div>
+
+<p>(The <code class="highlighter-rouge">--build=missing</code> is because at the moment luna only offers source installs&amp;emdash;we’ll offer pre-built binaries before too long, just you see.)</p>
+
+<p>(You can read more about using Conan with your project <a href="http://docs.conan.io/en/latest/">in the Conan docs</a>)</p>
+
+<h3 id="conan-options">Conan options</h3>
+
+<p>You can fiddle with the following options for your build:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">build_shared_libs</code> Build Luna as a dynamic/shared library. Default is to build as a static library. This is basically untested at the moment.</li>
+</ul>
+
+<p>The following options exist, but only really affect development of Luna</p>
+
+<ul>
+  <li><code class="highlighter-rouge">build_luna_tests</code> Build the Luna test suite. Default is not to.</li>
+  <li><code class="highlighter-rouge">build_luna_examples</code> Build the included Luna example projects. Default is not to.</li>
+  <li><code class="highlighter-rouge">build_luna_coverage</code> Build the Luna coverage suite. Implies <code class="highlighter-rouge">build_luna_tests=True</code>. Default is not to.</li>
+</ul>
+
+<h2 id="raw-source">Raw source</h2>
+
+<p>Of course, you can just compile Luna into a library, and link that with your project. That’s fine too!</p>
+
+<p>Luna uses cmake as the build system, so building is reasonably straightforward. Start by making a directory for building Luna.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir build
+<span class="gp">$ </span>cmake path/to/luna -DCMAKE_BUILD_TYPE<span class="o">=</span>Release <span class="c">#or Debug if you prefer</span>
+<span class="gp">$ </span>cmake --build .
+</code></pre>
+</div>
+
+<p>Then just be sure to include the path to the Luna project in your include search path, the path to the resulting library file in your linker search path!</p>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/DEGoodmanWilson">DEGoodmanWilson</a></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+
+  </body>
+  </html>

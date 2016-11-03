@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Luna</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <a href="index.html"><img src="img/luna.png" alt="luna" /></a>
+        <p class="view"><a href="https://github.com/DEGoodmanWilson/luna">View the Project on GitHub <small>DEGoodmanWilson/luna</small></a></p>
+        <h1>An embedded HTTP server in C++14</h1>
+
+        <h2>Getting Started</h2>
+        <ul>
+          <li><a href="using.html">Using in your project</a></li>
+        </ul>
+        <h2>Using Luna</h2>
+        <ul>
+          <li><a href="configuration.html">Configuration options</a></li>
+          <li><a href="simple_api_endpoint.html">Simple API endpoints</a></li>
+          <li><a href="regexes.html">Endpoints using regexes</a></li>
+          <li>HTTPS</li>
+        </ul>
+        <h2>Changelog</h2>
+        <ul>
+          <li><a href="1.0.0.html">1.0.x</a></li>
+          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+        </ul>
+      </header>
+      <section>
+      <h1 id="global-configuration-options">Global configuration options</h1>
+
+<h2 id="logger">Logger</h2>
+
+<p>The Luna logger is a <code class="highlighter-rouge">functional</code> type that you provide. To set it, you can pass to <code class="highlighter-rouge">luna::set_logger()</code> a function pointer, a non-static class method via <code class="highlighter-rouge">std::bind</code>, an <code class="highlighter-rouge">std::function</code> object, or a lambda with the following signature</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>void (luna::log_level, const std::string &amp;)
+</code></pre>
+</div>
+
+<p>For example, to log messages to <code class="highlighter-rouge">stdout</code>, we could write a lambda:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>luna::set_logger([](luna::log_level level, const std::string &amp;message)
+{
+    std::cout &lt;&lt; to_string(level) &lt; ": " &lt;&lt; message &lt;&lt; std::endl;
+});
+</code></pre>
+</div>
+
+<h1 id="server-configuration-options">Server configuration options</h1>
+
+<p>As <code class="highlighter-rouge">luna::server</code> is the object through which all interactions happen, configuration options are set via the <code class="highlighter-rouge">server</code> contructor. The most important option may well be the port that your <code class="highlighter-rouge">server</code> object will listen on:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>using namespace luna;
+server server_1{server::port{8446}};
+auto server_2 = std::make_unique&lt;server&gt;({server::port{8447}});
+</code></pre>
+</div>
+
+<h2 id="named-configuration-options-and-ordering">Named configuration options and ordering</h2>
+
+<p>All options are passed to the <code class="highlighter-rouge">server</code> constructor using the <em>named option</em> pattern: Each option is set using the option name, and the order that options are passed does not matter. Any options not explicitly set are given sensible defaults.</p>
+
+<p>As an example of the <em>named option</em> pattern, let’s configure a server on port 7000 and a default MIME type of <code class="highlighter-rouge">"text/json"</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>server my_server{server::mime_type{"text/json"}, server::port{8446}};
+</code></pre>
+</div>
+
+<p>Because with the <em>named option</em> pattern order doesn’t matter, we could have just as easily said</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>server my_server{server::port{8446}, server::mime_type{"text/json"}};
+</code></pre>
+</div>
+
+<h2 id="options-that-are-callbacks">Options that are callbacks</h2>
+
+<h1 id="configuration-options">Configuration options</h1>
+
+<h2 id="variable-options">Variable options</h2>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">port</code>: The port to run the HTTPD server on.</p>
+
+    <p>Default: Whatever <code class="highlighter-rouge">libmicrohttpd</code> chooses. TODO this is often 0!</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">mime_type</code>: The default MIME type to serve up.</p>
+
+    <p>Default: <code class="highlighter-rouge">"text/html"</code></p>
+  </li>
+</ul>
+
+<!-- //TODO just not going to try to support these two for now
+//TODO MHD_OPTION_HTTPS_CERT_CALLBACK cbshim_
+//    using notify_connection_cb = std::function<void(struct MHD_Connection *connection, void **socket_context, enum MHD_ConnectionNotificationCode toe)>; -->
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">connection_memory_limit</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">connection_limit</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">connection_timeout</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">per_ip_connection_limit</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">sockaddr_ptr</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">https_mem_key</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">https_mem_cert</code>:</p>
+  </li>
+</ul>
+
+<!-- //`https_cred_type`: //TODO probably don't need to define this one. -->
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">https_priorities</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">listen_socket</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">thread_pool_size</code>:</p>
+  </li>
+</ul>
+
+<!-- //`digest_auth_random`: //TODO unsure how best to support this one -->
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">nonce_nc_size</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">thread_stack_size</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">https_mem_trust</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">connection_memory_increment</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">tcp_fastopen_queue_size</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">https_mem_dhparams</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">listening_address_reuse</code>:</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">https_key_password</code>:</p>
+  </li>
+</ul>
+
+<h2 id="callback-options">Callback options</h2>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">accept_policy_cb</code>:</p>
+
+    <p>Signature: <code class="highlighter-rouge">bool cb(const struct sockaddr *, socklen_t)</code></p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">endpoint_handler_cb</code>:</p>
+
+    <p>Signature: <code class="highlighter-rouge">response cb(const endpoint_matches &amp;matches, const query_params &amp;params)</code></p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">error_handler_cb</code>:</p>
+
+    <p>Signature: <code class="highlighter-rouge">void cb(response &amp;response, request_method method, const std::string &amp;path)</code></p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">logger_cb</code>:</p>
+
+    <p>Signature: <code class="highlighter-rouge">void cb(const std::string&amp; message)</code></p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">unescaper_cb</code>:</p>
+
+    <p>Signature: <code class="highlighter-rouge">std::string cb(const std::string&amp; text)</code></p>
+  </li>
+</ul>
+
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/DEGoodmanWilson">DEGoodmanWilson</a></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+
+  </body>
+  </html>
