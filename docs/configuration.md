@@ -3,6 +3,10 @@ layout: default
 title: Configuration options
 ---
 
+Luna has a lot of options. Most of them are based on the options to the underlying `libmicrohttpd` library that Luna wraps.
+Options are pretty straightforward to set when creating a server. Read on to learn how to set options, and to learn more
+about the options available to be set.
+
 # Global configuration options
 
 ## Logger
@@ -40,17 +44,98 @@ Because with the _named option_ pattern order doesn't matter, we could have just
 
 ## Options that are callbacks
 
-# Configuration options
+Some options are for configuring callbacks that you provide. These are easy to set up with C++ lambdas, `std::bind`, or
+even plain old function pointers.
 
-## Variable options
+For example, `error_handler_cb` is an option for rendering custom error pages on, _e.g._ `404` errors.
+ 
+```c++
+void my_error_handler(response &response, request_method method, const std::string &path)
+{
+    //we'll render some simple HTML
+    response.content_type = "text/html; charset=UTF-8";
+    switch (response.status_code)
+    {
+    case 404:
+        response.content = "<h1>OH NOES THERE IS NOTHING HERE</h1>";
+        break;
+    default:
+        response.content = "<h1>Yikes!</h1>";
+    }
+}
+
+...
+
+server my_server{server::handler{&my_error_handler}};
+
+```
+
+# Configuration options reference
+
+## Common options
 
 - `port`: The port to run the HTTPD server on.
     
-    Default: Whatever `libmicrohttpd` chooses. TODO this is often 0!
+    Default: `8080`
 
 - `mime_type`: The default MIME type to serve up.
 
     Default: `"text/html"`
+
+## HTTPS / TLS options
+
+- `https_mem_key`: A string containing the private key to use for TLS. Must be used in conjunction with `https_mem_cert`
+
+- `https_mem_cert`: A string containing the certificate to use for TLS. Must be used in conjunction with `https_mem_key`
+
+<!-- //`https_cred_type`: //TODO probably don't need to define this one. -->
+
+<!-- - `https_priorities`:
+
+- `https_mem_trust`:
+
+- `https_mem_dhparams`:
+
+- `https_key_password`: -->
+
+
+## Threading options
+
+- `use_thread_per_connection`: Use an independent thread for each connection. Incompatible with `use_epoll_if_available` for reasons.
+
+    Default: `false`
+    
+- `thread_pool_size`: Things and stuff
+
+    Default: 1
+    
+- `thread_stack_size`: Things and stuff
+
+    Default: system default
+    
+- `use_epoll_if_available`: Use `epoll`. Only available on Linux.
+
+    Default: `false`
+
+## Callback options
+
+- `accept_policy_cb`: You can choose to accept or reject connections on the basis of their address. The default is to accept all incoming connections regardless of origin.
+
+    Signature: `bool cb(const struct sockaddr *, socklen_t)`
+
+- `error_handler_cb`: Render a custom error page.
+
+    Signature: `void cb(response &response, request_method method, const std::string &path)`
+
+<!-- - `logger_cb`: Oh, so you'd like to get some logs?
+
+    Signature: `void cb(const std::string& message)` -->
+
+- `unescaper_cb`: You don't like the default URL unescaping algorithm? Offer up your own!
+
+    Signature: `std::string cb(const std::string& text)`
+
+## Options undocumented at the moment because I haven't gotten around to it yet
 
 
 <!-- //TODO just not going to try to support these two for now
@@ -68,58 +153,17 @@ Because with the _named option_ pattern order doesn't matter, we could have just
 
 - `sockaddr_ptr`:
 
-- `https_mem_key`:
-
-- `https_mem_cert`:
-
-<!-- //`https_cred_type`: //TODO probably don't need to define this one. -->
-
-- `https_priorities`:
 
 - `listen_socket`:
-
-- `thread_pool_size`:
 
 <!-- //`digest_auth_random`: //TODO unsure how best to support this one -->
 
 - `nonce_nc_size`:
 
-- `thread_stack_size`:
-
-- `https_mem_trust`:
-
 - `connection_memory_increment`:
 
 - `tcp_fastopen_queue_size`:
 
-- `https_mem_dhparams`:
-
 - `listening_address_reuse`:
-
-- `https_key_password`:
-
-## Callback options
-
-- `accept_policy_cb`:
-
-    Signature: `bool cb(const struct sockaddr *, socklen_t)`
-
-
-- `endpoint_handler_cb`:
-
-    Signature: `response cb(const endpoint_matches &matches, const query_params &params)`
-
-- `error_handler_cb`:
-
-    Signature: `void cb(response &response, request_method method, const std::string &path)`
-
-- `logger_cb`:
-
-    Signature: `void cb(const std::string& message)`
-
-- `unescaper_cb`:
-
-    Signature: `std::string cb(const std::string& text)`
-
  
 
