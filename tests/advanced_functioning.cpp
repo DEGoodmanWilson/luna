@@ -226,3 +226,41 @@ TEST(advanced_functioning, use_epoll)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+TEST(advanced_functioning, epoll_thread_per_connection_collision_1)
+{
+    bool got_log{false};
+
+    luna::set_logger([&](luna::log_level level, const std::string &message)
+                         {
+                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available")
+                             {
+                                 got_log = true;
+                             }
+                         });
+
+    luna::server server{luna::server::use_epoll_if_available{true}, luna::server::use_thread_per_connection{true}};
+
+    ASSERT_TRUE(got_log);
+
+    luna::reset_logger();
+}
+
+TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
+{
+    bool got_log{false};
+
+    luna::set_logger([&](luna::log_level level, const std::string &message)
+                         {
+                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection")
+                             {
+                                 got_log = true;
+                             }
+                         });
+
+    luna::server server{luna::server::use_thread_per_connection{true}, luna::server::use_epoll_if_available{true}};
+
+    ASSERT_TRUE(got_log);
+
+    luna::reset_logger();
+}

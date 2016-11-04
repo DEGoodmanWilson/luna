@@ -55,3 +55,15 @@ TEST(tls, set_up_https)
     luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
     ASSERT_TRUE(static_cast<bool>(server));
 }
+
+TEST(tls, set_up_https_fail_1)
+{
+    luna::server server{luna::server::https_mem_key{key_pem}};
+    ASSERT_FALSE(static_cast<bool>(server));
+}
+
+TEST(tls, set_up_https_fail_2)
+{
+    luna::server server{luna::server::https_mem_cert{cert_pem}};
+    ASSERT_FALSE(static_cast<bool>(server));
+}

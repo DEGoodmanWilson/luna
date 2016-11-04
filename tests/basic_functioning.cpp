@@ -105,3 +105,24 @@ TEST(basic_functioning, default_201_with_post_json_in_body)
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+TEST(basic_functioning, debug_logging)
+{
+    bool got_log{false};
+
+    luna::set_logger([&](luna::log_level level, const std::string &message)
+                         {
+                             if(message == "Failed to bind to port 8080: Address already in use\n")
+                             {
+                                 got_log = true;
+                             }
+                         });
+
+    luna::server s1{};
+
+    luna::server s2{luna::server::debug_output{true}};
+
+    ASSERT_TRUE(got_log);
+
+    luna::reset_logger();
+}
