@@ -25,7 +25,7 @@ bqCHSkn6sXHIDdyOCBwrZYV45+77RSXqNssKjxYixP9TG4b15GQXzWFgvIR8JPw8
 zgsc9wPG1qbxvM2OcvUCQFaH28XQNEMgo/BI2dFJ9vp8lkrO2mlUHTUjdswGbO7K
 3qxwR1O70oBS1gcq/xmKI0VXS0ctKuhL8OcRybgaK7w=
 -----END RSA PRIVATE KEY-----
-    )key";
+)key";
 const char* cert_pem = R"key(
 -----BEGIN CERTIFICATE-----
 MIIDhzCCAvCgAwIBAgIJAKgEdzixR0vmMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD
@@ -48,12 +48,77 @@ cGxlQGV4YW1wbGUuY29tggkAqAR3OLFHS+YwDAYDVR0TBAUwAwEB/zANBgkqhkiG
 x4gFn/plNA1iaaorcn/LLFt4jv6CTB0KbEZsMgC4I3oGWECamg7CyfXKacvg34Ft
 T5NU9xUNbQugJdCMSm+5TLeU5UhsvGqxVDAcIr3w9Iwsyti9CzRs6TzUog==
 -----END CERTIFICATE-----
-    )key";
+)key";
+
+const char* key_password_pem = R"key(
+-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,70D217C07B4421FE
+
+A9KDQkoz6w2bVNCdhBHYIpW0+VcMWXGD/bVswQClAuGyAy+Rfolt0mamwz2YjGxE
+WMrzLr+btckEmZgDjkNXZlPuzE7KNKtsRpc5kZ8a2h6Nu91jcATpxBDMpko9UV2Z
+dMP5wYIZlijiCJDltyvwuEQJmmex4SK0NSs30lI7rrk8BqEJwlKNfcgP82IGyXiu
+YkbF7y7Ubb0lhpb4m64f72xRGOCy9LEklS7x3BDc8WAVsoMaabjTLxPCucaI1Y/v
+hQXhA34PLLMXU7DFC1j1NBVIqNZNpZ3rTsmpsZvfPE+UBeYCmdoU4tLD1LcJVoB1
+ryphW+ByabHfoR2/RjVvPLhJrDnZsP4rhK3mGeCYD1LakNpDl1kqmx+RZg112kpi
+NzlmruoX9s5EU8ggL5bajRsxtsV0fVoye5QsRWsBLZRDLbY4vjGL9kWLqRDcUj+W
+nLMUrc+T3TEsBHhSVjlagIz42ELbRu4xMDQrRj9wGDbi8Z+39goRUOKITIs3BkqT
+PiiIWScMxm8Oax1mIVMTV+JNZymFaD2kspBs5fgVEgIMzZTMnVPPNiWJq90XsmaQ
+BBhr37nwr5WVnzn3p+yDl4z8tANJNE4ybb8pGBgVmv/+k9izYIlI/Enpjz7CkjGC
+jLIVWu8tQD25h7W1FyskTrlm4qRKPDMH+r/bWiwQ53WXGk+CxIy7xJH38gYorEd3
+t5j1OjnRRJKXB7WFcm0ps11B9IKOdG5tMTbdDmdaZ5EmzZzQkC26zm+sQk4f1hjh
+oNqx3wpS8hvgbrBpWubDUS7JwFqWSzKvmes9seRXED39KxqkUOyjnw==
+-----END RSA PRIVATE KEY-----
+)key";
+const char* cert_password_pem = R"key(
+-----BEGIN CERTIFICATE-----
+MIIDVTCCAr6gAwIBAgIJAM6k79vdf48CMA0GCSqGSIb3DQEBBQUAMHsxCzAJBgNV
+BAYTAlVTMRIwEAYDVQQIEwlDb25mdXNpb24xEDAOBgNVBAcTB0Rpc2NvcmQxDjAM
+BgNVBAoTBUNoYW9zMRIwEAYDVQQDEwlsb2NhbGhvc3QxIjAgBgkqhkiG9w0BCQEW
+E2V4YW1wbGVAZXhhbXBsZS5jb20wHhcNMTYxMTA0MTExNTM5WhcNMTYxMjA0MTEx
+NTM5WjB7MQswCQYDVQQGEwJVUzESMBAGA1UECBMJQ29uZnVzaW9uMRAwDgYDVQQH
+EwdEaXNjb3JkMQ4wDAYDVQQKEwVDaGFvczESMBAGA1UEAxMJbG9jYWxob3N0MSIw
+IAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEB
+AQUAA4GNADCBiQKBgQDfE1+pFGiwum0xc81SpiTwrx57ntfYqccYMOV93MEUOhrc
+d6ftwi0tSSdHdYYUf3C+vP3TF5W6IlVcvgdbuH4NktWlv14tYvP+8NilUdUIwbrZ
+8mqNowOvdGBVnNhGJCymokW8iQCrXNoJlDOvwX0Ry5Kl/2SXoRqO6y72tfSATQID
+AQABo4HgMIHdMB0GA1UdDgQWBBTMzyCsshhk+qWYGlNHcdwqt/T2SjCBrQYDVR0j
+BIGlMIGigBTMzyCsshhk+qWYGlNHcdwqt/T2SqF/pH0wezELMAkGA1UEBhMCVVMx
+EjAQBgNVBAgTCUNvbmZ1c2lvbjEQMA4GA1UEBxMHRGlzY29yZDEOMAwGA1UEChMF
+Q2hhb3MxEjAQBgNVBAMTCWxvY2FsaG9zdDEiMCAGCSqGSIb3DQEJARYTZXhhbXBs
+ZUBleGFtcGxlLmNvbYIJAM6k79vdf48CMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcN
+AQEFBQADgYEAj6Bw/Am7pupoPVidCbGSxPpCRV4b7sfyalhdBByCueG/WuFpPRRF
+inEd1GNE/Xh+75LqCFaFjZeY0Pd7RXQ2qYvTe3eG/3cpnTUJoC0aN7K3AU9XqK0L
+1vNl4nGHh2z4G0G8pV8H0kzGIKzrybZiScins3odHuBy0pu3BpBmV4A=
+-----END CERTIFICATE-----
+)key";
 
 TEST(tls, set_up_https)
 {
     luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
     ASSERT_TRUE(static_cast<bool>(server));
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                              {
+                                  return {"hello"};
+                              });
+    auto res = cpr::Get(cpr::Url{"https://localhost:8080/test"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+TEST(tls, set_up_https_with_password)
+{
+    luna::server server{luna::server::https_mem_key{key_password_pem}, luna::server::https_mem_cert{cert_password_pem}, luna::server::https_key_password{"foobar"}};
+    ASSERT_TRUE(static_cast<bool>(server));
+}
+
+TEST(tls, set_up_https_with_password_fail)
+{
+    luna::server server{luna::server::https_mem_key{key_password_pem}, luna::server::https_mem_cert{cert_password_pem}, luna::server::https_key_password{"notapassword"}};
+    ASSERT_FALSE(static_cast<bool>(server));
 }
 
 TEST(tls, set_up_https_fail_1)
