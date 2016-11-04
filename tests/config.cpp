@@ -30,4 +30,6 @@ TEST(config, logging)
     luna::server server;
 
     ASSERT_EQ("foobar", log);
+
+    luna::reset_logger();
 }
