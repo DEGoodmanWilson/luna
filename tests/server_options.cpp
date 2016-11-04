@@ -221,13 +221,3 @@ TEST(server_options, set_connection_limit)
     ASSERT_EQ(0, count);
     ASSERT_EQ(2, max_count);
 }
-
-TEST(server_options, test_string_formatter)
-{
-    ASSERT_EQ("hello", luna::string_format("hello"));
-    ASSERT_EQ("hello1", luna::string_format("hello%d", 1));
-    ASSERT_EQ("hello11", luna::string_format("hello%d%d", 1, 1));
-    ASSERT_EQ("hello1", luna::string_format("hello%d", 1, 1));
-    ASSERT_EQ("hellohello", luna::string_format("hello%s", "hello"));
-    ASSERT_NE("hellohello", luna::string_format("hello%d", "hello")); //error!
-}

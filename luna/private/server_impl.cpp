@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include "server_impl.h"
-#include "config.h"
+#include "luna/private/server_impl.h"
+#include "luna/config.h"
 
 
 namespace luna
@@ -182,7 +182,8 @@ static MHD_ValueKind method_to_value_kind_enum_(request_method method)
 server::server_impl::server_impl() :
         debug_output_{false},
         lock_{},
-        use_ssl_{false},
+        ssl_mem_cert_set_{false},
+        ssl_mem_key_set_{false},
         use_thread_per_connection_{false},
         use_epoll_if_available_{false},
         daemon_{nullptr},
@@ -212,15 +213,20 @@ void server::server_impl::start()
         flags |= MHD_USE_DEBUG;
     }
 
-    if (use_ssl_)
+    if (ssl_mem_cert_set_ && ssl_mem_key_set_)
     {
         LOG_DEBUG("Enabling SSL");
         flags |= MHD_USE_SSL;
     }
+    else if (ssl_mem_cert_set_ || ssl_mem_key_set_)
+    {
+        LOG_FATAL("Please provide both server::https_mem_key AND server::https_mem_cert");
+        return;
+    }
 
     if (use_thread_per_connection_)
     {
-        LOG_DEBUG("Will use one thread per connection");
+        LOG_DEBUG("Will use one thread per connection")
         flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
     }
     else if (use_epoll_if_available_)
@@ -251,7 +257,7 @@ void server::server_impl::start()
 
     if (!daemon_)
     {
-        LOG_FATAL("Luna server failed to start (are you already running something on port" + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
+        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
         return;
     }
 
@@ -573,35 +579,12 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     return MHD_YES;
 }
 
-//http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-std::string string_format(const std::string fmt_str, ...)
-{
-    int final_n, n = ((int) fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
-    std::string str;
-    std::unique_ptr<char[]> formatted;
-    va_list ap;
-    while (1)
-    {
-        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
-        strcpy(&formatted[0], fmt_str.c_str());
-        va_start(ap, fmt_str);
-        final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
-        va_end(ap);
-        if (final_n < 0 || final_n >= n)
-        {
-            n += abs(final_n - n + 1);
-        }
-        else
-        {
-            break;
-        }
-    }
-    return std::string(formatted.get());
-}
-
 void server::server_impl::logger_callback_shim_(void *cls, const char *fm, va_list ap)
 {
-    LOG_DEBUG(string_format(fm, ap));
+    //not at all happy with this.
+    char message[4096];
+    std::vsnprintf(message, sizeof(message), fm, ap);
+    LOG_DEBUG(message);
 }
 
 size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Connection *c, char *s)
@@ -637,11 +620,6 @@ size_t server::server_impl::unescaper_callback_shim_(void *cls, struct MHD_Conne
 void server::server_impl::set_option(server::debug_output value)
 {
     debug_output_ = static_cast<bool>(value);
-}
-
-void server::server_impl::set_option(server::use_ssl value)
-{
-    use_ssl_ = static_cast<bool>(value);
 }
 
 void server::server_impl::set_option(server::use_thread_per_connection value)
@@ -724,13 +702,17 @@ void server::server_impl::set_option(const sockaddr *value)
 
 void server::server_impl::set_option(const server::https_mem_key &value)
 {
-    //TODO this feel very dodgy to me. But I can't quite put my finger on the case where this pointer becomes prematurely invalid
-    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(value.c_str())});
+    // we must make a durable copy of these strings before tossing around char pointers to their internals
+    https_mem_key_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(https_mem_key_[https_mem_key_.size()-1].c_str())});
+    ssl_mem_key_set_ = true;
 }
 
 void server::server_impl::set_option(const server::https_mem_cert &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(value.c_str())});
+    https_mem_cert_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(https_mem_cert_[https_mem_cert_.size()-1].c_str())});
+    ssl_mem_cert_set_ = true;
 }
 
 //void server::server_impl::set_option(server::https_cred_type value)
@@ -740,7 +722,8 @@ void server::server_impl::set_option(const server::https_mem_cert &value)
 
 void server::server_impl::set_option(const server::https_priorities &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(value.c_str())});
+    https_priorities_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(https_priorities_[https_priorities_.size()-1].c_str())});
 }
 
 void server::server_impl::set_option(server::listen_socket value)
@@ -776,7 +759,8 @@ void server::server_impl::set_option(server::thread_stack_size value)
 
 void server::server_impl::set_option(const server::https_mem_trust &value)
 {
-    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(value.c_str())});
+    https_mem_trust_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(https_mem_trust_[https_mem_trust_.size()-1].c_str())});
 }
 
 void server::server_impl::set_option(server::connection_memory_increment value)
@@ -794,20 +778,22 @@ void server::server_impl::set_option(server::connection_memory_increment value)
 //    options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
 //}
 
-//void server::server_impl::set_option(const server::https_mem_dhparams &value)
-//{
-//    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(value.c_str())});
-//}
+void server::server_impl::set_option(const server::https_mem_dhparams &value)
+{
+    https_mem_dhparams_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(https_mem_dhparams_[https_mem_dhparams_.size() - 1].c_str())});
+}
 
 //void server::server_impl::set_option(server::listening_address_reuse value)
 //{
 //    options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
 //}
 
-//void server::server_impl::set_option(const server::https_key_password &value)
-//{
-//    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(value.c_str())});
-//}
+void server::server_impl::set_option(const server::https_key_password &value)
+{
+    https_key_password_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(https_key_password_[https_key_password_.size() - 1].c_str())});
+}
 
 //void server::server_impl::set_option(server::notify_connection value)
 //{

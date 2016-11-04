@@ -50,8 +50,6 @@ public:
 
     void set_option(debug_output value);
 
-    void set_option(use_ssl value);
-
     void set_option(use_thread_per_connection value);
 
     void set_option(use_epoll_if_available value);
@@ -106,11 +104,11 @@ public:
 
 //    void set_option(tcp_fastopen_queue_size value);
 
-//    void set_option(const https_mem_dhparams &value);
+    void set_option(const https_mem_dhparams &value);
 
 //    void set_option(listening_address_reuse value);
 
-//    void set_option(const https_key_password &value);
+    void set_option(const https_key_password &value);
 
 //    void set_option(notify_connection value);
 
@@ -121,13 +119,22 @@ private:
 
     bool debug_output_;
 
-    bool use_ssl_;
+    bool ssl_mem_key_set_;
+    bool ssl_mem_cert_set_;
 
     bool use_thread_per_connection_;
 
     bool use_epoll_if_available_;
 
     uint16_t port_;
+
+    // string copies of options
+    std::vector<std::string> https_mem_key_;
+    std::vector<std::string> https_mem_cert_;
+    std::vector<std::string> https_priorities_;
+    std::vector<std::string> https_mem_trust_;
+    std::vector<std::string> https_mem_dhparams_;
+    std::vector<std::string> https_key_password_;
 
     //options
     std::vector<MHD_OptionItem> options_;

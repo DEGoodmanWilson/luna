@@ -8,7 +8,7 @@ add_executable(luna_tests main.cpp
         crashers.cpp
         put.cpp
         patch.cpp
-        delete.cpp server_options.cpp config.cpp types.cpp basic_auth.cpp)
+        delete.cpp server_options.cpp config.cpp types.cpp basic_auth.cpp tls.cpp)
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 target_link_libraries(luna_tests luna ${CONAN_LIBS})
