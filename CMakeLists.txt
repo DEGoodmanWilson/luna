@@ -38,8 +38,8 @@ if (BUILD_LUNA_COVERAGE)
     message(INFO "Will generate coverage information")
     set(BUILD_LUNA_TESTS true) # need the tests if coverage is requested!
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -coverage")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 --coverage")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 --coverage")
 endif()
 
 
