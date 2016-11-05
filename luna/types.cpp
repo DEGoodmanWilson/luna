@@ -1,5 +1,7 @@
 //
-// Created by Don Goodman-Wilson on 10/21/16.
+// luna
+//
+// Copyright © 2016 D.E. Goodman-Wilson
 //
 
 #include "types.h"
