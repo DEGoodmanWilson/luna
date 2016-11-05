@@ -2,4 +2,3 @@ coverage:
   ignore:
     - examples/*
     - tests/*
-    - luna/private/gcc49.*
