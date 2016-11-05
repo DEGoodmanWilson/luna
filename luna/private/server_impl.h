@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gcc49.h"
+#include "safer_times.h"
 #include "server.h"
 #include <microhttpd.h>
 #include <cstring>

@@ -475,7 +475,8 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     auto client_address = addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
     auto end_c = std::chrono::system_clock::to_time_t(end);
     std::stringstream sstr;
-    sstr << "[" << std::put_time(std::localtime(&end_c), "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
+    auto tm = luna::gmtime(end_c);
+    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
     LOG_INFO(sstr.str());
 
     MHD_destroy_response(mhd_response);
