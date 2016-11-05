@@ -27,3 +27,11 @@ TEST(safer_times, put_time_2)
     auto time_string = luna::put_time(tm, "hello");
     ASSERT_EQ("hello", time_string);
 }
+
+TEST(safer_times, put_time_3)
+{
+    std::time_t t{0};
+    auto tm = std::gmtime(&t);
+    auto time_string = luna::put_time(tm, "");
+    ASSERT_EQ("", time_string);
+}
