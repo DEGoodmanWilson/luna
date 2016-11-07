@@ -69,4 +69,8 @@ if (BUILD_LUNA_EXAMPLES)
     set(EXAMPLE2_SOURCE_FILES examples/example2.cpp)
     add_executable(example2 ${EXAMPLE2_SOURCE_FILES})
     target_link_libraries(example2 luna)
+
+    set(EXAMPLE3_SOURCE_FILES examples/example3.cpp)
+    add_executable(example3 ${EXAMPLE3_SOURCE_FILES})
+    target_link_libraries(example3 luna)
 endif ()
