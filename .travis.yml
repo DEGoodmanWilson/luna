@@ -45,9 +45,10 @@ install:
 
 script:
   - conan build
+  - ./bin/luna_tests
 
 after_success:
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then ./bin/luna_tests; bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9; fi
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9; fi
 
 matrix:
   include:
