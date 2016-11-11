@@ -53,7 +53,7 @@ int main(void)
                        std::cout << to_string(level) << " " << message << std::endl;
                    });
 
-    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
+    luna::server server{luna::server::debug_output{true}, luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
 
     server.handle_request(luna::request_method::GET,
                           "/hello_world",
