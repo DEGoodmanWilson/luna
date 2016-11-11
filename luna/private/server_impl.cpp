@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
@@ -309,6 +310,41 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
     std::lock_guard<std::mutex> guard{lock_};
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
+
+server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
+                                                                std::string &&path_to_files)
+{
+    std::regex regex{mount_point + "(.*)"};
+    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+        {
+            std::string path = path_to_files + "/" + req.matches[1];
+
+            std::string line;
+            std::stringstream out;
+            std::ifstream f{path};
+            if (f.is_open())
+            {
+                while ( std::getline (f,line) )
+                {
+                    out << line << '\n';
+                }
+                f.close();
+                return {out.str()};
+            }
+
+            return {404};
+        });
+}
+
+server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
+                                                                const std::string &path_to_files)
+{
+    return handle_request(request_method::GET, std::regex{"/test.txt"}, [](const request &req) -> response
+        {
+            return {404};
+        });
+}
+
 
 void server::server_impl::remove_request_handler(request_handler_handle item)
 {
