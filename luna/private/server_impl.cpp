@@ -210,6 +210,7 @@ void server::server_impl::start()
 
     if (debug_output_)
     {
+        LOG_DEBUG("Enabling debug output");
         flags |= MHD_USE_DEBUG;
     }
 
