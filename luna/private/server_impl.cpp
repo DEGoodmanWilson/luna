@@ -315,6 +315,8 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
 server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
                                                                 std::string &&path_to_files)
 {
+    // TODO this is very very slow. Why is that? Need to profile.
+    // TODO also there is no cacheing. We could cache things in memory too!
     std::regex regex{mount_point + "(.*)"};
     return handle_request(request_method::GET, regex, [=](const request &req) -> response
         {
@@ -326,14 +328,11 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
             std::string line;
             std::stringstream out;
 
-            //determine MIME type
+            // determine MIME type
             magic_t magic_cookie;
-            /*MAGIC_MIME tells magic to return a mime of the file, but you can specify different things*/
             magic_cookie = magic_open(MAGIC_MIME);
             if (magic_cookie == NULL) {
                 return {500};
-//                printf("unable to initialize magic library\n");
-//                return 1;
             }
             if (magic_load(magic_cookie, NULL) != 0) {
                 magic_close(magic_cookie);
@@ -343,6 +342,8 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
             std::string magic_full{magic_file(magic_cookie, path.c_str())};
             magic_close(magic_cookie);
 
+            //Read and send the file. Notice that we load the whole damned thing up in memory.
+            // TODO find a better way to stream these things instead!
             std::ifstream f{path};
             if (f.is_open())
             {

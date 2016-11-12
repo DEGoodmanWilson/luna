@@ -40,3 +40,15 @@ TEST(file_service, serve_html_file)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
 }
+
+TEST(file_service, serve_binary_file)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/luna.jpg"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("image/jpeg; charset=binary", res.header["Content-Type"]);
+    ASSERT_EQ(5196, res.text.size());
+}

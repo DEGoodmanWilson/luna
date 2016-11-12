@@ -62,7 +62,7 @@ endif ()
 if (BUILD_LUNA_EXAMPLES)
     message(STATUS "Building Luna with Examples")
 
-    set(EXAMPLE1_SOURCE_FILES examples/example1.cpp)
+    set(EXAMPLE1_SOURCE_FILES examples/example1.cpp examples/example4.cpp)
     add_executable(example1 ${EXAMPLE1_SOURCE_FILES})
     target_link_libraries(example1 luna)
 
@@ -73,4 +73,8 @@ if (BUILD_LUNA_EXAMPLES)
     set(EXAMPLE3_SOURCE_FILES examples/example3.cpp)
     add_executable(example3 ${EXAMPLE3_SOURCE_FILES})
     target_link_libraries(example3 luna)
+
+    set(EXAMPLE4_SOURCE_FILES examples/example4.cpp)
+    add_executable(example4 ${EXAMPLE4_SOURCE_FILES})
+    target_link_libraries(example4 luna)
 endif ()
