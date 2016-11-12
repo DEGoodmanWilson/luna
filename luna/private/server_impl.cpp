@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <magic.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
@@ -321,6 +322,24 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
 
             std::string line;
             std::stringstream out;
+
+            //determine MIME type
+            magic_t magic_cookie;
+            /*MAGIC_MIME tells magic to return a mime of the file, but you can specify different things*/
+            magic_cookie = magic_open(MAGIC_MIME);
+            if (magic_cookie == NULL) {
+                return {500};
+//                printf("unable to initialize magic library\n");
+//                return 1;
+            }
+            if (magic_load(magic_cookie, NULL) != 0) {
+                magic_close(magic_cookie);
+                return {500};
+            }
+
+            std::string magic_full{magic_file(magic_cookie, path.c_str())};
+            magic_close(magic_cookie);
+
             std::ifstream f{path};
             if (f.is_open())
             {
@@ -329,7 +348,7 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
                     out << line << '\n';
                 }
                 f.close();
-                return {out.str()};
+                return {magic_full, out.str()};
             }
 
             return {404};
