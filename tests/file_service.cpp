@@ -9,12 +9,18 @@
 #include <luna/luna.h>
 #include <cpr/cpr.h>
 
-TEST(file_service, serve_html_file)
+TEST(file_service, serve_file_404)
 {
-    char cwd[1024];
-    getcwd(cwd, 1024);
-    std::cout << cwd << std::endl;
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "tests/public");
 
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/foobar.txt"});
+    ASSERT_EQ(404, res.status_code);
+}
+
+TEST(file_service, serve_text_file)
+{
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "tests/public");
@@ -23,3 +29,15 @@ TEST(file_service, serve_html_file)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+//TEST(file_service, serve_html_file)
+//{
+//    luna::server server{};
+//    std::string path{std::getenv("STATIC_ASSET_PATH")};
+//    server.serve_files("/", path + "tests/public");
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("text/html", res.header["Content-Type"]);
+//    ASSERT_EQ("<p>hello</p>", res.text);
+//}
