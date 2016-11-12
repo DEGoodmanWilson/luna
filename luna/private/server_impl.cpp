@@ -317,26 +317,36 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
 server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
                                                                 std::string &&path_to_files)
 {
-    // TODO this is very very slow. Why is that? Need to profile.
-    // TODO also there is no cacheing. We could cache things in memory too!
-    std::regex regex{mount_point + "(.*)"};
+    std::regex regex{std::move(mount_point) + "(.*)"};
+    std::string local_path{std::move(path_to_files)};
     return handle_request(request_method::GET, regex, [=](const request &req) -> response
         {
-            std::string path = path_to_files + "/" + req.matches[1];
+            std::string path = local_path + "/" + req.matches[1];
 
             LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
             LOG_DEBUG(std::string{"Serve from    :  "}+path);
 
-            return {luna::file{path}};
+            luna::file file;
+            file.file_name = path;
+            return {file};
         });
 }
 
 server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
                                                                 const std::string &path_to_files)
 {
-    return handle_request(request_method::GET, std::regex{"/test.txt"}, [](const request &req) -> response
+    std::regex regex{mount_point + "(.*)"};
+    std::string local_path{path_to_files};
+    return handle_request(request_method::GET, regex, [=](const request &req) -> response
         {
-            return {404};
+            std::string path = local_path + "/" + req.matches[1];
+
+            LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
+            LOG_DEBUG(std::string{"Serve from    :  "}+path);
+
+            luna::file file;
+            file.file_name = path;
+            return {file};
         });
 }
 

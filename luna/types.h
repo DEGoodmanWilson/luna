@@ -115,6 +115,12 @@ struct request
 struct file
 {
     std::string file_name;
+
+    file() = default;
+    file(const file &f) = default;
+    file(file &&f) = default;
+    file &operator=(const file &) = default;
+    ~file() = default;
 };
 
 struct response
