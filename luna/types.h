@@ -115,12 +115,6 @@ struct request
 struct file
 {
     std::string file_name;
-
-    file() = default;
-    file(const file &f) = default;
-    file(file &&f) = default;
-    file &operator=(const file &) = default;
-    ~file() = default;
 };
 
 struct response
@@ -144,8 +138,10 @@ struct response
     // explicit status code responses
     // TODO this is now officially messy. Let's use some variadic templates to clean this up. Later.
 
-    response(::luna::file file_name) : file{file_name}
-    { }
+    response(::luna::file file_name)
+    {
+        file.file_name = file_name.file_name;
+    }
 
     response(::luna::status_code status_code) : status_code{status_code}
     { }
