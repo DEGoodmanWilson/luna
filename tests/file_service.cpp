@@ -21,6 +21,10 @@ TEST(file_service, serve_file_404)
 
 TEST(file_service, serve_text_file)
 {
+    char cwd[1024];
+    getcwd(cwd, 1024);
+    std::cout << "******* " << cwd << std::endl;
+
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
