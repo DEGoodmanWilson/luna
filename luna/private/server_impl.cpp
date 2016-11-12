@@ -507,6 +507,8 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     // TODO this mhd_response could be cached to speed things up!
     if (response.file.file_name.length() > 0) //we have a filename, load up that file and ignore the rest
     {
+        response.status_code = 200; //default success
+
         // determine MIME type
         magic_t magic_cookie;
         magic_cookie = magic_open(MAGIC_MIME);
