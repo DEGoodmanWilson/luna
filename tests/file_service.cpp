@@ -13,7 +13,7 @@ TEST(file_service, serve_file_404)
 {
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    server.serve_files("/", path + "tests/public");
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/foobar.txt"});
     ASSERT_EQ(404, res.status_code);
@@ -28,7 +28,7 @@ TEST(file_service, serve_text_file)
 
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    server.serve_files("/", path + "tests/public");
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
@@ -45,7 +45,7 @@ TEST(file_service, serve_html_file)
 
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    server.serve_files("/", path + "tests/public");
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
