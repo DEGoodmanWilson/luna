@@ -112,12 +112,18 @@ struct request
     std::string body;
 };
 
+struct file
+{
+    std::string file_name;
+};
+
 struct response
 {
     luna::status_code status_code;
     response_headers headers;
     std::string content_type;
     std::string content;
+    luna::file file;
 
     struct URI
     {
@@ -126,10 +132,15 @@ struct response
         std::string uri;
     };
 
+
     response() = default;
 
     // explicit status code responses
     // TODO this is now officially messy. Let's use some variadic templates to clean this up. Later.
+
+    response(::luna::file file_name) : file{file_name}
+    { }
+
     response(::luna::status_code status_code) : status_code{status_code}
     { }
 

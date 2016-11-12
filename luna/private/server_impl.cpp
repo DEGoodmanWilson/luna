@@ -9,6 +9,8 @@
 #include <sstream>
 #include <fstream>
 #include <magic.h>
+#include <stdio.h>
+#include <sys/stat.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
@@ -325,37 +327,7 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
             LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
             LOG_DEBUG(std::string{"Serve from    :  "}+path);
 
-            std::string line;
-            std::stringstream out;
-
-            // determine MIME type
-            magic_t magic_cookie;
-            magic_cookie = magic_open(MAGIC_MIME);
-            if (magic_cookie == NULL) {
-                return {500};
-            }
-            if (magic_load(magic_cookie, NULL) != 0) {
-                magic_close(magic_cookie);
-                return {500};
-            }
-
-            std::string magic_full{magic_file(magic_cookie, path.c_str())};
-            magic_close(magic_cookie);
-
-            //Read and send the file. Notice that we load the whole damned thing up in memory.
-            // TODO find a better way to stream these things instead!
-            std::ifstream f{path};
-            if (f.is_open())
-            {
-                while ( std::getline (f,line) )
-                {
-                    out << line << '\n';
-                }
-                f.close();
-                return {magic_full, out.str()};
-            }
-
-            return {404};
+            return {luna::file{path}};
         });
 }
 
@@ -517,9 +489,55 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
                                           const std::string &method,
                                           request_headers headers) const
 {
-    auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                        (void *) response.content.c_str(),
-                                                        MHD_RESPMEM_MUST_COPY);
+    struct MHD_Response *mhd_response;
+
+    //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
+
+    // We want to serve a file, in which case use `MHD_create_response_from_fd`
+    // TODO this mhd_response could be cached to speed things up!
+    if (response.file.file_name.length() > 0) //we have a filename, load up that file and ignore the rest
+    {
+        // determine MIME type
+        magic_t magic_cookie;
+        magic_cookie = magic_open(MAGIC_MIME);
+        if (magic_cookie == NULL)
+        {
+            response.status_code = 500;
+            return render_error_(start, {500}, connection, url, method);
+        }
+        if (magic_load(magic_cookie, NULL) != 0)
+        {
+            magic_close(magic_cookie);
+            response.status_code = 500;
+            return render_error_(start, {500}, connection, url, method);
+        }
+
+        std::string magic_full{magic_file(magic_cookie, response.file.file_name.c_str())};
+        magic_close(magic_cookie);
+        response.content_type = magic_full;
+
+        auto file = fopen(response.file.file_name.c_str(), "r");
+        if (!file)
+        {
+            return render_error_(start, {404}, connection, url, method);
+        }
+        else
+        {
+            auto fd = fileno(file);
+            struct stat stat_buf;
+            auto rc = fstat(fd, &stat_buf);
+            auto fsize = stat_buf.st_size;
+
+            mhd_response = MHD_create_response_from_fd(fsize, fd);
+        }
+    }
+    else
+    {
+        mhd_response = MHD_create_response_from_buffer(response.content.length(),
+                                                            (void *) response.content.c_str(),
+                                                            MHD_RESPMEM_MUST_COPY);
+
+    }
 
     for(const auto&header : response.headers)
     {
