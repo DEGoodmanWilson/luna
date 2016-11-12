@@ -320,6 +320,9 @@ server::request_handler_handle server::server_impl::serve_files(std::string &&mo
         {
             std::string path = path_to_files + "/" + req.matches[1];
 
+            LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
+            LOG_DEBUG(std::string{"Serve from    :  "}+path);
+
             std::string line;
             std::stringstream out;
 
