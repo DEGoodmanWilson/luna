@@ -141,51 +141,51 @@ struct response
     // explicit status code responses
     // TODO this is now officially messy. Let's use some variadic templates to clean this up. Later.
 
-    response(::luna::status_code status_code) : status_code{status_code}
+    response(::luna::status_code status_code) : status_code{status_code}, file{""}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers) : status_code{status_code}, headers{headers}
+    response(::luna::status_code status_code, const ::luna::request_headers& headers) : status_code{status_code}, headers{headers}, file{""}
     { }
 
-    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content_type{default_mime_type}, content{content}
+    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content_type{default_mime_type}, content{content}, file{""}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content_type{default_mime_type}, content{content}
+    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content_type{default_mime_type}, content{content}, file{""}
     { }
 
     response(::luna::status_code status_code, std::string content_type, std::string content) :
-            status_code{status_code}, content_type{content_type}, content{content}
+            status_code{status_code}, content_type{content_type}, content{content}, file{""}
     { }
 
     response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content_type, std::string content) :
-            status_code{status_code}, headers{headers}, content_type{content_type}, content{content}
+            status_code{status_code}, headers{headers}, content_type{content_type}, content{content}, file{""}
     { }
 
     // default success responses
-    response(const ::luna::request_headers& headers, std::string content) : status_code{0}, headers{headers}, content_type{default_mime_type}, content{content}
+    response(const ::luna::request_headers& headers, std::string content) : status_code{0}, headers{headers}, content_type{default_mime_type}, content{content}, file{""}
     { }
 
-    response(const ::luna::request_headers& headers) : status_code{0}, headers{headers}
+    response(const ::luna::request_headers& headers) : status_code{0}, headers{headers}, file{""}
     { }
 
-    response(std::string content) : status_code{0}, content_type{default_mime_type}, content{content}
+    response(std::string content) : status_code{0}, content_type{default_mime_type}, content{content}, file{""}
     { }
 
     response(const ::luna::request_headers& headers, std::string content_type, std::string content) :
-            status_code{0}, headers{headers}, content_type{content_type}, content{content}
+            status_code{0}, headers{headers}, content_type{content_type}, content{content}, file{""}
     { }
 
     response(std::string content_type, std::string content) :
-            status_code{0}, content_type{content_type}, content{content}
+            status_code{0}, content_type{content_type}, content{content}, file{""}
     { }
 
     // responses with redirects
     response(URI redirect) :
-            status_code{301}, headers{{"Location", redirect.uri}}
+            status_code{301}, headers{{"Location", redirect.uri}}, file{""}
     { }
 
     response(::luna::status_code status_code, URI redirect) :
-            status_code{status_code}, headers{{"Location", redirect.uri}}
+            status_code{status_code}, headers{{"Location", redirect.uri}}, file{""}
     { }
 };
 
