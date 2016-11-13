@@ -454,13 +454,16 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
+                LOG_DEBUG("*** empty content_type");
                 if(response.file.empty())
                 {
+                    LOG_DEBUG("*** empty file");
                     //serving dynamic content, use the default type
                     response.content_type = default_mime_type;
                 }
                 else
                 {
+                    LOG_DEBUG("*** have a file, looking up mime type");
                     // We are serving a static asset, Calculate the MIME type if not specified
                     luna::response error_response{500}; //in case bad things happen
                     magic_t magic_cookie;

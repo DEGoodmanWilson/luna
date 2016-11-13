@@ -45,6 +45,11 @@ TEST(file_service, serve_text_file2)
 
 TEST(file_service, serve_html_file)
 {
+luna::set_logger([&](luna::log_level level, const std::string &message)
+{
+std::cout << to_string(level) << " " << message << std::endl;
+});
+
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
@@ -52,10 +57,16 @@ TEST(file_service, serve_html_file)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
+luna::reset_logger();
 }
 
 TEST(file_service, serve_binary_file)
 {
+luna::set_logger([&](luna::log_level level, const std::string &message)
+{
+std::cout << to_string(level) << " " << message << std::endl;
+});
+
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
@@ -64,10 +75,15 @@ TEST(file_service, serve_binary_file)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("image/jpeg; charset=binary", res.header["Content-Type"]);
     ASSERT_EQ(5196, res.text.size());
+luna::reset_logger();
 }
 
 TEST(file_service, self_serve_html_file)
 {
+luna::set_logger([&](luna::log_level level, const std::string &message)
+{
+std::cout << to_string(level) << " " << message << std::endl;
+});
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.handle_request(luna::request_method::GET,
@@ -81,10 +97,15 @@ TEST(file_service, self_serve_html_file)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
+luna::reset_logger();
 }
 
 TEST(file_service, self_serve_html_file_override_mime_type)
 {
+luna::set_logger([&](luna::log_level level, const std::string &message)
+{
+std::cout << to_string(level) << " " << message << std::endl;
+});
     luna::server server{};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.handle_request(luna::request_method::GET,
@@ -100,4 +121,5 @@ TEST(file_service, self_serve_html_file_override_mime_type)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/foobar", res.header["Content-Type"]);
+luna::reset_logger();
 }
