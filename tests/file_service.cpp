@@ -30,6 +30,19 @@ TEST(file_service, serve_text_file)
     ASSERT_EQ("hello", res.text);
 }
 
+TEST(file_service, serve_text_file2)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string mount{"/"};
+    std::string filepath{path + "/tests/public"};
+    server.serve_files(mount, filepath);
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
 TEST(file_service, serve_html_file)
 {
     luna::server server{};
