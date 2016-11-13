@@ -490,20 +490,23 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     if (response.file.file_name.length() > 0) //we have a filename, load up that file and ignore the rest
     {
         response.status_code = 200; //default success
+        response error_response{500}; //in case bad things happen
 
         // determine MIME type
         magic_t magic_cookie;
         magic_cookie = magic_open(MAGIC_MIME);
         if (magic_cookie == NULL)
         {
-            response.status_code = 500;
-            return render_error_(start, {500}, connection, url, method);
+            // These lines should basically never get hit in testing
+            response.status_code = 500;                                                 //LCOV_EXCL_LINE
+            // I am dubious that if we had an issue allocating memory above that the following will work, TBH
+            return render_error_(start, error_response, connection, url, method);       //LCOV_EXCL_LINE
         }
         if (magic_load(magic_cookie, NULL) != 0)
         {
-            magic_close(magic_cookie);
-            response.status_code = 500;
-            return render_error_(start, {500}, connection, url, method);
+            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+            response.status_code = 500;                                                 //LCOV_EXCL_LINE
+            return render_error_(start, error_response, connection, url, method);       //LCOV_EXCL_LINE
         }
 
         std::string magic_full{magic_file(magic_cookie, response.file.file_name.c_str())};
