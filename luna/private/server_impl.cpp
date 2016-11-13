@@ -326,9 +326,9 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
             LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
             LOG_DEBUG(std::string{"Serve from    :  "}+path);
 
-            luna::file file;
-            file.file_name = path;
-            return {file};
+//            luna::file file;
+//            file.file_name = path;
+            return {luna::filename{path}};
         });
 }
 
@@ -456,7 +456,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
-                if(response.file.file_name.empty())
+                if(response.file.empty())
                 {
                     //serving dynamic content, use the default type
                     response.content_type = default_mime_type;
@@ -481,7 +481,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                         return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
                     }
 
-                    std::string magic_full{magic_file(magic_cookie, response.file.file_name.c_str())};
+                    std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
                     magic_close(magic_cookie);
                     response.content_type = magic_full;
                 }
@@ -515,11 +515,11 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
 
     // We want to serve a file, in which case use `MHD_create_response_from_fd`
     // TODO this mhd_response could be cached to speed things up!
-    if (!response.file.file_name.empty()) //we have a filename, load up that file and ignore the rest
+    if (!response.file.empty()) //we have a filename, load up that file and ignore the rest
     {
         response.status_code = 200; //default success
 
-        auto file = fopen(response.file.file_name.c_str(), "r");
+        auto file = fopen(response.file.c_str(), "r");
         if (!file)
         {
             return render_error_(start, {404}, connection, url, method);
