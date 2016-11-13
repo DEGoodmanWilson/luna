@@ -147,21 +147,16 @@ struct response
     // explicit status code responses
     // TODO this is now officially messy. Let's use some variadic templates to clean this up. Later.
 
-//    response(::luna::file file_name)
-//    {
-//        file.file_name = file_name.file_name;
-//    }
-
     response(::luna::status_code status_code) : status_code{status_code}
     { }
 
     response(::luna::status_code status_code, const ::luna::request_headers& headers) : status_code{status_code}, headers{headers}
     { }
 
-    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content{content}
+    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content_type{default_mime_type}, content{content}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content{content}
+    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content_type{default_mime_type}, content{content}
     { }
 
     response(::luna::status_code status_code, std::string content_type, std::string content) :
