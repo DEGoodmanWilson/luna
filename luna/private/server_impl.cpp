@@ -488,6 +488,9 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 }
             }
 
+            LOG_DEBUG("*** using Content-Type: ");
+            LOG_DEBUG(response.content_type);
+
             if (is_error_(response.status_code))
             {
                 return render_error_(start, response, connection, url_str, method_str);
@@ -548,6 +551,8 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
 
+    LOG_DEBUG("*** adding Content-Type: ");
+    LOG_DEBUG(response.content_type);
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
     auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
@@ -558,7 +563,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     auto end_c = std::chrono::system_clock::to_time_t(end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
+    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
     LOG_INFO(sstr.str());
 
     MHD_destroy_response(mhd_response);
