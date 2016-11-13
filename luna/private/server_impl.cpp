@@ -490,6 +490,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (is_error_(response.status_code))
             {
+                LOG_DEBUG("*** Rendering error with content_type: ");
+                LOG_DEBUG(response.content_type);
                 return render_error_(start, response, connection, url_str, method_str);
             }
 

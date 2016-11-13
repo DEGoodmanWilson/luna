@@ -41,7 +41,7 @@ install:
   - conan --version
 
   # Automatic detection of your arch, compiler, etc
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build=missing; else conan install -o build_luna_tests=True --build=missing; fi
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build=missing > /dev/null; else conan install -o build_luna_tests=True --build=missing > /dev/null; fi
 
 script:
   - conan build
