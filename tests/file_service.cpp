@@ -65,3 +65,43 @@ TEST(file_service, serve_binary_file)
     ASSERT_EQ("image/jpeg; charset=binary", res.header["Content-Type"]);
     ASSERT_EQ(5196, res.text.size());
 }
+
+TEST(file_service, self_serve_html_file)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.handle_request(luna::request_method::GET,
+                          "/test.html",
+                          [=](auto req) -> luna::response
+                              {
+                                  std::string full_path = path + "/tests/public/test.html";
+                                  luna::file file;
+                                  file.file_name = full_path;
+                                  return {file};
+                              });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
+}
+
+TEST(file_service, self_serve_html_file_override_mime_type)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.handle_request(luna::request_method::GET,
+                          "/test.html",
+                          [=](auto req) -> luna::response
+                              {
+                                  std::string full_path = path + "/tests/public/test.html";
+                                  luna::file file;
+                                  file.file_name = full_path;
+                                  luna::response resp{file};
+                                  resp.content_type = "text/foobar";
+                                  return resp;
+                              });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("text/foobar", res.header["Content-Type"]);
+}

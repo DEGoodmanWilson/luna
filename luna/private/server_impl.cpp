@@ -456,7 +456,35 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
-                response.content_type = default_mime_type;
+                if(response.file.file_name.empty())
+                {
+                    //serving dynamic content, use the default type
+                    response.content_type = default_mime_type;
+                }
+                else
+                {
+                    // We are serving a static asset, Calculate the MIME type if not specified
+                    luna::response error_response{500}; //in case bad things happen
+                    magic_t magic_cookie;
+                    magic_cookie = magic_open(MAGIC_MIME);
+                    if (magic_cookie == NULL)
+                    {
+                        // These lines should basically never get hit in testing
+                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                        // I am dubious that if we had an issue allocating memory above that the following will work, TBH
+                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                    }
+                    if (magic_load(magic_cookie, NULL) != 0)
+                    {
+                        magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                    }
+
+                    std::string magic_full{magic_file(magic_cookie, response.file.file_name.c_str())};
+                    magic_close(magic_cookie);
+                    response.content_type = magic_full;
+                }
             }
 
             if (is_error_(response.status_code))
@@ -487,31 +515,9 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
 
     // We want to serve a file, in which case use `MHD_create_response_from_fd`
     // TODO this mhd_response could be cached to speed things up!
-    if (response.file.file_name.length() > 0) //we have a filename, load up that file and ignore the rest
+    if (!response.file.file_name.empty()) //we have a filename, load up that file and ignore the rest
     {
         response.status_code = 200; //default success
-        luna::response error_response{500}; //in case bad things happen
-
-        // determine MIME type
-        magic_t magic_cookie;
-        magic_cookie = magic_open(MAGIC_MIME);
-        if (magic_cookie == NULL)
-        {
-            // These lines should basically never get hit in testing
-            response.status_code = 500;                                                 //LCOV_EXCL_LINE
-            // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-            return render_error_(start, error_response, connection, url, method);       //LCOV_EXCL_LINE
-        }
-        if (magic_load(magic_cookie, NULL) != 0)
-        {
-            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-            response.status_code = 500;                                                 //LCOV_EXCL_LINE
-            return render_error_(start, error_response, connection, url, method);       //LCOV_EXCL_LINE
-        }
-
-        std::string magic_full{magic_file(magic_cookie, response.file.file_name.c_str())};
-        magic_close(magic_cookie);
-        response.content_type = magic_full;
 
         auto file = fopen(response.file.file_name.c_str(), "r");
         if (!file)
