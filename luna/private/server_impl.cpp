@@ -488,15 +488,15 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 }
             }
 
-            LOG_DEBUG("*** using Content-Type: ");
-            LOG_DEBUG(response.content_type);
-
             if (is_error_(response.status_code))
             {
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
             //else render success
+
+            LOG_DEBUG("*** using Content-Type: ");
+            LOG_DEBUG(response.content_type);
             return render_response_(start, response, connection, url_str, method_str);
         }
     }
@@ -513,6 +513,8 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
                                           const std::string &method,
                                           request_headers headers) const
 {
+    LOG_DEBUG("*** starting render_response_: ");
+    LOG_DEBUG(response.content_type);
     struct MHD_Response *mhd_response;
 
     //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
