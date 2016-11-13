@@ -490,7 +490,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     if (response.file.file_name.length() > 0) //we have a filename, load up that file and ignore the rest
     {
         response.status_code = 200; //default success
-        response error_response{500}; //in case bad things happen
+        luna::response error_response{500}; //in case bad things happen
 
         // determine MIME type
         magic_t magic_cookie;
