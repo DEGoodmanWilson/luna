@@ -492,6 +492,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             {
                 LOG_DEBUG("*** Rendering error with content_type: ");
                 LOG_DEBUG(response.content_type);
+                LOG_DEBUG(std::to_string(response.status_code));
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
