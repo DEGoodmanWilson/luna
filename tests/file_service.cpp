@@ -75,7 +75,7 @@ TEST(file_service, self_serve_html_file)
                           [=](auto req) -> luna::response
                               {
                                   std::string full_path = path + "/tests/public/test.html";
-                                  return {luna::filename{full_path}};
+                                  return luna::response::from_file(full_path);
                               });
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
@@ -92,7 +92,7 @@ TEST(file_service, self_serve_html_file_override_mime_type)
                           [=](auto req) -> luna::response
                               {
                                   std::string full_path = path + "/tests/public/test.html";
-                                  luna::response resp{luna::filename{full_path}};
+                                  luna::response resp = luna::response::from_file(full_path);
                                   resp.content_type = "text/foobar";
                                   return resp;
                               });

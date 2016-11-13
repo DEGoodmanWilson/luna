@@ -325,10 +325,8 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
 
             LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
             LOG_DEBUG(std::string{"Serve from    :  "}+path);
-
-//            luna::file file;
-//            file.file_name = path;
-            return {luna::filename{path}};
+            
+            return response::from_file(path);
         });
 }
 
