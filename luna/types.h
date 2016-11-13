@@ -131,7 +131,7 @@ struct response
 
     response() : status_code{0}, headers{}, content_type{}, content{}, file{}
     { }
-    
+
     static response from_file(std::string filename)
     {
         response r;

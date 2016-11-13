@@ -454,16 +454,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
-                LOG_DEBUG("*** empty content_type");
                 if(response.file.empty())
                 {
-                    LOG_DEBUG("*** empty file");
                     //serving dynamic content, use the default type
                     response.content_type = default_mime_type;
                 }
                 else
                 {
-                    LOG_DEBUG("*** have a file, looking up mime type");
                     // We are serving a static asset, Calculate the MIME type if not specified
                     luna::response error_response{500}; //in case bad things happen
                     magic_t magic_cookie;
@@ -490,16 +487,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (is_error_(response.status_code))
             {
-                LOG_DEBUG("*** Rendering error with content_type: ");
-                LOG_DEBUG(response.content_type);
-                LOG_DEBUG(std::to_string(response.status_code));
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
             //else render success
-
-            LOG_DEBUG("*** using Content-Type: ");
-            LOG_DEBUG(response.content_type);
             return render_response_(start, response, connection, url_str, method_str);
         }
     }
@@ -516,8 +507,6 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
                                           const std::string &method,
                                           request_headers headers) const
 {
-    LOG_DEBUG("*** starting render_response_: ");
-    LOG_DEBUG(response.content_type);
     struct MHD_Response *mhd_response;
 
     //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
@@ -556,8 +545,6 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
 
-    LOG_DEBUG("*** adding Content-Type: ");
-    LOG_DEBUG(response.content_type);
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
     auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
