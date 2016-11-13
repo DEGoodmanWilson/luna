@@ -121,12 +121,6 @@ public:
     request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
     request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
 
-    template<typename T1, typename T2>
-    request_handler_handle serve_files(T1 &&mount_point, T2 &&path_to_files)
-    {
-        return serve_files(std::string{std::forward<T1>(mount_point)}, std::string{std::forward<T2>(path_to_files)});
-    }
-    request_handler_handle serve_files(std::string &&mount_point, std::string &&path_to_files);
     request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
 
     void remove_request_handler(request_handler_handle item);

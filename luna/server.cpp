@@ -200,11 +200,6 @@ server::request_handler_handle server::handle_request(request_method method, con
     return impl_->handle_request(method, std::regex{path}, callback);
 }
 
-server::request_handler_handle server::serve_files(std::string &&mount_point, std::string &&path_to_files)
-{
-    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
-}
-
 server::request_handler_handle server::serve_files(const std::string &mount_point, const std::string &path_to_files)
 {
     return impl_->serve_files(mount_point, path_to_files);

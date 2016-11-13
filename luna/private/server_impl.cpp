@@ -314,24 +314,6 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
 
-server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
-                                                                std::string &&path_to_files)
-{
-    std::regex regex{std::move(mount_point) + "(.*)"};
-    std::string local_path{std::move(path_to_files)};
-    return handle_request(request_method::GET, regex, [=](const request &req) -> response
-        {
-            std::string path = local_path + "/" + req.matches[1];
-
-            LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
-            LOG_DEBUG(std::string{"Serve from    :  "}+path);
-
-            luna::file file;
-            file.file_name = path;
-            return {file};
-        });
-}
-
 server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
                                                                 const std::string &path_to_files)
 {
