@@ -118,9 +118,11 @@ public:
     {
         return handle_request(method, std::regex{std::forward<T>(path)}, callback);
     }
-
     request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
     request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+
+    request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
+
     void remove_request_handler(request_handler_handle item);
 
     explicit operator bool();

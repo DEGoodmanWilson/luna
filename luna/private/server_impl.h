@@ -46,6 +46,10 @@ public:
 
     server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
     server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+
+    server::request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
+
+
     void remove_request_handler(request_handler_handle item);
 
     void set_option(debug_output value);

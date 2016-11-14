@@ -17,8 +17,7 @@ using namespace std::chrono_literals;
 
 TEST(server_options, set_mime_type)
 {
-    luna::server server{luna::server::mime_type{"howdyho"}
-    };
+    luna::server server{luna::server::mime_type{"howdyho"}};
     server.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -31,6 +30,10 @@ TEST(server_options, set_mime_type)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
     ASSERT_EQ("howdyho", res.header["Content-Type"]);
+
+    //reset the default mime type
+    // TODO find a better way to do this…
+    luna::server s2{luna::server::mime_type{"text/html; charset=UTF-8"}};
 }
 
 TEST(server_options, set_error_handler_cb)
@@ -124,14 +127,15 @@ TEST(server_options, set_thread_pool_size)
                               });
 
     std::thread threads[10];
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
-        threads[x] = std::thread{[](){
-                cpr::Get(cpr::Url{"http://localhost:8080/test"});
-            }};
+        threads[x] = std::thread{[]()
+                                     {
+                                         cpr::Get(cpr::Url{"http://localhost:8080/test"});
+                                     }};
     }
 
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
         threads[x].join();
     }
@@ -150,29 +154,30 @@ TEST(server_options, use_thread_per_connection)
     server.handle_request(luna::request_method::GET,
                           "/test",
                           [&count, &max_count, &mutex](auto req) -> luna::response
-                            {
-                                mutex.lock();
-                                ++count;
-                                if (count > max_count) max_count = count;
-                                mutex.unlock();
+                              {
+                                  mutex.lock();
+                                  ++count;
+                                  if (count > max_count) max_count = count;
+                                  mutex.unlock();
 
-                                std::this_thread::sleep_for(10ms);
+                                  std::this_thread::sleep_for(10ms);
 
-                                mutex.lock();
-                                --count;
-                                mutex.unlock();
-                                return {"Hello"};
-                          });
+                                  mutex.lock();
+                                  --count;
+                                  mutex.unlock();
+                                  return {"Hello"};
+                              });
 
     std::thread threads[10];
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
-        threads[x] = std::thread{[](){
-            cpr::Get(cpr::Url{"http://localhost:8080/test"});
-        }};
+        threads[x] = std::thread{[]()
+                                     {
+                                         cpr::Get(cpr::Url{"http://localhost:8080/test"});
+                                     }};
     }
 
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
         threads[x].join();
     }
@@ -206,14 +211,15 @@ TEST(server_options, set_connection_limit)
                               });
 
     std::thread threads[10];
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
-        threads[x] = std::thread{[](){
-            cpr::Get(cpr::Url{"http://localhost:8080/test"});
-            }};
+        threads[x] = std::thread{[]()
+                                     {
+                                         cpr::Get(cpr::Url{"http://localhost:8080/test"});
+                                     }};
     }
 
-    for(int x = 0; x < 10; ++x)
+    for (int x = 0; x < 10; ++x)
     {
         threads[x].join();
     }

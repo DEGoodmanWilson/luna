@@ -7,6 +7,10 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
+#include <magic.h>
+#include <stdio.h>
+#include <sys/stat.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
@@ -310,6 +314,23 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
     return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
 }
 
+server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
+                                                                const std::string &path_to_files)
+{
+    std::regex regex{mount_point + "(.*)"};
+    std::string local_path{path_to_files};
+    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+        {
+            std::string path = local_path + "/" + req.matches[1];
+
+            LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
+            LOG_DEBUG(std::string{"Serve from    :  "}+path);
+            
+            return response::from_file(path);
+        });
+}
+
+
 void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
@@ -433,7 +454,35 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
-                response.content_type = default_mime_type;
+                if(response.file.empty())
+                {
+                    //serving dynamic content, use the default type
+                    response.content_type = default_mime_type;
+                }
+                else
+                {
+                    // We are serving a static asset, Calculate the MIME type if not specified
+                    luna::response error_response{500}; //in case bad things happen
+                    magic_t magic_cookie;
+                    magic_cookie = magic_open(MAGIC_MIME);
+                    if (magic_cookie == NULL)
+                    {
+                        // These lines should basically never get hit in testing
+                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                        // I am dubious that if we had an issue allocating memory above that the following will work, TBH
+                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                    }
+                    if (magic_load(magic_cookie, NULL) != 0)
+                    {
+                        magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                    }
+
+                    std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
+                    magic_close(magic_cookie);
+                    response.content_type = magic_full;
+                }
             }
 
             if (is_error_(response.status_code))
@@ -458,9 +507,38 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
                                           const std::string &method,
                                           request_headers headers) const
 {
-    auto mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                        (void *) response.content.c_str(),
-                                                        MHD_RESPMEM_MUST_COPY);
+    struct MHD_Response *mhd_response;
+
+    //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
+
+    // We want to serve a file, in which case use `MHD_create_response_from_fd`
+    // TODO this mhd_response could be cached to speed things up!
+    if (!response.file.empty()) //we have a filename, load up that file and ignore the rest
+    {
+        response.status_code = 200; //default success
+
+        auto file = fopen(response.file.c_str(), "r");
+        if (!file)
+        {
+            return render_error_(start, {404}, connection, url, method);
+        }
+        else
+        {
+            auto fd = fileno(file);
+            struct stat stat_buf;
+            auto rc = fstat(fd, &stat_buf);
+            auto fsize = stat_buf.st_size;
+
+            mhd_response = MHD_create_response_from_fd(fsize, fd);
+        }
+    }
+    else
+    {
+        mhd_response = MHD_create_response_from_buffer(response.content.length(),
+                                                            (void *) response.content.c_str(),
+                                                            MHD_RESPMEM_MUST_COPY);
+
+    }
 
     for(const auto&header : response.headers)
     {
@@ -477,7 +555,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     auto end_c = std::chrono::system_clock::to_time_t(end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
+    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
     LOG_INFO(sstr.str());
 
     MHD_destroy_response(mhd_response);
