@@ -84,4 +84,3 @@ At this moment, there is no facility for specifying custom response headers.
 # TODO 
 - no way to construct a response object with binary data, that's a real shame
 - responses are constructed in memory. Maybe we don't want that. Maybe we want to provide a hook in a response object for reading data chunks at a time.
-- custom response headers

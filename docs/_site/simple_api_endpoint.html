@@ -32,8 +32,41 @@
         </ul>
         <h2>Changelog</h2>
         <ul>
-          <li><a href="1.0.0.html">1.0.x</a></li>
-          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+          
+          
+          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
+          
+            
+            <li><a href="/changelog#2.8.0" >2.8.0</a></li>
+          
+            
+            <li><a href="/changelog#2.7.1" >2.7.1</a></li>
+          
+            
+            <li><a href="/changelog#2.7.0" >2.7.0</a></li>
+          
+            
+            <li><a href="/changelog#2.0.0" >2.0.0</a></li>
+          
+            
+            <li><a href="/changelog#1.0.0" >1.0.0</a></li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
         </ul>
       </header>
       <section>
@@ -52,8 +85,7 @@
 <p>Let’s begin by writing a simple function to act as a request handler (nevermind what the request <em>is</em>).</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>using namespace luna;
-response hello_world(const endpoint_matches &amp;matches, 
-                     const query_params     &amp;params)
+response hello_world(const request &amp;req)
 {
     return {"&lt;h1&gt;Hello, World!&lt;/h1&gt;"};
 }
@@ -87,13 +119,12 @@ response hello_world(const endpoint_matches &amp;matches,
 
 <p><code class="highlighter-rouge">luna::query_params</code> is simply an alias for a key-value hash stored as an <code class="highlighter-rouge">std::map</code>. The keys and the values both are just <code class="highlighter-rouge">std:strings</code>. So, we might rewrite our request handler as such:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>response hello_world(const endpoint_matches &amp;matches,
-                     const query_params     &amp;params)
+<div class="highlighter-rouge"><pre class="highlight"><code>response hello_world(const request &amp;req)
 {
     std::stringstream body;
     body &lt;&lt; "&lt;h1&gt;Hello, World!&lt;/h1&gt;\n&lt;ul&gt;\n";
 
-    for(auto&amp; kv : params)
+    for(auto&amp; kv : req.params)
     {
         body &lt;&lt; "&lt;li&gt;&lt;b&gt;" &lt;&lt; kv.first &lt;&lt; "&lt;/b&gt; " &lt;&lt; kv.second &lt;&lt; "&lt;/li&gt;\n";
     }
@@ -132,10 +163,8 @@ response hello_world(const endpoint_matches &amp;matches,
 
 <h1 id="todo">TODO</h1>
 <ul>
-  <li>endpoint handlers probably also want the request body, not currently being passed in</li>
   <li>no way to construct a response object with binary data, that’s a real shame</li>
   <li>responses are constructed in memory. Maybe we don’t want that. Maybe we want to provide a hook in a response object for reading data chunks at a time.</li>
-  <li>custom response headers</li>
 </ul>
 
       </section>

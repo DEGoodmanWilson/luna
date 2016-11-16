@@ -32,9 +32,15 @@
         </ul>
         <h2>Changelog</h2>
         <ul>
-          <li><a href="2.0.html">2.0.x</a></li>
-          <li><a href="1.0.0.html">1.0.x</a></li>
-          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+          {% for page in site.pages %}
+          {% if page.title == "Changelog" %}
+          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
+          {% for post in site.posts %}
+            {% assign anchor = post.title %}
+            <li><a href="{{ page.url | prepend: site.baseurl }}#{{ post.title }}" >{{ post.title }}</a></li>
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
         </ul>
       </header>
       <section>

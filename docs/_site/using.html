@@ -32,8 +32,41 @@
         </ul>
         <h2>Changelog</h2>
         <ul>
-          <li><a href="1.0.0.html">1.0.x</a></li>
-          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+          
+          
+          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
+          
+            
+            <li><a href="/changelog#2.8.0" >2.8.0</a></li>
+          
+            
+            <li><a href="/changelog#2.7.1" >2.7.1</a></li>
+          
+            
+            <li><a href="/changelog#2.7.0" >2.7.0</a></li>
+          
+            
+            <li><a href="/changelog#2.0.0" >2.0.0</a></li>
+          
+            
+            <li><a href="/changelog#1.0.0" >1.0.0</a></li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
         </ul>
       </header>
       <section>
@@ -41,44 +74,34 @@
 
 <p>Luna has been built and tested on macOS and Linux. (I’d like some help getting it working on Windows, if you have the time and inclination!)</p>
 
-<p>Luna uses libmicrohttpd, so please make sure you have that installed first:</p>
+<p>Luna also depends upon the CMake build system, and the Conan dependency manager.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="c"># Debian, Ubuntu, &amp;c.</span>
-<span class="gp">$ </span>sudo apt-get install libmicrohttpd-dev
+<h2 id="installing-dependencies-with-conan">Installing dependencies with Conan</h2>
 
-<span class="c"># Mac</span>
-<span class="gp">$ </span>brew install libmicrohttpd 
-</code></pre>
-</div>
+<p>Luna is available from (and makes use of the) the <a href="https://www.conan.io">Conan</a> dependency manager. And so should you. It’s pretty good.</p>
 
-<p>Luna also depends upon the cmake build system, and optionally (and ideally) Conan.</p>
-
-<h2 id="conan-preferred">Conan (preferred)</h2>
-
-<p>Luna is available from (and makes use of the) the <a href="https://www.conan.io">Conan</a> dependency manager. And so should you.</p>
-
-<p>To incorprate Luna into your project using Conan, simply add the following to your <code class="highlighter-rouge">conanfile.txt</code>:</p>
+<p>To incorporate Luna into your project using Conan, create a file called <code class="highlighter-rouge">conanfile.txt</code>, and add the following:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>[requires]
-luna/1.0.0@DEGoodmanWilson/stable
+luna/2.8.0@DEGoodmanWilson/stable
 </code></pre>
 </div>
 
-<p>or if you are using the Pythonic version, add this to your <code class="highlighter-rouge">conanfile.py</code></p>
+<p>If you are using <a href="http://docs.conan.io/en/latest/conanfile_py.html">more advanced Conan features</a>, you can just add this to your <code class="highlighter-rouge">conanfile.py</code></p>
 
 <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyAwesomeProject</span><span class="p">(</span><span class="n">ConanFile</span><span class="p">)</span>
-    <span class="n">requires</span> <span class="o">=</span> <span class="s">"luna/1.0.0@DEGoodmanWilson/stable"</span>
+    <span class="n">requires</span> <span class="o">=</span> <span class="s">"luna/2.8.0@DEGoodmanWilson/stable"</span>
     <span class="o">...</span>
 </code></pre>
 </div>
 
-<p>Then run</p>
+<p>At any rate, <em>from your build directory</em>, simply run</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>conan install --build<span class="o">=</span>missing
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>conan install --build<span class="o">=</span>missing path/to/source
 </code></pre>
 </div>
 
-<p>(The <code class="highlighter-rouge">--build=missing</code> is because at the moment luna only offers source installs&amp;emdash;we’ll offer pre-built binaries before too long, just you see.)</p>
+<p>(The <code class="highlighter-rouge">--build=missing</code> is because at the moment Luna only offers source installs&amp;emdash;we’ll offer pre-built binaries before too long, just you see.)</p>
 
 <p>(You can read more about using Conan with your project <a href="http://docs.conan.io/en/latest/">in the Conan docs</a>)</p>
 
@@ -87,7 +110,7 @@ luna/1.0.0@DEGoodmanWilson/stable
 <p>You can fiddle with the following options for your build:</p>
 
 <ul>
-  <li><code class="highlighter-rouge">build_shared_libs</code> Build Luna as a dynamic/shared library. Default is to build as a static library. This is basically untested at the moment.</li>
+  <li><code class="highlighter-rouge">build_shared_libs</code> Build Luna as a dynamic/shared library. Default is to build as a static library. Building shared libraries is basically untested at the moment.</li>
 </ul>
 
 <p>The following options exist, but only really affect development of Luna</p>
@@ -98,19 +121,21 @@ luna/1.0.0@DEGoodmanWilson/stable
   <li><code class="highlighter-rouge">build_luna_coverage</code> Build the Luna coverage suite. Implies <code class="highlighter-rouge">build_luna_tests=True</code>. Default is not to.</li>
 </ul>
 
-<h2 id="raw-source">Raw source</h2>
+<h2 id="cmake">CMake</h2>
 
-<p>Of course, you can just compile Luna into a library, and link that with your project. That’s fine too!</p>
+<p>If you’ve never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. Add the following lines somewhere near the top of your <code class="highlighter-rouge">CMakeLists.txt</code>:</p>
 
-<p>Luna uses cmake as the build system, so building is reasonably straightforward. Start by making a directory for building Luna.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir build
-<span class="gp">$ </span>cmake path/to/luna -DCMAKE_BUILD_TYPE<span class="o">=</span>Release <span class="c">#or Debug if you prefer</span>
-<span class="gp">$ </span>cmake --build .
+<div class="language-cmake highlighter-rouge"><pre class="highlight"><code><span class="nb">include</span><span class="p">(</span><span class="si">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="si">}</span>/conanbuildinfo.cmake<span class="p">)</span>
+<span class="nf">conan_basic_setup</span><span class="p">()</span>
 </code></pre>
 </div>
 
-<p>Then just be sure to include the path to the Luna project in your include search path, the path to the resulting library file in your linker search path!</p>
+<p>Then you can run CMake as usual</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>cmake path/to/source
+cmake --build .
+</code></pre>
+</div>
 
       </section>
       <footer>

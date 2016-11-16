@@ -32,8 +32,41 @@
         </ul>
         <h2>Changelog</h2>
         <ul>
-          <li><a href="1.0.0.html">1.0.x</a></li>
-          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+          
+          
+          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
+          
+            
+            <li><a href="/changelog#2.8.0" >2.8.0</a></li>
+          
+            
+            <li><a href="/changelog#2.7.1" >2.7.1</a></li>
+          
+            
+            <li><a href="/changelog#2.7.0" >2.7.0</a></li>
+          
+            
+            <li><a href="/changelog#2.0.0" >2.0.0</a></li>
+          
+            
+            <li><a href="/changelog#1.0.0" >1.0.0</a></li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
         </ul>
       </header>
       <section>
@@ -45,7 +78,7 @@
 
 server.handle_response(request_method::GET,
     "^/documents/(i[0-9a-f]{6})", 
-    [](auto matches, auto params) -&gt; response
+    [](auto request) -&gt; response
     {
         // TODO...
     });
@@ -57,7 +90,7 @@ server.handle_response(request_method::GET,
 <p>Let us suppose that in our filesystem, we have a flat folder full of documents named <code class="highlighter-rouge">[document id].txt</code>. We could return the text documents as such:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="err">auto</span><span class="w"> </span><span class="err">doc_id</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">matches[1];</span><span class="w">
+    </span><span class="err">auto</span><span class="w"> </span><span class="err">doc_id</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">request.matches[1];</span><span class="w">
     </span><span class="err">//</span><span class="w"> </span><span class="err">load</span><span class="w"> </span><span class="err">the</span><span class="w"> </span><span class="err">file</span><span class="w"> </span><span class="err">named</span><span class="w"> </span><span class="err">doc_id+.</span><span class="nt">"txt"</span><span class="w"> </span><span class="err">into</span><span class="w"> </span><span class="err">a</span><span class="w"> </span><span class="err">std</span><span class="p">:</span><span class="err">:string</span><span class="w"> </span><span class="err">called</span><span class="w"> </span><span class="err">contents</span><span class="w">
 
     </span><span class="err">return</span><span class="w"> </span><span class="p">{</span><span class="nt">"text/plain"</span><span class="err">,</span><span class="w"> </span><span class="err">contents};</span><span class="w">
