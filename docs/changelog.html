@@ -6,7 +6,7 @@ order: 10
 ---
 <h1>Changelog</h1>
 {% for post in site.posts %}
-<h2 id="{{ post.date | date: "%b-%-d-%Y" }}">{{ post.title }}</h2>
+<h2 id="{{ post.title }}">{{ post.title }}</h2>
 <p>{{ post.date | date: "%b %-d, %Y" }}</p>
 <p>
     {{ post.content }}
