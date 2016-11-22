@@ -31,18 +31,7 @@
           <li><a href="static_assets.html">Serving static assets</a></li>
           <li><a href="https.html">TLS/HTTPS</a></li>
         </ul>
-        <h2>Changelog</h2>
-        <ul>
-          {% for page in site.pages %}
-          {% if page.title == "Changelog" %}
-          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
-          {% for post in site.posts %}
-            {% assign anchor = post.title %}
-            <li><a href="{{ page.url | prepend: site.baseurl }}#{{ post.title }}" >{{ post.title }}</a></li>
-          {% endfor %}
-          {% endif %}
-          {% endfor %}
-        </ul>
+        <h2><a href="changelog">Changelog</a></h2>
       </header>
       <section>
       {{content}}
