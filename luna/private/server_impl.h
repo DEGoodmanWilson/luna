@@ -13,6 +13,8 @@
 #include <iostream>
 #include <chrono>
 #include <mutex>
+#include <thread>
+#include <condition_variable>
 
 
 namespace luna
@@ -39,6 +41,8 @@ public:
     bool is_running();
 
     void stop();
+
+    void await();
 
     server::port get_port();
 
@@ -145,7 +149,7 @@ private:
 
     struct MHD_Daemon *daemon_;
 
-
+    std::condition_variable running_cv_;
 
     ///// internal use-only callbacks
 

@@ -21,14 +21,24 @@ void server::initialize_()
     impl_.reset(new server_impl());
 }
 
-void server::start_()
+server::~server()
+{
+
+}
+
+void server::start()
 {
     impl_->start();
 }
 
-server::~server()
+void server::stop()
 {
+    impl_->stop();
+}
 
+void server::await()
+{
+    impl_->await();
 }
 
 
@@ -40,6 +50,10 @@ server::port server::get_port()
 void server::server_impl_deleter::operator()(server::server_impl *ptr) const
 { delete ptr; }
 
+void server::set_option_(start_on_construction value)
+{
+    start_on_construct_ = static_cast<bool>(value);
+}
 void server::set_option_(debug_output value)
 {
     impl_->set_option(value);

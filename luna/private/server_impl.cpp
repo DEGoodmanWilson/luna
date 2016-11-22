@@ -9,7 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <magic.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
@@ -265,6 +264,7 @@ void server::server_impl::start()
         LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
         return;
     }
+    running_cv_.notify_all(); //daemon_ has changed value
 
 
 
@@ -283,6 +283,16 @@ void server::server_impl::stop()
         MHD_stop_daemon(daemon_);
         LOG_INFO("Luna server stopped");
         daemon_ = nullptr;
+        running_cv_.notify_all(); //daemon_ has changed value
+    }
+}
+
+void server::server_impl::await()
+{
+    std::mutex m;
+    {
+        std::unique_lock<std::mutex> lk(m);
+        running_cv_.wait(lk, [this]{return daemon_ == nullptr;});
     }
 }
 

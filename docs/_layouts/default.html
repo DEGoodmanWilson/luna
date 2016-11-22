@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Luna</title>
-
+    <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Noto+Sans" rel="stylesheet">
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
     <meta name="viewport" content="width=device-width">
@@ -28,13 +28,20 @@
           <li><a href="configuration.html">Configuration options</a></li>
           <li><a href="simple_api_endpoint.html">Simple API endpoints</a></li>
           <li><a href="regexes.html">Endpoints using regexes</a></li>
-          <li>HTTPS</li>
+          <li><a href="static_assets.html">Serving static assets</a></li>
+          <li><a href="https.html">TLS/HTTPS</a></li>
         </ul>
         <h2>Changelog</h2>
         <ul>
-          <li><a href="2.0.html">2.0.x</a></li>
-          <li><a href="1.0.0.html">1.0.x</a></li>
-          <li><a href="1.0.0-beta.html">1.0.0-beta</a></li>
+          {% for page in site.pages %}
+          {% if page.title == "Changelog" %}
+          <!-- This is a silly hack to get the Changelog page URL, but populate the sidebar with changelog entries that links into the main changelog page -->
+          {% for post in site.posts %}
+            {% assign anchor = post.title %}
+            <li><a href="{{ page.url | prepend: site.baseurl }}#{{ post.title }}" >{{ post.title }}</a></li>
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
         </ul>
       </header>
       <section>

@@ -22,5 +22,5 @@ int main(void)
 
     server.handle_request(request_method::GET, "/hello_world", &hello_world);
 
-    while (server); //run forever, basically, or until the server decides to kill itself.
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 }

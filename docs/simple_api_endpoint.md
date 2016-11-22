@@ -33,7 +33,7 @@ Now, let's create a `luna::server` to host this request handler, and attach the 
                               "/hello_world",
                               &hello_world);
 
-        while (server);
+        server.await(); //run forever, basically, or until the server decides to kill itself.
     }
 
 The first line simply instantiates an HTTP server object on port 8443. The final line just loops forever. It is the second line that is of interest. This line instructs our server to listen for GET requests on `/hello_world`, and to call our request handler when it hears such a request.
@@ -78,10 +78,9 @@ Or you can specify MIME types per response in the response contructor:
 
 ## Setting response headers
 
-At this moment, there is no facility for specifying custom response headers.
+If you want to return a custom response header, you can include that in the response object as well.
 
-
-# TODO 
-- no way to construct a response object with binary data, that's a real shame
-- responses are constructed in memory. Maybe we don't want that. Maybe we want to provide a hook in a response object for reading data chunks at a time.
-- custom response headers
+    return {"Hello!", {
+        {"My Header", "My Value"},
+        {"Another Header", "Another Value"}
+    }};
