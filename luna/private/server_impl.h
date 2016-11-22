@@ -40,6 +40,8 @@ public:
 
     void stop();
 
+    void await();
+
     server::port get_port();
 
     using request_handler = std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>>;

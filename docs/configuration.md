@@ -13,7 +13,9 @@ about the options available to be set.
 
 The Luna logger is a `functional` type that you provide. To set it, you can pass to `luna::set_logger()` a function pointer, a non-static class method via `std::bind`, an `std::function` object, or a lambda with the following signature
 
-    void (luna::log_level, const std::string &)
+```cpp
+void (luna::log_level, const std::string &)
+```
 
 For example, to log messages to `stdout`, we could write a lambda:
 
@@ -26,9 +28,11 @@ For example, to log messages to `stdout`, we could write a lambda:
 
 As `luna::server` is the object through which all interactions happen, configuration options are set via the `server` contructor. The most important option may well be the port that your `server` object will listen on:
 
-    using namespace luna;
-    server server_1{server::port{8446}};
-    auto server_2 = std::make_unique<server>({server::port{8447}});
+```cpp
+using namespace luna;
+server server_1{server::port{8446}};
+auto server_2 = std::make_unique<server>({server::port{8447}});
+```
 
 ## Named configuration options and ordering
 
@@ -36,11 +40,15 @@ All options are passed to the `server` constructor using the _named option_ patt
 
 As an example of the _named option_ pattern, let's configure a server on port 7000 and a default MIME type of `"text/json"`:
 
-    server my_server{server::mime_type{"text/json"}, server::port{8446}};
+```cpp
+server my_server{server::mime_type{"text/json"}, server::port{8446}};
+```
 
 Because with the _named option_ pattern order doesn't matter, we could have just as easily said
 
-    server my_server{server::port{8446}, server::mime_type{"text/json"}};
+```cpp
+server my_server{server::port{8446}, server::mime_type{"text/json"}};
+```
 
 ## Options that are callbacks
 
@@ -49,7 +57,7 @@ even plain old function pointers.
 
 For example, `error_handler_cb` is an option for rendering custom error pages on, _e.g._ `404` errors.
  
-```c++
+```cpp
 void my_error_handler(response &response, request_method method, const std::string &path)
 {
     //we'll render some simple HTML
@@ -81,6 +89,12 @@ server my_server{server::handler{&my_error_handler}};
 - `mime_type`: The default MIME type to serve up.
 
     Default: `"text/html"`
+    
+- `debug_output`: Enable libmicrohttpd debugging. Under the covers, Luna is a wrapper around libmicrohttpd, and sometimes
+  it is useful to turn this option on to debug why a server won't start. Of course, this option does nothing unless you
+  have specified a [logging callback](#logger).
+  
+    Default: `false`
 
 ## HTTPS / TLS options
 

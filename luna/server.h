@@ -21,6 +21,8 @@ class server
 public:
 
     // configuration parameters
+    MAKE_BOOL_LIKE(start_on_construction);
+
     MAKE_BOOL_LIKE(debug_output);
 
     MAKE_BOOL_LIKE(use_ssl);
@@ -95,18 +97,25 @@ public:
     server()
     {
         initialize_();
-        start_();
+        start();
     }
 
     template<typename ...Os>
-    server(Os &&...os)
+    server(Os &&...os) : start_on_construct_{true}
     {
         initialize_();
         set_options_(LUNA_FWD(os)...);
-        start_();
+        if(start_on_construct_)
+        {
+            start();
+        }
     }
 
     ~server();
+
+    void start();
+    void stop();
+    void await();
 
     server::port get_port();
 
@@ -137,10 +146,9 @@ private:
 
     std::unique_ptr<server_impl, server_impl_deleter> impl_;
 
+    bool start_on_construct_;
 
     void initialize_();
-
-    void start_();
 
     template<typename T>
     void set_options_(T &&t)
@@ -154,6 +162,8 @@ private:
         set_options_(LUNA_FWD(t));
         set_options_(LUNA_FWD(ts)...);
     }
+
+    void set_option_(start_on_construction value);
 
     void set_option_(debug_output value);
 

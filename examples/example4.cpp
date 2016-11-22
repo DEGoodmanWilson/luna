@@ -22,5 +22,5 @@ int main(void)
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
 
-    while (server); //run forever, basically, or until the server decides to kill itself.
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 }

@@ -46,10 +46,7 @@ int main(void)
         return {"{\"made_it\": true}"};
     });
 
-    // idle while the server is running.
-    // Totally not the best way.
-    // But this is demo code!
-    while (server);
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 }
 ```
 

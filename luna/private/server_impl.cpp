@@ -9,7 +9,8 @@
 #include <sstream>
 #include <fstream>
 #include <magic.h>
-#include <stdio.h>
+#include <thread>
+#include <condition_variable>
 #include <sys/stat.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
@@ -283,6 +284,16 @@ void server::server_impl::stop()
         MHD_stop_daemon(daemon_);
         LOG_INFO("Luna server stopped");
         daemon_ = nullptr;
+    }
+}
+
+void server::server_impl::await()
+{
+    std::mutex m;
+    std::condition_variable cv;
+    {
+        std::unique_lock<std::mutex> lk(m);
+        cv.wait(lk, [this]{return daemon_ == nullptr;});
     }
 }
 

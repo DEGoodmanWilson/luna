@@ -31,9 +31,6 @@ A C++ wrapper for libmicrohttpd
                 return {"text/html", "<h1>Serving up document "+document_id+"</h1>"};
             });
     
-        while (server); //idle while the server is running. Maybe not the best way? //TODO how to signal to server to die
+            server.await(); //run forever, basically, or until the server decides to kill itself.
     }
 
-## TODO
-  * Fix the way POSTDATA is handled so that we have a default handler, and a more sophisticated handler. Not super happy with the current flow.
-  * docs docs docs

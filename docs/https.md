@@ -45,7 +45,7 @@ int main(void)
                               return {"<h1>Hello, World!</h1>"};
                           });
 
-    while (server); //run forever, basically, or until the server decides to kill itself.
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 
     // Open at https://localhost:8080/hello_world
 }

@@ -126,3 +126,13 @@ TEST(basic_functioning, debug_logging)
 
     luna::reset_logger();
 }
+
+TEST(basic_functioning, async_start)
+{
+    luna::server server{luna::server::start_on_construction{false}};
+    ASSERT_FALSE(static_cast<bool>(server));
+    server.start();
+    ASSERT_TRUE(static_cast<bool>(server));
+    server.stop();
+    ASSERT_FALSE(static_cast<bool>(server));
+}

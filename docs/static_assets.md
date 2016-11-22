@@ -39,7 +39,7 @@ int main(void)
     // second param is path in the filesystem to mount 
     server.serve_files("/", "/var/www/public");
 
-    while (server); //run forever, basically, or until the server decides to kill itself.
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 }
 ```
 
@@ -77,6 +77,6 @@ int main(void)
                               return resp;
                           });
 
-    while (server); //run forever, basically, or until the server decides to kill itself.
+    server.await(); //run forever, basically, or until the server decides to kill itself.
 }
 ```
