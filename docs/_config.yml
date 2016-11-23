@@ -10,7 +10,7 @@ product_name: &product_name Luna
 title: *product_name
 email: degoodmanwilson@gmail.com
 description: >
-  An embedded HTTP(S) server in modern idiomatic C++
+  An embedded HTTP(S) server and web framework in modern C++
 # Build settings
 markdown: kramdown
 gems:
