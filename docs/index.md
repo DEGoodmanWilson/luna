@@ -9,8 +9,6 @@ title: Luna
 
 # Luna
 
-## An embedded HTTP(S) server and web framework in modern C++
-
 An embedded HTTP(S) server and web framework in modern C++, Luna is designed to be easy to use and integrate with any C++ project that needs to serve HTTP endpoints. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be robust as well.
 
 You are writing in C++ (because C++ is _awesome_), and your app needs to provide a lightweight HTTP server to communicate with other web services. `libmicrohttpd` is super-awesome, except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
