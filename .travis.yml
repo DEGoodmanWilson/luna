@@ -53,16 +53,16 @@ after_success:
 matrix:
   include:
     # gcc 5
-#    - env: COMPILER=g++-5 CCOMPILER=gcc-5
-#      addons:
-#        apt:
-#          packages:
-#            - g++-5
-#            - libssl-dev
-#            - curl
-#            - cmake
-#            - cmake-data
-#          sources: *sources
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+      addons:
+        apt:
+          packages:
+            - g++-5
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
 
     # Clang 3.6
     - env: COMPILER=clang++-3.6 CCOMPILER=clang-3.6 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
@@ -114,3 +114,7 @@ matrix:
     - os: osx
       env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES GENERATE_COVERAGE=ON STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
       osx_image: xcode8
+
+  # at the moment, gcc5 is failing on libmagic :(
+  allow_failures:
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
