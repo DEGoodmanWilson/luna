@@ -17,14 +17,14 @@ To incorporate Luna into your project using Conan, create a file called `conanfi
 
 ```
 [requires]
-luna/2.8.0@DEGoodmanWilson/stable
+luna/{{ site.version }}@DEGoodmanWilson/stable
 ```
 
 If you are using [more advanced Conan features](http://docs.conan.io/en/latest/conanfile_py.html), you can just add this to your `conanfile.py`
 
 ```python
 class MyAwesomeProject(ConanFile)
-    requires = "luna/2.8.0@DEGoodmanWilson/stable"
+    requires = "luna/{{ site.version }}@DEGoodmanWilson/stable"
     ...
 ```
 
