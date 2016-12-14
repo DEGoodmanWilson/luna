@@ -107,8 +107,8 @@ matrix:
 
     # Xcode 7
     - os: osx
-      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES BREW_CMAKE=ON STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
-      osx_image: xcode7
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
+      osx_image: xcode7.3
 
     # Xcode 8
     - os: osx
