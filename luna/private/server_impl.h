@@ -121,6 +121,7 @@ public:
 //    void set_option(notify_connection value);
 
     void set_option(const server_identifier &value);
+    void set_option(const append_to_server_identifier &value);
 
 private:
     std::mutex lock_;

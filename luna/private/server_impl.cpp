@@ -899,5 +899,10 @@ void server::server_impl::set_option(const server::server_identifier &value)
     server_identifier_ = value;
 }
 
+void server::server_impl::set_option(const server::append_to_server_identifier &value)
+{
+    server_identifier_ += " " + value;
+}
+
 
 } //namespace luna

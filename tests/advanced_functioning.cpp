@@ -291,7 +291,7 @@ TEST(advanced_functioning, default_server_string)
                               return {"hello"};
                           });
 
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     std::string server_str{LUNA_NAME};
     server_str += "/";
     server_str += LUNA_VERSION;
@@ -308,6 +308,24 @@ TEST(advanced_functioning, custom_server_string)
                               return {"hello"};
                           });
 
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ("foobar", res.header["Server"]);
+}
+
+TEST(advanced_functioning, append_server_string)
+{
+    luna::server server{luna::server::append_to_server_identifier{"foobar"}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    std::string server_str{LUNA_NAME};
+    server_str += "/";
+    server_str += LUNA_VERSION;
+    server_str += " foobar";
+    ASSERT_EQ(server_str, res.header["Server"]);
 }
