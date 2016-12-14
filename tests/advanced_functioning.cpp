@@ -264,3 +264,50 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
 
     luna::reset_logger();
 }
+
+TEST(advanced_functioning, non_null_server_string_version)
+{
+    luna::server server;
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    std::string server_str="Luna/";
+    ASSERT_NE("", LUNA_VERSION);
+    ASSERT_NE(server_str, res.header["Server"]);
+}
+
+TEST(advanced_functioning, default_server_string)
+{
+    luna::server server;
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    std::string server_str{LUNA_NAME};
+    server_str += "/";
+    server_str += LUNA_VERSION;
+    ASSERT_EQ(server_str, res.header["Server"]);
+}
+
+TEST(advanced_functioning, custom_server_string)
+{
+    luna::server server{luna::server::server_identifier{"foobar"}};
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ("foobar", res.header["Server"]);
+}

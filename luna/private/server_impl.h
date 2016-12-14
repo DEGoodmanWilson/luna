@@ -120,6 +120,8 @@ public:
 
 //    void set_option(notify_connection value);
 
+    void set_option(const server_identifier &value);
+
 private:
     std::mutex lock_;
 
@@ -135,6 +137,8 @@ private:
     bool use_epoll_if_available_;
 
     uint16_t port_;
+
+    std::string server_identifier_;
 
     // string copies of options
     std::vector<std::string> https_mem_key_;

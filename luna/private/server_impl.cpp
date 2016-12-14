@@ -192,7 +192,8 @@ server::server_impl::server_impl() :
         daemon_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
-        port_{8080}
+        port_{8080},
+        server_identifier_{std::string{LUNA_NAME}+"/"+LUNA_VERSION}
 { }
 
 
@@ -556,6 +557,9 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     }
 
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
+
+    MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
+
     auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
     auto end = std::chrono::system_clock::now();
@@ -889,6 +893,11 @@ void server::server_impl::set_option(const server::https_key_password &value)
 //{
 //    //TODO
 //}
+
+void server::server_impl::set_option(const server::server_identifier &value)
+{
+    server_identifier_ = value;
+}
 
 
 } //namespace luna
