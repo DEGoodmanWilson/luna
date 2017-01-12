@@ -379,7 +379,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     //parse the query params:
-    std::map<std::string, std::string> header;
+    luna::headers header;
 
     MHD_get_connection_values(connection, MHD_HEADER_KIND, &parse_kv_, &header);
 

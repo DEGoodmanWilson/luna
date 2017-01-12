@@ -87,7 +87,11 @@ extern std::string default_mime_type;
 
 using endpoint_matches = std::vector<std::string>;
 using query_params = std::map<std::string, std::string>;
-using headers = std::map<std::string, std::string>;
+
+struct case_insensitive_comp_ {
+    bool operator()(const std::string& a, const std::string& b) const noexcept;
+};
+using headers = std::map<std::string, std::string, case_insensitive_comp_>;
 using request_headers = headers;
 using response_headers = headers;
 
