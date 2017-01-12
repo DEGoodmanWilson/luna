@@ -184,6 +184,27 @@ TEST(advanced_functioning, check_arbitrary_headers)
     ASSERT_EQ("bar", res.text);
 }
 
+
+TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
+{
+    luna::server server;
+    server.handle_request(luna::request_method::GET, "/test", [](const luna::request &req) -> luna::response
+    {
+        EXPECT_EQ(1, req.headers.count("heLLo"));
+        EXPECT_EQ(1, req.headers.count("HELLO"));
+        EXPECT_EQ(1, req.headers.count("hello"));
+        EXPECT_EQ(0, req.headers.count("NOPE"));
+
+        return {200, luna::request_headers{{"gOOdbye", "yes"}}};
+    });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"heLLo", "yes"}});
+    ASSERT_EQ(1, res.header.count("gOOdbye"));
+    ASSERT_EQ(1, res.header.count("GOODBYE"));
+    ASSERT_EQ(1, res.header.count("goodbye"));
+    ASSERT_EQ(0, res.header.count("NOPE"));
+}
+
 TEST(advanced_functioning, check_request_handler_removal)
 {
     luna::server server;

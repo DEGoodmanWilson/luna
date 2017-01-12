@@ -136,23 +136,3 @@ TEST(basic_functioning, async_start)
     server.stop();
     ASSERT_FALSE(static_cast<bool>(server));
 }
-
-TEST(basic_functioning, headers_case_insensitive)
-{
-    luna::server server;
-    server.handle_request(luna::request_method::GET, "/test", [](const luna::request &req) -> luna::response
-    {
-        EXPECT_EQ("yes", req.headers.at("heLLo"));
-        EXPECT_EQ("yes", req.headers.at("HELLO"));
-        EXPECT_EQ("yes", req.headers.at("hello"));
-        EXPECT_THROW(req.headers.at("NOPE"), std::out_of_range);
-
-        return {200, luna::request_headers{{"gOOdbye", "yes"}}};
-    });
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"heLLo", "yes"}});
-    ASSERT_EQ("yes", res.header.at("gOOdbye"));
-    ASSERT_EQ("yes", res.header.at("GOODBYE"));
-    ASSERT_EQ("yes", res.header.at("goodbye"));
-    EXPECT_THROW(res.header.at("NOPE"), std::out_of_range);
-}
