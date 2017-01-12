@@ -93,6 +93,9 @@ public:
 
     MAKE_STRING_LIKE(https_key_password);
 
+    MAKE_STRING_LIKE(server_identifier);
+    MAKE_STRING_LIKE(append_to_server_identifier);
+
 
     server()
     {
@@ -224,9 +227,12 @@ private:
 
 //    void set_option_(listening_address_reuse value);
 
-    void set_option_(const https_key_password &svalue);
+    void set_option_(const https_key_password &value);
 
 //    void set_option_(notify_connection value); //TODO later
+
+    void set_option_(const server_identifier &value);
+    void set_option_(const append_to_server_identifier &value);
 
 };
 
