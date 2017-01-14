@@ -22,11 +22,15 @@ std::string to_string(const authorization_kind kind)
     }
 }
 
+bool case_insensitive_comp_::operator()(const std::string &a, const std::string &b) const noexcept
+{
+    return strcasecmp(a.c_str(), b.c_str()) < 0;
+}
 
 basic_authorization get_basic_authorization(const request_headers &headers)
 {
     // First, find the headers
-    if(0 == headers.count("Authorization"))
+    if (0 == headers.count("Authorization"))
     {
         return {false};
     }

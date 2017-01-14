@@ -121,3 +121,12 @@ TEST(types, test_https_key_password)
     luna::server::https_key_password l{"hello"};
     ASSERT_EQ("hello", l);
 }
+
+TEST(types, test_header_type_case_insensitivity)
+{
+    luna::headers header{{"abc", "xyz"}};
+    ASSERT_EQ(1, header.count("abc"));
+    ASSERT_EQ(1, header.count("aBc"));
+    ASSERT_EQ(1, header.count("ABC"));
+    ASSERT_EQ(0, header.count("lmn"));
+}

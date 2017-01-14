@@ -353,8 +353,21 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
-    auto kv = static_cast<query_params *>(cls);
-    kv->operator[](key) = value ? value : "";
+    switch(kind)
+    {
+        case MHD_HEADER_KIND:
+        case MHD_RESPONSE_HEADER_KIND:
+        {
+            auto kv = static_cast<case_insensitive_map *>(cls);
+            (*kv)[key] = value ? value : "";
+        }
+            break;
+        default:
+        {
+            auto kv = static_cast<case_sensitive_map *>(cls);
+            (*kv)[key] = value ? value : "";
+        }
+    }
     return MHD_YES;
 }
 
@@ -380,7 +393,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     //parse the query params:
-    std::map<std::string, std::string> header;
+    luna::headers header;
 
     MHD_get_connection_values(connection, MHD_HEADER_KIND, &parse_kv_, &header);
 
