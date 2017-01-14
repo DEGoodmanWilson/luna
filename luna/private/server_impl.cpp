@@ -353,8 +353,21 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
-    auto kv = static_cast<query_params *>(cls);
-    kv->operator[](key) = value ? value : "";
+    switch(kind)
+    {
+        case MHD_HEADER_KIND:
+        case MHD_RESPONSE_HEADER_KIND:
+        {
+            auto kv = static_cast<case_insensitive_map *>(cls);
+            (*kv)[key] = value ? value : "";
+        }
+            break;
+        default:
+        {
+            auto kv = static_cast<case_sensitive_map *>(cls);
+            (*kv)[key] = value ? value : "";
+        }
+    }
     return MHD_YES;
 }
 
