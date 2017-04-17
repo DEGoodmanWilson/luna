@@ -229,17 +229,17 @@ namespace parameter
 {
 
 // default validators
-auto any = [](std::string a) -> bool
+auto any = [](const std::string &a) -> bool
 {
     return true;
 };
 
-auto match = [](std::string a, std::string b) -> bool
+auto match = [](const std::string &a, const std::string &b) -> bool
 {
     return a == b;
 };
 
-auto number = [](std::string a) -> bool
+auto number = [](const std::string &a) -> bool
 {
     if (std::regex_match(a, std::regex{"\\d+"}))
     {
@@ -249,7 +249,7 @@ auto number = [](std::string a) -> bool
     return false;
 };
 
-auto regex = [](std::string a, std::regex r) -> bool
+auto regex = [](const std::string &a, const std::regex &r) -> bool
 {
     if (std::regex_search(a, r))
     {
