@@ -59,6 +59,55 @@ Of course, we could have loaded this HTML from a file, rather than specifying it
         body << "</ul>";
         return {body.str()};
     }
+    
+        
+## Validating parameters
+
+By default, Luna does not examine query parameters in any way. You can tell Luna that particular parameters are required or optional, and how to validate them. Any query parameter that fails validation will result in a 400 error.
+
+When setting up your response handlers, you can pass in a vector of `validator` objects to instruct Luna how to validate the parameters.
+
+Suppose your method at '/hello_world has a required parameter `name`, and that you don't care what is passed in. You can achieve this with:
+ 
+    server.handle_request(request_method::GET,
+                          "/hello_world",
+                          &hello_world,
+                          {
+                            {"name", parameter::required}
+                          });
+
+Perhaps you _do_ care what a valid name looks like. Suppose you will only accept names that contain alphanumeric characters, space, periods, commas, and hyphens—the usual sorts of things you might see in someone's name. But you'd like to exclude semi-colons and other things that might leads to SQL injections.
+ 
+To do this, you can pass in the result of the `parameter::validate()` helper method. This handy method takes as a first parameter a function that takes a string (the query parameter to validate), and returns true if the parameter is valid, and false otherwise. Any subsequent parameters are passed on directly to the validation function when the endpoint is hit.
+
+In this case, we'll use the built-in regex validator, as such:
+
+    server.handle_request(request_method::GET,
+                          "/hello_world",
+                          &hello_world,
+                          {
+                            {"name",
+                              parameter::required,
+                              parameter::validate(parameter::regex,
+                                                  std::regex{"[a-zA-Z\\.\\-\\,"]+})}
+                          });
+                                  
+Luna offers two other built-in validators: One that validates only exact matches called `parameter::match` (useful for verifying, _e.g._ verficiation tokens), and one that validates integer numbers called `parameter::number`. Future version of Luna may provide additional built-in validation functions.
+
+Of course, you can also write your own validation functions. Suppose we wanted to validate that a parameter is no longer than 10 characters. We could do that with a lambda:
+
+    server.handle_request(request_method::GET,
+                          "/hello_world",
+                          &hello_world,
+                          {
+                            {"name",
+                              parameter::required,
+                              parameter::validate([](const std::string &a, int length) -> bool
+                                                  {
+                                                      return a.length() <= length;
+                                                  },
+                                                  10)
+                          });
 
 ## Setting the status code
 
