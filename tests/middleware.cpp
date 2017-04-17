@@ -169,6 +169,7 @@ TEST(middleware, after_middleware_modify_response_header_fail_with_crash)
                           [](auto req) -> luna::response
                           {
                               std::string{}.at(1); //throws out of bounds exception
+                              return {};
                           });
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
