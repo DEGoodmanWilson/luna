@@ -454,7 +454,21 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             response response;
             try
             {
-                response = callback({matches, query_params, header, con_info->body});
+                request req{matches, query_params, header, con_info->body};
+
+                //first, the before middlewares
+                for(const auto &mw : middleware_before)
+                {
+                    mw(req);
+                }
+
+                response = callback(req);
+
+                //now, the after middlewares
+                for(const auto &mw : middleware_after)
+                {
+                    mw(response);
+                }
             }
                 //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
@@ -915,6 +929,16 @@ void server::server_impl::set_option(const server::server_identifier &value)
 void server::server_impl::set_option(const server::append_to_server_identifier &value)
 {
     server_identifier_ += " " + value;
+}
+
+void server::server_impl::set_option(middleware::before value)
+{
+    middleware_before = value;
+}
+
+void server::server_impl::set_option(middleware::after value)
+{
+    middleware_after = value;
 }
 
 

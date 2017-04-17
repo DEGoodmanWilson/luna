@@ -123,6 +123,11 @@ public:
     void set_option(const server_identifier &value);
     void set_option(const append_to_server_identifier &value);
 
+    //middleware
+    void set_option(middleware::before value);
+    void set_option(middleware::after value);
+
+
 private:
     std::mutex lock_;
 
@@ -148,6 +153,10 @@ private:
     std::vector<std::string> https_mem_trust_;
     std::vector<std::string> https_mem_dhparams_;
     std::vector<std::string> https_key_password_;
+
+    // middlewares
+    middleware::before middleware_before;
+    middleware::after middleware_after;
 
     //options
     std::vector<MHD_OptionItem> options_;
@@ -218,8 +227,6 @@ private:
 //                                                 struct MHD_Connection *connection,
 //                                                 void **socket_context,
 //                                                 enum MHD_ConnectionNotificationCode toe);
-
-
 
 
     ///// helpers

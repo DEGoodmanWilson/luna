@@ -234,6 +234,10 @@ private:
     void set_option_(const server_identifier &value);
     void set_option_(const append_to_server_identifier &value);
 
+    // middleware
+    void set_option_(middleware::before value);
+    void set_option_(middleware::after value);
+
 };
 
 //for testing purposes only.

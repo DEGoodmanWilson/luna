@@ -224,5 +224,11 @@ enum class request_method
     //HEAD,
 };
 
+namespace middleware
+{
+    using before = std::vector<std::function<void(request &)>>;
+    using after = std::vector<std::function<void(response &)>>;
+
+} //namespace middleware
 
 } //namespace luna

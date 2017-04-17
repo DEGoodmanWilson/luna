@@ -214,6 +214,16 @@ void server::set_option_(const append_to_server_identifier &value)
     impl_->set_option(value);
 }
 
+// middleware
+void server::set_option_(middleware::before value)
+{
+    impl_->set_option(value);
+}
+void server::set_option_(middleware::after value)
+{
+    impl_->set_option(value);
+}
+
 server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback)
 {
     return impl_->handle_request(method, std::regex{std::move(path)}, callback);
