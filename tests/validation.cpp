@@ -124,3 +124,51 @@ TEST(validation, required_validation_fail)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(400, res.status_code);
 }
+
+
+TEST(validation, custom_validation_pass)
+{
+    luna::server server{luna::server::port{8080}};
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          },
+                          {
+                                  {"key", luna::parameter::required,
+                                          luna::parameter::validate([](const std::string &a, int length) -> bool
+                                                              {
+                                                                  return a.length() <= length;
+                                                              },
+                                                              10)
+                                  }
+                          });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "0123456789"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+TEST(validation, custom_validation_fail)
+{
+    luna::server server{luna::server::port{8080}};
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          },
+                          {
+                                  {"key", luna::parameter::required,
+                                          luna::parameter::validate([](const std::string &a, int length) -> bool
+                                                              {
+                                                                  return a.length() <= length;
+                                                              },
+                                                              10)
+                                  }
+                          });
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "01234567890"}});
+    ASSERT_EQ(400, res.status_code);
+}

@@ -100,13 +100,15 @@ Of course, you can also write your own validation functions. Suppose we wanted t
                           "/hello_world",
                           &hello_world,
                           {
-                            {"name",
+                            {
+                              "name",
                               parameter::required,
                               parameter::validate([](const std::string &a, int length) -> bool
-                                                  {
-                                                      return a.length() <= length;
-                                                  },
-                                                  10)
+                                {
+                                    return a.length() <= length;
+                                },
+                              10)
+                            }
                           });
 
 ## Setting the status code
