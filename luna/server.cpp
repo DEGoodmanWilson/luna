@@ -214,14 +214,24 @@ void server::set_option_(const append_to_server_identifier &value)
     impl_->set_option(value);
 }
 
-server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback)
+server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations)
 {
-    return impl_->handle_request(method, std::regex{std::move(path)}, callback);
+    return impl_->handle_request(method, std::regex{std::move(path)}, callback, std::move(validations));
 }
 
-server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback)
+server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validations)
 {
-    return impl_->handle_request(method, std::regex{path}, callback);
+    return impl_->handle_request(method, std::regex{path}, callback, std::move(validations));
+}
+
+server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validations)
+{
+    return impl_->handle_request(method, std::regex{std::move(path)}, callback, validations);
+}
+
+server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations)
+{
+    return impl_->handle_request(method, std::regex{path}, callback, validations);
 }
 
 server::request_handler_handle server::serve_files(const std::string &mount_point, const std::string &path_to_files)

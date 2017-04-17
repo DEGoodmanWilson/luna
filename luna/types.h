@@ -9,6 +9,7 @@
 #include <string>
 #include <regex>
 #include <map>
+#include <functional>
 #include <stdint.h>
 
 
@@ -223,6 +224,54 @@ enum class request_method
     //Yes, there are more than these. Later, though. Later.
     //HEAD,
 };
+
+namespace parameter
+{
+
+// default validators
+auto any = [](std::string a) -> bool
+{
+    return true;
+};
+
+auto match = [](std::string a, std::string b) -> bool
+{
+    return a == b;
+};
+
+auto number = [](std::string a) -> bool
+{
+    if (std::regex_match(a, std::regex{"\\d+"}))
+    {
+        return true;
+    }
+
+    return false;
+};
+
+auto regex = [](std::string a, std::regex r) -> bool
+{
+    if (std::regex_search(a, r))
+    {
+        return true;
+    }
+
+    return false;
+};
+
+auto validate = [](auto validator, auto ...rest)
+{
+    return [=](std::string to_validate) -> bool
+    {
+        return validator(to_validate, rest...);
+    };
+};
+
+const bool optional = false;
+const bool required = true;
+using validators = std::map<std::string, std::pair<bool, std::function<bool(std::string)>>>;
+
+} //namespace parameter
 
 
 } //namespace luna

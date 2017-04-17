@@ -122,16 +122,29 @@ public:
 
     server::port get_port();
 
-    using request_handlers = std::vector<std::pair<std::regex, endpoint_handler_cb>>;
+    using request_handlers = std::vector<std::tuple<std::regex, endpoint_handler_cb, parameter::validators>>;
     using request_handler_handle = std::pair<request_method, request_handlers::const_iterator>;
-    
+
     template<typename T>
     request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback)
     {
-        return handle_request(method, std::regex{std::forward<T>(path)}, callback);
+        return handle_request(method, std::regex{std::forward<T>(path)}, callback, {});
     }
-    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
-    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    template<typename T>
+    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback, parameter::validators &&validations)
+    {
+        return handle_request(method, std::regex{std::forward<T>(path)}, callback, std::forward<parameter::validators>(validations));
+    }
+    template<typename T>
+    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback, const parameter::validators &validations)
+    {
+        return handle_request(method, std::regex{std::forward<T>(path)}, callback, validations);
+    }
+    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations);
+    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validations);
+    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validations);
+    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations);
+
 
     request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
 

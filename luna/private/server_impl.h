@@ -48,8 +48,11 @@ public:
 
     using request_handler = std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>>;
 
-    server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback);
-    server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback);
+    server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validators={});
+    server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validators={});
+    server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validators);
+    server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validators);
+
 
     server::request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
 
