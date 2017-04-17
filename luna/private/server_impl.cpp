@@ -479,28 +479,24 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 // TODO this can probably be optimized
                 bool valid_params = true;
                 auto validators = std::get<parameter::validators>(handler_tuple);
-                for(const auto &kv : validators)
+                for(const auto &validator : validators)
                 {
-                    auto key = kv.first;
-                    auto required = kv.second.first;
-                    auto validator = kv.second.second;
-
-                    bool present = (query_params.count(key) == 0) ? false : true;
+                    bool present = (query_params.count(validator.key) == 0) ? false : true;
                     if(present)
                     {
                         //run the validator
-                        if(!validator(query_params[key]))
+                        if(!validator.validation_func(query_params[validator.key]))
                         {
-                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + key};
+                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
                             LOG_ERROR(error);
                             response = {400, "text/plain", error};
                             valid_params = false;
                             break; //stop examining params
                         }
                     }
-                    else if(required) //not present, but required
+                    else if(validator.required) //not present, but required
                     {
-                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + key};
+                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
                         LOG_ERROR(error);
                         response = {400, "text/plain", error};
                         valid_params = false;

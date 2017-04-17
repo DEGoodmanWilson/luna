@@ -54,7 +54,7 @@ TEST(validation, basic_validation_pass)
     luna::server server{luna::server::port{8080}};
 
     luna::parameter::validators validators = {
-            { "key", {luna::parameter::optional, luna::parameter::validate(luna::parameter::match, "value")}},
+            {"key", luna::parameter::optional, luna::parameter::validate(luna::parameter::match, "value")},
     };
 
     server.handle_request(luna::request_method::GET,
@@ -80,7 +80,8 @@ TEST(validation, basic_validation_fail)
                               return {"hello"};
                           },
                           {
-                                  { "key", {luna::parameter::optional, luna::parameter::validate(luna::parameter::match, "value")}}
+                                  {"key", luna::parameter::optional, luna::parameter::validate(luna::parameter::match,
+                                                                                               "value")}
                           }
     );
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "nope"}});
@@ -98,7 +99,7 @@ TEST(validation, required_validation_pass)
                               return {"hello"};
                           },
                           {
-                                  { "key", {luna::parameter::required, luna::parameter::any}}
+                                  {"key", luna::parameter::required}
                           }
     );
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -117,7 +118,7 @@ TEST(validation, required_validation_fail)
                               return {"hello"};
                           },
                           {
-                                  { "key", {luna::parameter::required, luna::parameter::any}}
+                                  {"key", luna::parameter::required}
                           }
     );
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});

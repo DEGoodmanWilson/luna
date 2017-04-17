@@ -269,7 +269,21 @@ auto validate = [](auto validator, auto ...rest)
 
 const bool optional = false;
 const bool required = true;
-using validators = std::map<std::string, std::pair<bool, std::function<bool(std::string)>>>;
+
+using validation_function = std::function<bool(std::string)>;
+
+struct validator
+{
+    std::string key;
+    bool required;
+    validation_function validation_func;
+
+    validator(std::string &&key, bool required, validation_function validation_func=any) : key{std::move(key)}, required{required}, validation_func{validation_func} {};
+    validator(const std::string &key, bool required, validation_function validation_func=any) : key{key}, required{required}, validation_func{validation_func} {};
+
+};
+
+using validators = std::vector<validator>;
 
 } //namespace parameter
 
