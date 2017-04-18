@@ -7,9 +7,11 @@ title: Implementing middleware
 
 Luna supports the notion of middleware. Middleware is code that can be attached to hooks inside of Luna, and that get executed whenever those hooks are hit. At the moment, the following hookpoints are supported:
 
-* `before` This hook is executed once a route has been selected, but before a request handler is called, and that can modify the HTTP request as received by Luna
+* `before_request_handler` This hook is executed once a route has been selected, but before a request handler is called, and that can modify the HTTP request as received by Luna
 
-* `after` This hook is executed after a request handler has been successfully called (_i.e._ not after a 500 result from a crashing request handler, or a 404, but it is called if the request handler successfull returns an error), and that can modify the HTTP response before Luna sends it on to the caller.
+* `after_request_handler` This hook is executed after a request handler has been found and successfully called (_i.e._ not after a 500 result from a crashing request handler, or a 404, but it *is* called if the request handler successfully returns an error), and that can modify the HTTP response before Luna sends it on to the caller.
+
+* `after_error` This hook is executed after a request handler had returned an error, has crashed, or when a matching request handler is not found, and that can modify the HTTP response before Luna sends it on to the caller.
 
 You can attach as many middlewares as you like to each hookpoint. The middlwares will be called in the order that they are attached.
 
@@ -25,7 +27,7 @@ Let's suppose we want to insert an arbitrary header into the request object. We 
             luna::server::port{8080},
 
             //insert a simple middleware to append a header
-            luna::middleware::before{
+            luna::middleware::before_request_handler{
                     [](luna::request &request)
                     {
                         request.params["boo"] = "scream";
@@ -45,7 +47,7 @@ Let's suppose we want to insert an arbitrary header into the response object. We
             luna::server::port{8080},
 
             //insert a simple middleware to append a header
-            luna::middleware::after{
+            luna::middleware::after_request_handler{
                     [](luna::request &request)
                     {
                         request.params["boo"] = "scream";

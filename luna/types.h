@@ -226,8 +226,34 @@ enum class request_method
 
 namespace middleware
 {
-    using before = std::vector<std::function<void(request &)>>;
-    using after = std::vector<std::function<void(response &)>>;
+
+using before_request_handler_func = std::function<void(request &)>;
+struct before_request_handler
+{
+    std::vector<before_request_handler_func> funcs;
+    before_request_handler() = default;
+    before_request_handler(std::vector<before_request_handler_func> f) : funcs{f} {}
+    before_request_handler(std::initializer_list<before_request_handler_func> &&l) : funcs{std::move(l)} {}
+};
+
+using after_request_handler_func = std::function<void(response &)>;
+struct after_request_handler
+{
+    std::vector<after_request_handler_func> funcs;
+    after_request_handler() = default;
+    after_request_handler(std::vector<after_request_handler_func> f) : funcs{f} {}
+    after_request_handler(std::initializer_list<after_request_handler_func> &&l) : funcs{std::move(l)} {}
+};
+
+using after_error_func = std::function<void(response &)>;
+struct after_error
+{
+    std::vector<after_error_func> funcs;
+    after_error() = default;
+    after_error(std::vector<after_error_func> f) : funcs{f} {}
+    after_error(std::initializer_list<after_error_func> &&l) : funcs{std::move(l)} {}
+};
+
 
 } //namespace middleware
 

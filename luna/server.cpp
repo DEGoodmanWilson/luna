@@ -215,11 +215,15 @@ void server::set_option_(const append_to_server_identifier &value)
 }
 
 // middleware
-void server::set_option_(middleware::before value)
+void server::set_option_(middleware::before_request_handler value)
 {
     impl_->set_option(value);
 }
-void server::set_option_(middleware::after value)
+void server::set_option_(middleware::after_request_handler value)
+{
+    impl_->set_option(value);
+}
+void server::set_option_(middleware::after_error value)
 {
     impl_->set_option(value);
 }

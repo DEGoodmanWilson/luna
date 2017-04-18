@@ -9,12 +9,12 @@
 #include <luna/luna.h>
 #include <cpr/cpr.h>
 
-TEST(middleware, before_middleware_modify_parameter)
+TEST(middleware, before_request_handler_middleware_modify_parameter)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a param to the query params list
-            luna::middleware::before{
+            luna::middleware::before_request_handler{
                     [](luna::request &request)
                     {
                         request.params["boo"] = "scream";
@@ -35,12 +35,12 @@ TEST(middleware, before_middleware_modify_parameter)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(middleware, before_middleware_modify_request_header)
+TEST(middleware, before_request_handler_middleware_modify_request_header)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a header
-            luna::middleware::before{
+            luna::middleware::before_request_handler{
                     [](luna::request &request)
                     {
                         request.headers["boo"] = "scream";
@@ -61,12 +61,12 @@ TEST(middleware, before_middleware_modify_request_header)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(middleware, before_middleware_modify_request_header_chained)
+TEST(middleware, before_request_handler_middleware_modify_request_header_chained)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a header
-            luna::middleware::before{
+            luna::middleware::before_request_handler{
                     [](luna::request &request)
                     {
                         request.headers["boo"] = "scream";
@@ -93,12 +93,12 @@ TEST(middleware, before_middleware_modify_request_header_chained)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(middleware, after_middleware_modify_response_header)
+TEST(middleware, after_request_handler_middleware_modify_response_header)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a header
-            luna::middleware::after{
+            luna::middleware::after_request_handler{
                     [](luna::response &response)
                     {
                         response.headers["boo"] = "scream";
@@ -119,12 +119,12 @@ TEST(middleware, after_middleware_modify_response_header)
     ASSERT_EQ("scream", res.header.at("boo"));
 }
 
-TEST(middleware, after_middleware_modify_response_header_chained)
+TEST(middleware, after_request_handler_middleware_modify_response_header_chained)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a header
-            luna::middleware::after{
+            luna::middleware::after_request_handler{
                     [](luna::response &response)
                     {
                         response.headers["boo"] = "scream";
@@ -151,12 +151,12 @@ TEST(middleware, after_middleware_modify_response_header_chained)
     ASSERT_EQ("ohyes", res.header.at("ohno"));
 }
 
-TEST(middleware, after_middleware_modify_response_header_fail_with_crash)
+TEST(middleware, after_request_handler_middleware_modify_response_header_fail_with_crash)
 {
     luna::server server{
             luna::server::port{8080},
             //insert a simple middleware to append a header
-            luna::middleware::after{
+            luna::middleware::after_request_handler{
                     [](luna::response &response)
                     {
                         response.headers["boo"] = "scream";
@@ -176,4 +176,91 @@ TEST(middleware, after_middleware_modify_response_header_fail_with_crash)
     ASSERT_EQ(500, res.status_code);
     // Assert that the header was not included in the output
     ASSERT_EQ(0, res.header.count("boo"));
+}
+
+TEST(middleware, after_error_middleware_modify_response_header_success)
+{
+    luna::server server{
+            luna::server::port{8080},
+            //insert a simple middleware to append a header
+            luna::middleware::after_request_handler{
+                    [](luna::response &response)
+                    {
+                        response.headers["boo1"] = "scream";
+                    }
+            },
+            luna::middleware::after_error{
+                    [](luna::response &response)
+                    {
+                        response.headers["boo2"] = "scream";
+                    }
+            }
+    };
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              std::string{}.at(1); //throws out of bounds exception
+                              return {};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(500, res.status_code);
+    ASSERT_EQ(0, res.header.count("boo1"));
+    ASSERT_EQ(1, res.header.count("boo2"));
+    ASSERT_EQ("scream", res.header.at("boo2"));
+}
+
+TEST(middleware, after_error_middleware_modify_response_header_404_success)
+{
+    luna::server server{
+            luna::server::port{8080},
+            //insert a simple middleware to append a header
+            luna::middleware::after_error{
+                    [](luna::response &response)
+                    {
+                        response.headers["boo"] = "scream";
+                    }
+            }
+    };
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(404, res.status_code);
+    ASSERT_EQ(1, res.header.count("boo"));
+    ASSERT_EQ("scream", res.header.at("boo"));
+}
+
+TEST(middleware, after_error_middleware_modify_response_header_500_success)
+{
+    luna::server server{
+            luna::server::port{8080},
+            //insert a simple middleware to append a header
+            luna::middleware::after_request_handler{
+                    [](luna::response &response)
+                    {
+                        response.headers["boo1"] = "scream";
+                    }
+            },
+            luna::middleware::after_error{
+                    [](luna::response &response)
+                    {
+                        response.headers["boo2"] = "scream";
+                    }
+            }
+    };
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {500};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(500, res.status_code);
+    ASSERT_EQ(1, res.header.count("boo1"));
+    ASSERT_EQ("scream", res.header.at("boo1"));
+    ASSERT_EQ(1, res.header.count("boo2"));
+    ASSERT_EQ("scream", res.header.at("boo2"));
 }

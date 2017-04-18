@@ -124,8 +124,9 @@ public:
     void set_option(const append_to_server_identifier &value);
 
     //middleware
-    void set_option(middleware::before value);
-    void set_option(middleware::after value);
+    void set_option(middleware::before_request_handler value);
+    void set_option(middleware::after_request_handler value);
+    void set_option(middleware::after_error value);
 
 
 private:
@@ -155,8 +156,9 @@ private:
     std::vector<std::string> https_key_password_;
 
     // middlewares
-    middleware::before middleware_before;
-    middleware::after middleware_after;
+    middleware::before_request_handler middleware_before_request_handler;
+    middleware::after_request_handler middleware_after_request_handler;
+    middleware::after_error middleware_after_error;
 
     //options
     std::vector<MHD_OptionItem> options_;
