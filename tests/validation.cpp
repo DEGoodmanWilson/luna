@@ -8,11 +8,19 @@
 #include <luna/luna.h>
 #include <cpr/cpr.h>
 
+
+TEST(validation, validate_any)
+{
+    auto v = luna::parameter::validate(luna::parameter::any);
+    ASSERT_TRUE(v("value"));
+    ASSERT_TRUE(v("nope"));
+}
+
 TEST(validation, validate_match)
 {
     auto v = luna::parameter::validate(luna::parameter::match, "value");
     ASSERT_TRUE(v("value"));
-    ASSERT_FALSE(v("node"));
+    ASSERT_FALSE(v("nope"));
 }
 
 TEST(validation, number_match)
@@ -59,6 +67,28 @@ TEST(validation, basic_validation_pass)
 
     server.handle_request(luna::request_method::GET,
                           "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          },
+                          validators);
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+TEST(validation, basic_validation_pass_with_lvalues)
+{
+    luna::server server{luna::server::port{8080}};
+
+    luna::parameter::validators validators{
+            {"key", luna::parameter::optional, luna::parameter::validate(luna::parameter::match, "value")},
+    };
+
+    std::string endpoint{"/test"};
+
+    server.handle_request(luna::request_method::GET,
+                          endpoint,
                           [](auto req) -> luna::response
                           {
                               return {"hello"};

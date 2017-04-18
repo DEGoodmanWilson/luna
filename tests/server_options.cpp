@@ -118,7 +118,7 @@ TEST(server_options, set_thread_pool_size)
                                   if (count > max_count) max_count = count;
                                   mutex.unlock();
 
-                                  std::this_thread::sleep_for(10ms);
+                                  std::this_thread::sleep_for(50ms);
 
                                   mutex.lock();
                                   --count;
