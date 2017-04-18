@@ -454,7 +454,21 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             response response;
             try
             {
-                response = callback({matches, query_params, header, con_info->body});
+                request req{matches, query_params, header, con_info->body};
+
+                //first, the before middlewares
+                for(const auto &mw : middleware_before_request_handler.funcs)
+                {
+                    mw(req);
+                }
+
+                response = callback(req);
+
+                //now, the after middlewares
+                for(const auto &mw : middleware_after_request_handler.funcs)
+                {
+                    mw(response);
+                }
             }
                 //TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
@@ -511,6 +525,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (is_error_(response.status_code))
             {
+                //now, the after_error middlewares
+                for(const auto &mw : middleware_after_error.funcs)
+                {
+                    mw(response);
+                }
                 return render_error_(start, response, connection, url_str, method_str);
             }
 
@@ -520,7 +539,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     /* unsupported HTTP method */
-    return render_error_(start, {404}, connection, url, method_str);
+    //now, the after_error middlewares TODO this could be refactored. The logic is starting to become tortured.
+    response response{404};
+    for(const auto &mw : middleware_after_error.funcs)
+    {
+        mw(response);
+    }
+    return render_error_(start, response, connection, url, method_str);
 }
 
 //TODO this should be a static non-class function, I think.
@@ -915,6 +940,21 @@ void server::server_impl::set_option(const server::server_identifier &value)
 void server::server_impl::set_option(const server::append_to_server_identifier &value)
 {
     server_identifier_ += " " + value;
+}
+
+void server::server_impl::set_option(middleware::before_request_handler value)
+{
+    middleware_before_request_handler = value;
+}
+
+void server::server_impl::set_option(middleware::after_request_handler value)
+{
+    middleware_after_request_handler = value;
+}
+
+void server::server_impl::set_option(middleware::after_error value)
+{
+    middleware_after_error = value;
 }
 
 

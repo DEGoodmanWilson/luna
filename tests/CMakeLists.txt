@@ -8,7 +8,7 @@ add_executable(luna_tests main.cpp
         crashers.cpp
         put.cpp
         patch.cpp
-        delete.cpp server_options.cpp config.cpp types.cpp basic_auth.cpp tls.cpp safer_times.cpp file_service.cpp)
+        delete.cpp server_options.cpp config.cpp types.cpp basic_auth.cpp tls.cpp safer_times.cpp file_service.cpp middleware.cpp)
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 

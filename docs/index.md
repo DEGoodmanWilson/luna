@@ -17,6 +17,8 @@ HTTP server creation, start, shut down, and deletion are all handled behind the 
 
 Adding endpoints to your server is likewise meant to be simple. Nominate an endpoint with a string or regex and an HTTP verb, and pass in a lambda or other `std::functional`-compatible object (function pointers, bound class member functions), and return a string containing the desired response body. Of course, you can set headers and mime types, too.
 
+Luna also offers a mechanism for inserting middlware for pre-processing and post-process of requests globally.
+
 ## Example code
 
 But don't take my word for it. Here is some code for serving a simple JSON snippet from a single endpoint.
