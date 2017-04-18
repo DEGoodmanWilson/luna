@@ -9,6 +9,7 @@
 #include <string>
 #include <regex>
 #include <map>
+#include <functional>
 #include <stdint.h>
 
 
@@ -224,6 +225,60 @@ enum class request_method
     //HEAD,
 };
 
+namespace parameter
+{
+
+// default validators
+auto any = [](const std::string &a) -> bool
+{
+    return true;
+};
+
+auto match = [](const std::string &a, const std::string &b) -> bool
+{
+    return a == b;
+};
+
+auto number = [](const std::string &a) -> bool
+{
+    return std::regex_match(a, std::regex{"\\d+"});
+};
+
+auto regex = [](const std::string &a, const std::regex &r) -> bool
+{
+    return std::regex_search(a, r);
+};
+
+auto validate = [](auto validator, auto ...rest)
+{
+    return [=](std::string to_validate) -> bool
+    {
+        return validator(to_validate, rest...);
+    };
+};
+
+const bool optional = false;
+const bool required = true;
+
+using validation_function = std::function<bool(std::string)>;
+
+struct validator
+{
+    std::string key;
+    bool required;
+    validation_function validation_func;
+
+    validator(std::string &&key, bool required, validation_function validation_func=any) : key{std::move(key)}, required{required}, validation_func{validation_func} {};
+    validator(const std::string &key, bool required, validation_function validation_func=any) : key{key}, required{required}, validation_func{validation_func} {};
+
+};
+
+using validators = std::vector<validator>;
+
+} //namespace parameter
+
+
+
 namespace middleware
 {
 
@@ -253,7 +308,6 @@ struct after_error
     after_error(std::vector<after_error_func> f) : funcs{f} {}
     after_error(std::initializer_list<after_error_func> &&l) : funcs{std::move(l)} {}
 };
-
 
 } //namespace middleware
 

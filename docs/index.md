@@ -9,13 +9,19 @@ title: Luna
 
 # Luna
 
-An embedded HTTP(S) server and web framework in modern C++, Luna is designed to be easy to use and integrate with any C++ project that needs to serve HTTP endpoints. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be robust as well.
+An embedded HTTP(S) server and web framework in modern C++, Luna is designed to produce low latency, high throughput we applications with an easy to use interface. You can integrate Luna with any C++ project that needs to serve HTTP endpoints, or build entire webapps from scratch. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be highly performant and robust as well.
 
-You are writing in C++ (because C++ is _awesome_), and your app needs to provide a lightweight HTTP server to communicate with other web services. `libmicrohttpd` is super-awesome, except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
+## Use cases
 
-HTTP server creation, start, shut down, and deletion are all handled behind the scenes with the magic of [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization). Starting a server is automatic with instantiating a `server` object, and allowing your `server` object to fall out of scope is all that is needed to cleanly shut it down. There is nothing else for you to keep track of, or allocate.
+* You are writing a server or daemon in C++ (because C++ is _awesome_), and your services needs to provide a lightweight HTTP server to communicate with other web clients. You'd use `libmicrohttpd`, which is also super-awesome except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
 
-Adding endpoints to your server is likewise meant to be simple. Nominate an endpoint with a string or regex and an HTTP verb, and pass in a lambda or other `std::functional`-compatible object (function pointers, bound class member functions), and return a string containing the desired response body. Of course, you can set headers and mime types, too.
+* You are writing a web application, and you want it as close to the bare metal as possible to keep response latency to the absolute minimum. You're using modern C++ for  its memory safety, and you'd like a web framework that does the same.
+
+Either way, Luna is a great choice. HTTP server creation, start, shut down, and deletion are all handled behind the scenes with the magic of [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization). Starting a server is automatic with instantiating a `server` object, and allowing your `server` object to fall out of scope is all that is needed to cleanly shut it down. There is nothing else for you to keep track of, or allocate.
+
+Adding endpoints to your server is likewise meant to be simple. Nominate an endpoint with a string or regex and an HTTP verb, and pass in a lambda or other `std::functional`-compatible object (function pointers, bound class member functions), and return a string containing the desired response body. This kind of flexibility means Luna works with heavily object-oriented code—or more procedural or even functional programming styles, as you prefer.
+
+Of course, you can set headers and mime types, validate parameters, generate custom error pages, all that good stuff too.
 
 Luna also offers a mechanism for inserting middlware for pre-processing and post-process of requests globally.
 

@@ -311,18 +311,38 @@ server::server_impl::~server_impl()
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
                                                                    std::regex &&path,
-                                                                   server::endpoint_handler_cb callback)
+                                                                   server::endpoint_handler_cb callback,
+                                                                   parameter::validators &&validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(std::move(path), callback)));
+    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(std::move(path), callback, std::move(validators))));
 }
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
                                                                    const std::regex &path,
-                                                                   server::endpoint_handler_cb callback)
+                                                                   server::endpoint_handler_cb callback,
+                                                                   parameter::validators &&validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_pair(path, callback)));
+    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(path, callback, std::move(validators))));
+}
+
+server::request_handler_handle server::server_impl::handle_request(request_method method,
+                                                                   std::regex &&path,
+                                                                   server::endpoint_handler_cb callback,
+                                                                   const parameter::validators &validators)
+{
+    std::lock_guard<std::mutex> guard{lock_};
+    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(std::move(path), callback, validators)));
+}
+
+server::request_handler_handle server::server_impl::handle_request(request_method method,
+                                                                   const std::regex &path,
+                                                                   server::endpoint_handler_cb callback,
+                                                                   const parameter::validators &validators)
+{
+    std::lock_guard<std::mutex> guard{lock_};
+    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(path, callback, validators)));
 }
 
 server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
@@ -431,11 +451,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     std::unique_lock<std::mutex> ulock{lock_};
-    for (const auto &handler_pair : request_handlers_[method])
+    for (const auto &handler_tuple : request_handlers_[method])
     {
         std::smatch pieces_match;
-        auto path_regex = std::get<std::regex>(handler_pair);
-        auto callback = std::get<endpoint_handler_cb>(handler_pair);
+        auto path_regex = std::get<std::regex>(handler_tuple);
 
         if (std::regex_match(url_str, pieces_match, path_regex))
         {
@@ -452,22 +471,58 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             }
 
             response response;
+
+            auto callback = std::get<endpoint_handler_cb>(handler_tuple);
             try
             {
-                request req{matches, query_params, header, con_info->body};
-
-                //first, the before middlewares
-                for(const auto &mw : middleware_before_request_handler.funcs)
+                // Validate the parameters passed in
+                // TODO this can probably be optimized
+                bool valid_params = true;
+                auto validators = std::get<parameter::validators>(handler_tuple);
+                for(const auto &validator : validators)
                 {
-                    mw(req);
+                    bool present = (query_params.count(validator.key) == 0) ? false : true;
+                    if(present)
+                    {
+                        //run the validator
+                        if(!validator.validation_func(query_params[validator.key]))
+                        {
+                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
+                            LOG_ERROR(error);
+                            response = {400, "text/plain", error};
+                            valid_params = false;
+                            break; //stop examining params
+                        }
+                    }
+                    else if(validator.required) //not present, but required
+                    {
+                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
+                        LOG_ERROR(error);
+                        response = {400, "text/plain", error};
+                        valid_params = false;
+                        break; //stop examining params
+                    }
+
                 }
 
-                response = callback(req);
-
-                //now, the after middlewares
-                for(const auto &mw : middleware_after_request_handler.funcs)
+                if(valid_params)
                 {
-                    mw(response);
+                    //made it this far! try the callback
+                    request req{matches, query_params, header, con_info->body};
+
+                    //first, the before middlewares
+                    for(const auto &mw : middleware_before_request_handler.funcs)
+                    {
+                        mw(req);
+                    }
+
+                    response = callback(req);
+
+                    //now, the after middlewares
+                    for(const auto &mw : middleware_after_request_handler.funcs)
+                    {
+                        mw(response);
+                    }
                 }
             }
                 //TODO there is surely a more robust way to do this;
