@@ -247,6 +247,11 @@ private:
     void set_option_(const server_identifier &value);
     void set_option_(const append_to_server_identifier &value);
 
+    // middleware
+    void set_option_(middleware::before_request_handler value);
+    void set_option_(middleware::after_request_handler value);
+    void set_option_(middleware::after_error value);
+
 };
 
 //for testing purposes only.

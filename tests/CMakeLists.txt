@@ -18,6 +18,7 @@ add_executable(luna_tests
         safer_times.cpp
         file_service.cpp
         validation.cpp
+        middleware.cpp
     )
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
