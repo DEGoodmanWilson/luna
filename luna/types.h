@@ -241,22 +241,12 @@ auto match = [](const std::string &a, const std::string &b) -> bool
 
 auto number = [](const std::string &a) -> bool
 {
-    if (std::regex_match(a, std::regex{"\\d+"}))
-    {
-        return true;
-    }
-
-    return false;
+    return std::regex_match(a, std::regex{"\\d+"});
 };
 
 auto regex = [](const std::string &a, const std::regex &r) -> bool
 {
-    if (std::regex_search(a, r))
-    {
-        return true;
-    }
-
-    return false;
+    return std::regex_search(a, r);
 };
 
 auto validate = [](auto validator, auto ...rest)
