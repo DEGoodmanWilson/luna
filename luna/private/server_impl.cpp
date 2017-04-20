@@ -650,6 +650,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
     }
 
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
+    auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
 
