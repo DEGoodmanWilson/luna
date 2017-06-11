@@ -237,24 +237,25 @@ private:
     ///// helpers
 
     int render_response_(
-            const std::chrono::system_clock::time_point &start,
+            request &request,
             response &response,
             MHD_Connection *connection,
             const std::string &url,
             const std::string &method,
             request_headers headers = {}) const;
 
-    int render_error_(const std::chrono::system_clock::time_point &start,
+    int render_error_(request &request,
                       response &response,
                       MHD_Connection *connection,
                       const std::string &url,
                       const std::string &method) const;
 
-    int render_error_(const std::chrono::system_clock::time_point &start,
+    int render_error_(request &request,
                       response &&response,
                       MHD_Connection *connection,
                       const std::string &url,
                       const std::string &method) const;
+
 
 };
 

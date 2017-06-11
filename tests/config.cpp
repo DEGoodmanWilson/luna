@@ -21,7 +21,7 @@ TEST(config, log_string_literal_rendering)
 TEST(config, logging)
 {
     std::string log;
-    luna::set_logger([&log](luna::log_level level, const std::string &mesg)
+    luna::set_error_logger([&log](luna::log_level level, const std::string& message)
                          {
                              log = "foobar";
                          });
@@ -31,5 +31,5 @@ TEST(config, logging)
 
     ASSERT_EQ("foobar", log);
 
-    luna::reset_logger();
+    luna::reset_error_logger();
 }

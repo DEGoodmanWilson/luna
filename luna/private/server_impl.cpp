@@ -17,32 +17,26 @@
 namespace luna
 {
 
-extern logger_cb logger_;
-
 //TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
-#define LOG(level, mesg) if (logger_) \
+
+#define LOG_FATAL(mesg) \
 { \
-    logger_(level, mesg); \
+    error_log(log_level::FATAL, mesg); \
 }
 
-#define LOG_FATAL(mesg) if (logger_) \
+#define LOG_ERROR(mesg) \
 { \
-    logger_(log_level::FATAL, mesg); \
+    error_log(log_level::ERROR, mesg); \
 }
 
-#define LOG_ERROR(mesg) if (logger_) \
+#define LOG_INFO(mesg) \
 { \
-    logger_(log_level::ERROR, mesg); \
+    error_log(log_level::INFO, mesg); \
 }
 
-#define LOG_INFO(mesg) if (logger_) \
+#define LOG_DEBUG(mesg) \
 { \
-    logger_(log_level::INFO, mesg); \
-}
-
-#define LOG_DEBUG(mesg) if (logger_) \
-{ \
-    logger_(log_level::DEBUG, mesg); \
+    error_log(log_level::DEBUG, mesg); \
 }
 
 
@@ -399,8 +393,16 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                                                   size_t *upload_data_size,
                                                   void **con_cls)
 {
+    auto start = std::chrono::system_clock::now();
+
+    std::string http_version{version};
+
     request_method method = method_str_to_enum_(method_char);
     std::string method_str{method_char};
+
+    std::string url_str{url};
+
+    std::string http_version_str{url};
 
     if (!*con_cls)
     {
@@ -443,11 +445,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         std::swap(query_params, con_info->post_params);
     }
 
-    std::string url_str{url};
-
-    auto start = std::chrono::system_clock::now();
+    // construct request object
+    request req{start, start, method, url_str, http_version_str, {}, query_params, header, con_info->body};
 
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
+
+
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
     std::unique_lock<std::mutex> ulock{lock_};
@@ -470,6 +473,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 matches.emplace_back(sub_match.str());
             }
 
+            req.matches = matches;
             response response;
 
             auto callback = std::get<endpoint_handler_cb>(handler_tuple);
@@ -508,7 +512,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 if(valid_params)
                 {
                     //made it this far! try the callback
-                    request req{matches, query_params, header, con_info->body};
 
                     //first, the before middlewares
                     for(const auto &mw : middleware_before_request_handler.funcs)
@@ -563,13 +566,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                         // These lines should basically never get hit in testing
                         response.status_code = 500;                                                 //LCOV_EXCL_LINE
                         // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                        return render_error_(req, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
                     }
                     if (magic_load(magic_cookie, NULL) != 0)
                     {
                         magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
                         response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        return render_error_(start, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                        return render_error_(req, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
                     }
 
                     std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
@@ -585,11 +588,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 {
                     mw(response);
                 }
-                return render_error_(start, response, connection, url_str, method_str);
+                return render_error_(req, response, connection, url_str, method_str);
             }
 
             //else render success
-            return render_response_(start, response, connection, url_str, method_str);
+            return render_response_(req, response, connection, url_str, method_str);
         }
     }
 
@@ -600,16 +603,16 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
         mw(response);
     }
-    return render_error_(start, response, connection, url, method_str);
+    return render_error_(req, response, connection, url, method_str);
 }
 
 //TODO this should be a static non-class function, I think.
-int server::server_impl::render_response_(const std::chrono::system_clock::time_point &start,
+int server::server_impl::render_response_(request &request,
                                           response &response,
                                           MHD_Connection *connection,
                                           const std::string &url,
                                           const std::string &method,
-                                          request_headers headers) const
+                                          response_headers headers) const
 {
     struct MHD_Response *mhd_response;
 
@@ -624,7 +627,7 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
         auto file = fopen(response.file.c_str(), "r");
         if (!file)
         {
-            return render_error_(start, {404}, connection, url, method);
+            return render_error_(request, {404}, connection, url, method);
         }
         else
         {
@@ -655,34 +658,34 @@ int server::server_impl::render_response_(const std::chrono::system_clock::time_
 
     auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
-    auto end = std::chrono::system_clock::now();
+    request.end = std::chrono::system_clock::now();
 
     // log it
     auto client_address = addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
-    auto end_c = std::chrono::system_clock::to_time_t(end);
+    auto end_c = std::chrono::system_clock::to_time_t(request.end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms)";
+    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(request.end - request.start).count() << "ms)";
     LOG_INFO(sstr.str());
 
     MHD_destroy_response(mhd_response);
     return ret;
 }
 
-int server::server_impl::render_error_(const std::chrono::system_clock::time_point &start, response &response, MHD_Connection *connection, const std::string &url, const std::string &method) const
+int server::server_impl::render_error_(request &request, response &response, MHD_Connection *connection, const std::string &url, const std::string &method) const
 {
     /* unsupported HTTP method */
     error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
 
-    return render_response_(start, response, connection, url, method);
+    return render_response_(request, response, connection, url, method);
 }
 
-int server::server_impl::render_error_(const std::chrono::system_clock::time_point &start, response &&response, MHD_Connection *connection, const std::string &url, const std::string &method) const
+int server::server_impl::render_error_(request &request, response &&response, MHD_Connection *connection, const std::string &url, const std::string &method) const
 {
     /* unsupported HTTP method */
     error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
 
-    return render_response_(start, response, connection, url, method);
+    return render_response_(request, response, connection, url, method);
 }
 
 /////////// callback shims

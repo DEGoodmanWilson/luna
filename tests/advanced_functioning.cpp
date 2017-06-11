@@ -252,9 +252,9 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_1)
 {
     bool got_log{false};
 
-    luna::set_logger([&](luna::log_level level, const std::string &message)
+    luna::set_error_logger([&](luna::log_level level, const std::string &message)
                          {
-                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available")
+                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available" && level == luna::log_level::ERROR)
                              {
                                  got_log = true;
                              }
@@ -264,16 +264,16 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_1)
 
     ASSERT_TRUE(got_log);
 
-    luna::reset_logger();
+    luna::reset_error_logger();
 }
 
 TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
 {
     bool got_log{false};
 
-    luna::set_logger([&](luna::log_level level, const std::string &message)
+    luna::set_error_logger([&](luna::log_level level, const std::string &message)
                          {
-                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection")
+                             if(message == "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection" && level == luna::log_level::ERROR)
                              {
                                  got_log = true;
                              }
@@ -283,7 +283,7 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
 
     ASSERT_TRUE(got_log);
 
-    luna::reset_logger();
+    luna::reset_error_logger();
 }
 
 TEST(advanced_functioning, non_null_server_string_version)

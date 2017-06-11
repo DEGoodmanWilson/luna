@@ -19,7 +19,7 @@ add_executable(luna_tests
         file_service.cpp
         validation.cpp
         middleware.cpp
-    )
+        logging.cpp)
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 

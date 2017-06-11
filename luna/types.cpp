@@ -22,6 +22,29 @@ std::string to_string(const authorization_kind kind)
     }
 }
 
+std::string to_string(const request_method method)
+{
+    switch (method)
+    {
+        case request_method::UNKNOWN:
+            return "UNKNOWN";
+        case request_method::GET:
+            return "GET";
+        case request_method::POST:
+            return "POST";
+        case request_method::PUT:
+            return "PUT";
+        case request_method::PATCH:
+            return "PATCH";
+        case request_method::DELETE:
+            return "DELETE";
+        case request_method::OPTIONS:
+            return "OPTIONS";
+        default:
+            return "UNKNOWN";
+    }
+}
+
 bool case_insensitive_comp_::operator()(const std::string &a, const std::string &b) const noexcept
 {
     return strcasecmp(a.c_str(), b.c_str()) < 0;
