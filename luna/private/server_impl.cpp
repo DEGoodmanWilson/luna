@@ -402,8 +402,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
     std::string url_str{url};
 
-    std::string http_version_str{url};
-
     if (!*con_cls)
     {
         connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method, connection, 65535, iterate_postdata_shim_);
@@ -446,7 +444,9 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     // construct request object
-    request req{start, start, method, url_str, http_version_str, {}, query_params, header, con_info->body};
+    auto ip_address =  addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
+
+    request req{start, start, ip_address, method, url_str, http_version, {}, query_params, header, con_info->body};
 
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
 
@@ -661,12 +661,12 @@ int server::server_impl::render_response_(request &request,
     request.end = std::chrono::system_clock::now();
 
     // log it
-    auto client_address = addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
     auto end_c = std::chrono::system_clock::to_time_t(request.end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(request.end - request.start).count() << "ms)";
-    LOG_INFO(sstr.str());
+//    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(request.end - request.start).count() << "ms)";
+//    LOG_INFO(sstr.str());
+    access_log(request);
 
     MHD_destroy_response(mhd_response);
     return ret;

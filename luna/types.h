@@ -134,6 +134,7 @@ struct request
 {
     std::chrono::system_clock::time_point start;
     std::chrono::system_clock::time_point end;
+    std::string ip_address;
     request_method method;
     std::string path;
     std::string http_version;
@@ -141,7 +142,6 @@ struct request
     query_params params;
     request_headers headers;
     std::string body;
-
 };
 
 

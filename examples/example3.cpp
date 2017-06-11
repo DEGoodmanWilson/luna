@@ -48,10 +48,17 @@ T5NU9xUNbQugJdCMSm+5TLeU5UhsvGqxVDAcIr3w9Iwsyti9CzRs6TzUog==
 
 int main(void)
 {
-    set_logger([](log_level level, const std::string &message)
-                   {
-                       std::cout << to_string(level) << " " << message << std::endl;
-                   });
+    set_error_logger([](log_level level, const std::string &message)
+    {
+        std::cout << "[" << to_string(level) << "] " << message << std::endl;
+    });
+
+    set_access_logger([](const luna::request &request)
+    {
+        std::cout << request.ip_address << ": " << luna::to_string(request.method) << " " << request.path << " " << request.http_version << " " << request.headers.at("user-agent") << std::endl;
+    });
+
+
 
     luna::server server{luna::server::debug_output{true}, luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
 
