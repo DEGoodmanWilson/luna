@@ -34,7 +34,7 @@ TEST(logging, basic_formatting_test)
                          log_str = message.str();
                      });
 
-    luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
+    luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
     luna::access_log(req);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
 }
@@ -49,7 +49,7 @@ TEST(logging, basic_formatting_test_2)
                          log_str = message.str();
                      });
 
-    luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
+    luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
     luna::access_log(req);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
 }
