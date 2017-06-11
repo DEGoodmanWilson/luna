@@ -67,8 +67,8 @@ struct connection_info_struct
 
 std::string default_mime_type{"text/html; charset=UTF-8"};
 
-static const server::error_handler_cb default_error_handler_callback_ = [](response &response,
-                                                                           request_method method,
+static const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
+                                                                           response &response,
                                                                            const std::string &path)
     {
         if (response.content.empty())
@@ -675,7 +675,7 @@ int server::server_impl::render_response_(request &request,
 int server::server_impl::render_error_(request &request, response &response, MHD_Connection *connection, const std::string &url, const std::string &method) const
 {
     /* unsupported HTTP method */
-    error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
+    error_handler_callback_(request, response, url); //hook for modifying response
 
     return render_response_(request, response, connection, url, method);
 }
@@ -683,7 +683,7 @@ int server::server_impl::render_error_(request &request, response &response, MHD
 int server::server_impl::render_error_(request &request, response &&response, MHD_Connection *connection, const std::string &url, const std::string &method) const
 {
     /* unsupported HTTP method */
-    error_handler_callback_(response, method_str_to_enum_(method), url); //hook for modifying response
+    error_handler_callback_(request, response, url); //hook for modifying response
 
     return render_response_(request, response, connection, url, method);
 }
