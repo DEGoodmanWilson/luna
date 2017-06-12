@@ -165,7 +165,7 @@ STATIC request_method method_str_to_enum_(const std::string &method_str)
 STATIC std::string addr_to_str_(const struct sockaddr *addr)
 {
     //TODO do this better. This is stupid.
-    if(addr->sa_family == 0x02)
+    if(addr && addr->sa_family == 0x02)
         return std::to_string(addr->sa_data[2])+"."+std::to_string(addr->sa_data[3])+"."+std::to_string(addr->sa_data[4])+"."+std::to_string(addr->sa_data[5]);
     return "";
 }
