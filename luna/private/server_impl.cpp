@@ -73,8 +73,7 @@ struct connection_info_struct
 std::string default_mime_type{"text/html; charset=UTF-8"};
 
 STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
-                                                                           response &response,
-                                                                           const std::string &path)
+                                                                           response &response)
     {
         if (response.content.empty())
         {
@@ -368,15 +367,16 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
     request_handlers_[item.first].erase(item.second);
 }
 
-server::error_handler_handle server::server_impl::handle_404(server::endpoint_handler_cb callback)
+server::error_handler_handle server::server_impl::handle_404(server::error_handler_cb callback)
 {
     return handle_error(404, callback);
 }
 
-server::error_handler_handle server::server_impl::handle_error(status_code code, server::endpoint_handler_cb callback)
+server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(code, error_handlers_[code].insert(std::end(error_handlers_[code]), std::make_tuple(code, callback)));
+    error_handlers_[code] = callback;
+    return code;
 }
 
 void server::server_impl::remove_error_handler(error_handler_handle item)
@@ -384,7 +384,7 @@ void server::server_impl::remove_error_handler(error_handler_handle item)
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
     std::lock_guard<std::mutex> guard{lock_};
-    error_handlers_[item.first].erase(item.second);
+    error_handlers_.erase(item);
 }
 
 
@@ -589,13 +589,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                         // These lines should basically never get hit in testing
                         response.status_code = 500;                                                 //LCOV_EXCL_LINE
                         // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-                        return render_error_(req, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
                     }
                     if (magic_load(magic_cookie, NULL) != 0)
                     {
                         magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
                         response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        return render_error_(req, error_response, connection, url, method_str);   //LCOV_EXCL_LINE
+                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
                     }
 
                     std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
@@ -611,11 +611,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 {
                     mw(response);
                 }
-                return render_error_(req, response, connection, url_str, method_str);
+                return render_error_(req, response, connection);
             }
 
             //else render success
-            return render_response_(req, response, connection, url_str, method_str);
+            return render_response_(req, response, connection);
         }
     }
 
@@ -626,16 +626,13 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
         mw(response);
     }
-    return render_error_(req, response, connection, url, method_str);
+    return render_error_(req, response, connection);
 }
 
 //TODO this should be a static non-class function, I think.
 int server::server_impl::render_response_(request &request,
                                           response &response,
-                                          MHD_Connection *connection,
-                                          const std::string &url,
-                                          const std::string &method,
-                                          response_headers headers) const
+                                          MHD_Connection *connection) const
 {
     struct MHD_Response *mhd_response;
 
@@ -650,7 +647,7 @@ int server::server_impl::render_response_(request &request,
         auto file = fopen(response.file.c_str(), "r");
         if (!file)
         {
-            return render_error_(request, {404}, connection, url, method);
+            return render_error_(request, {404}, connection);
         }
         else
         {
@@ -695,20 +692,26 @@ int server::server_impl::render_response_(request &request,
     return ret;
 }
 
-int server::server_impl::render_error_(request &request, response &response, MHD_Connection *connection, const std::string &url, const std::string &method) const
+int server::server_impl::render_error_(request &request, response &response, MHD_Connection *connection) const
 {
     /* unsupported HTTP method */
-    error_handler_callback_(request, response, url); //hook for modifying response
+    error_handler_callback_(request, response); //hook for modifying response
 
-    return render_response_(request, response, connection, url, method);
+    // get custom error page if exists
+    if(error_handlers_.count(response.status_code))
+    {
+        error_handlers_.at(response.status_code)(request, response); //re-render response
+    }
+
+    return render_response_(request, response, connection);
 }
 
-int server::server_impl::render_error_(request &request, response &&response, MHD_Connection *connection, const std::string &url, const std::string &method) const
+int server::server_impl::render_error_(request &request, response &&response, MHD_Connection *connection) const
 {
     /* unsupported HTTP method */
-    error_handler_callback_(request, response, url); //hook for modifying response
+    error_handler_callback_(request, response); //hook for modifying response
 
-    return render_response_(request, response, connection, url, method);
+    return render_response_(request, response, connection);
 }
 
 /////////// callback shims

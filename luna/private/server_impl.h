@@ -57,8 +57,8 @@ public:
 
     void remove_request_handler(request_handler_handle item);
 
-    server::error_handler_handle handle_404(server::endpoint_handler_cb callback);
-    server::error_handler_handle handle_error(status_code code, server::endpoint_handler_cb callback);
+    server::error_handler_handle handle_404(server::error_handler_cb callback);
+    server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
 
     void remove_error_handler(error_handler_handle item);
 
@@ -139,7 +139,7 @@ private:
     std::mutex lock_;
 
     std::map<request_method, server::request_handlers> request_handlers_;
-    std::map<status_code, server::error_handlers> error_handlers_;
+    std::map<status_code, server::error_handler_cb> error_handlers_;
 
     bool debug_output_;
 
@@ -243,22 +243,15 @@ private:
     int render_response_(
             request &request,
             response &response,
-            MHD_Connection *connection,
-            const std::string &url,
-            const std::string &method,
-            request_headers headers = {}) const;
+            MHD_Connection *connection) const;
 
     int render_error_(request &request,
                       response &response,
-                      MHD_Connection *connection,
-                      const std::string &url,
-                      const std::string &method) const;
+                      MHD_Connection *connection) const;
 
     int render_error_(request &request,
                       response &&response,
-                      MHD_Connection *connection,
-                      const std::string &url,
-                      const std::string &method) const;
+                      MHD_Connection *connection) const;
 
 
 };

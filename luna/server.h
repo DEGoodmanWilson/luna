@@ -41,8 +41,8 @@ public:
     using endpoint_handler_cb = std::function<response(const request &req)>;
 
     using error_handler_cb = std::function<void(const request &request,
-                                                response &response, //a hook for modifying in place to insert default content
-                                                const std::string &path)>;
+                                                response &response //a hook for modifying in place to insert default content
+                                                )>;
     // MHD config options
 
     using unescaper_cb = std::function<std::string(const std::string &text)>;
@@ -125,8 +125,7 @@ public:
     using request_handlers = std::vector<std::tuple<std::regex, endpoint_handler_cb, parameter::validators>>;
     using request_handler_handle = std::pair<request_method, request_handlers::const_iterator>;
 
-    using error_handlers = std::vector<std::tuple<status_code, endpoint_handler_cb>>;
-    using error_handler_handle = std::pair<status_code, error_handlers::const_iterator>;
+    using error_handler_handle = status_code;
 
     template<typename T>
     request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback)
@@ -152,8 +151,8 @@ public:
 
     void remove_request_handler(request_handler_handle item);
 
-    error_handler_handle handle_404(endpoint_handler_cb callback);
-    error_handler_handle handle_error(status_code code, endpoint_handler_cb callback);
+    error_handler_handle handle_404(error_handler_cb callback);
+    error_handler_handle handle_error(status_code code, error_handler_cb callback);
 
     void remove_error_handler(error_handler_handle item);
 
