@@ -52,7 +52,7 @@ after_success:
 
 matrix:
   include:
-    # gcc 5
+    # gcc 4.9
     - env: COMPILER=g++-4.9 CCOMPILER=gcc-4.9 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna GENERATE_COVERAGE=ON
       addons:
         apt:
@@ -64,7 +64,6 @@ matrix:
             - cmake-data
           sources: *sources
 
-  include:
     # gcc 5
     - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       addons:
