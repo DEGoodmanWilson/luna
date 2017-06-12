@@ -53,11 +53,14 @@ public:
     server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validators);
     server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validators);
 
-
     server::request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
 
-
     void remove_request_handler(request_handler_handle item);
+
+    server::error_handler_handle handle_404(server::endpoint_handler_cb callback);
+    server::error_handler_handle handle_error(status_code code, server::endpoint_handler_cb callback);
+
+    void remove_error_handler(error_handler_handle item);
 
     void set_option(debug_output value);
 
@@ -136,6 +139,7 @@ private:
     std::mutex lock_;
 
     std::map<request_method, server::request_handlers> request_handlers_;
+    std::map<status_code, server::error_handlers> error_handlers_;
 
     bool debug_output_;
 

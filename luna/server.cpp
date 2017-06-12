@@ -253,9 +253,24 @@ server::request_handler_handle server::serve_files(const std::string &mount_poin
     return impl_->serve_files(mount_point, path_to_files);
 }
 
+server::error_handler_handle server::handle_404(endpoint_handler_cb callback)
+{
+    return impl_->handle_404(callback);
+}
+
+server::error_handler_handle server::handle_error(status_code code, endpoint_handler_cb callback)
+{
+    return impl_->handle_error(code, callback);
+}
+
 void server::remove_request_handler(server::request_handler_handle item)
 {
     impl_->remove_request_handler(item);
+}
+
+void server::remove_error_handler(server::error_handler_handle item)
+{
+    impl_->remove_error_handler(item);
 }
 
 }

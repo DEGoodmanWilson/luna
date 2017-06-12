@@ -360,13 +360,31 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
         });
 }
 
-
 void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
     std::lock_guard<std::mutex> guard{lock_};
     request_handlers_[item.first].erase(item.second);
+}
+
+server::error_handler_handle server::server_impl::handle_404(server::endpoint_handler_cb callback)
+{
+    return handle_error(404, callback);
+}
+
+server::error_handler_handle server::server_impl::handle_error(status_code code, server::endpoint_handler_cb callback)
+{
+    std::lock_guard<std::mutex> guard{lock_};
+    return std::make_pair(code, error_handlers_[code].insert(std::end(error_handlers_[code]), std::make_tuple(code, callback)));
+}
+
+void server::server_impl::remove_error_handler(error_handler_handle item)
+{
+    //TODO this is expensive. Find a better way to store this stuff.
+    //TODO validate we are receiving a valid iterator!!
+    std::lock_guard<std::mutex> guard{lock_};
+    error_handlers_[item.first].erase(item.second);
 }
 
 
