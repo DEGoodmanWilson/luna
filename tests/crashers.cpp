@@ -67,3 +67,14 @@ TEST(crashers, 2_query_params_with_no_values_post)
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
+
+namespace luna
+{
+std::string addr_to_str_(const struct sockaddr *addr);
+}
+
+TEST(crashers, addr_to_string_with_null)
+{
+    auto res = luna::addr_to_str_(nullptr);
+    ASSERT_EQ("", res);
+}

@@ -152,12 +152,17 @@ static request_method method_str_to_enum_(const char *method_str)
 }
 
 //TODO I hate this.
-static request_method method_str_to_enum_(const std::string &method_str)
+#ifdef LUNA_TESTING
+#define STATIC
+#else
+#define STATIC static
+#endif
+STATIC request_method method_str_to_enum_(const std::string &method_str)
 {
     return method_str_to_enum_(method_str.c_str());
 }
 
-static std::string addr_to_str_(const struct sockaddr *addr)
+STATIC std::string addr_to_str_(const struct sockaddr *addr)
 {
     //TODO do this better. This is stupid.
     if(addr->sa_family == 0x02)
@@ -165,7 +170,7 @@ static std::string addr_to_str_(const struct sockaddr *addr)
     return "";
 }
 
-static MHD_ValueKind method_to_value_kind_enum_(request_method method)
+STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 {
     if (method == request_method::GET)
     {

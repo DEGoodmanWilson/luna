@@ -34,6 +34,15 @@ luna_option(BUILD_LUNA_COVERAGE "Generate test coverage information"    OFF)
 luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              ON)
 message(STATUS "=======================================================")
 
+set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
+include_directories(SYSTEM ${LUNA_INCLUDE_DIRS})
+include_directories(SYSTEM PRIVATE luna)
+include_directories(PRIVATE luna/private)
+message(STATUS "Luna version:")
+message(STATUS ${LUNA_VERSION})
+add_definitions(-DLUNA_NAME=\"${CONAN_PACKAGE_NAME}\")
+add_definitions(-DLUNA_VERSION=\"${CONAN_PACKAGE_VERSION}\")
+
 if (BUILD_LUNA_COVERAGE)
     message(INFO "Will generate coverage information")
     set(BUILD_LUNA_TESTS true) # need the tests if coverage is requested!
@@ -42,23 +51,12 @@ if (BUILD_LUNA_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 --coverage")
 endif()
 
-
-##### luna
-set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
-include_directories(SYSTEM ${LUNA_INCLUDE_DIRS})
-
-set(LIB_LUNA_SOURCE_FILES luna/private/safer_times.cpp luna/types.h luna/server.cpp luna/server.h luna/private/server_impl.cpp luna/private/server_impl.h luna/config.cpp luna/config.h luna/private/safer_times.h luna/types.cpp)
-add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-message(STATUS "Luna version:")
-message(STATUS ${LUNA_VERSION})
-add_definitions(-DLUNA_NAME=\"${CONAN_PACKAGE_NAME}\")
-add_definitions(-DLUNA_VERSION=\"${CONAN_PACKAGE_VERSION}\")
-include_directories(PRIVATE luna/private)
-include_directories(SYSTEM PRIVATE luna)
-target_link_libraries(luna ${CONAN_LIBS})
-
 if (BUILD_LUNA_TESTS)
     message(STATUS "Building Luna with Tests")
+
+    add_definitions(-DLUNA_TESTING)
+    add_definitions(-DLUNA_TESTING)
+
     add_subdirectory(tests)
 endif ()
 
@@ -82,3 +80,20 @@ if (BUILD_LUNA_EXAMPLES)
     add_executable(example4 ${EXAMPLE4_SOURCE_FILES})
     target_link_libraries(example4 luna)
 endif ()
+
+##### luna
+
+set(LIB_LUNA_SOURCE_FILES
+        luna/private/safer_times.cpp
+        luna/types.cpp
+        luna/types.h
+        luna/server.cpp
+        luna/server.h
+        luna/private/server_impl.cpp
+        luna/private/server_impl.h
+        luna/config.cpp
+        luna/config.h
+        luna/private/safer_times.h
+        )
+add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
+target_link_libraries(luna ${CONAN_LIBS})
