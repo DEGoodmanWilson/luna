@@ -130,3 +130,13 @@ TEST(types, test_header_type_case_insensitivity)
     ASSERT_EQ(1, header.count("ABC"));
     ASSERT_EQ(0, header.count("lmn"));
 }
+
+TEST(types, test_method_to_string)
+{
+    ASSERT_EQ("GET", luna::to_string(luna::request_method::GET));
+    ASSERT_EQ("POST", luna::to_string(luna::request_method::POST));
+    ASSERT_EQ("PUT", luna::to_string(luna::request_method::PUT));
+    ASSERT_EQ("PATCH", luna::to_string(luna::request_method::PATCH));
+    ASSERT_EQ("DELETE", luna::to_string(luna::request_method::DELETE));
+    ASSERT_EQ("OPTIONS", luna::to_string(luna::request_method::OPTIONS));
+}

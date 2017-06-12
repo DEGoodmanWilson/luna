@@ -6,28 +6,12 @@
 
 #include "luna/config.h"
 #include "luna/types.h"
-
-namespace luna
-{
-
-logger_cb logger_ = nullptr;
-
-void set_logger(logger_cb logger)
-{
-    logger_ = logger;
-}
-
-void reset_logger()
-{
-    logger_ = nullptr;
-}
-
-} //namespace luna
-
+#include <strstream>
+#include <regex>
 
 std::string to_string(luna::log_level value)
 {
-    switch(value)
+    switch (value)
     {
         case luna::log_level::FATAL:
             return "FATAL";
@@ -42,3 +26,46 @@ std::string to_string(luna::log_level value)
             return "DEBUG";
     }
 }
+
+namespace luna
+{
+
+access_logger_cb access_logger_ = nullptr;
+
+void set_access_logger(access_logger_cb access_logger)
+{
+    access_logger_ = access_logger;
+}
+
+void reset_access_logger()
+{
+    access_logger_ = nullptr;
+}
+
+error_logger_cb error_logger_ = nullptr;
+
+void set_error_logger(error_logger_cb error_logger)
+{
+    error_logger_ = error_logger;
+}
+
+void reset_error_logger()
+{
+    error_logger_ = nullptr;
+}
+
+
+void access_log(const request &request)
+{
+    if(access_logger_)
+        access_logger_(request);
+}
+
+void error_log(luna::log_level level, const std::string &message)
+{
+    if(error_logger_)
+        error_logger_(level, message);
+}
+
+
+} //namespace luna

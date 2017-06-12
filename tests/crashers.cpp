@@ -11,9 +11,9 @@
 
 TEST(crashers, 1_logging)
 {
-    luna::set_logger([](luna::log_level level, const std::string &mesg)
+    luna::set_error_logger([](luna::log_level level, const std::string &mesg)
                          {
-                             std::cout << to_string(level) << ": " << mesg << std::endl;
+                             std::cout << mesg << std::endl;
                          });
 
     luna::server server{luna::server::port{8080}};
@@ -27,7 +27,7 @@ TEST(crashers, 1_logging)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 
-    luna::reset_logger();
+    luna::reset_error_logger();
 }
 
 TEST(crashers, 2_query_params_with_no_values)
@@ -66,4 +66,15 @@ TEST(crashers, 2_query_params_with_no_values_post)
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/hello"}, cpr::Payload{{"key1", ""}, {"key2", "foo"}});
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
+}
+
+namespace luna
+{
+std::string addr_to_str_(const struct sockaddr *addr);
+}
+
+TEST(crashers, addr_to_string_with_null)
+{
+    auto res = luna::addr_to_str_(nullptr);
+    ASSERT_EQ("", res);
 }

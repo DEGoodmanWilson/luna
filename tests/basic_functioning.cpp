@@ -110,9 +110,10 @@ TEST(basic_functioning, debug_logging)
 {
     bool got_log{false};
 
-    luna::set_logger([&](luna::log_level level, const std::string &message)
+    luna::set_error_logger([&](luna::log_level level, const std::string &message)
                          {
-                             if(message == "Failed to bind to port 8080: Address already in use\n")
+                             const std::string m{"Failed to bind to port 8080: Address already in use\n"};
+                             if(message == m && level == luna::log_level::DEBUG)
                              {
                                  got_log = true;
                              }
@@ -124,7 +125,7 @@ TEST(basic_functioning, debug_logging)
 
     ASSERT_TRUE(got_log);
 
-    luna::reset_logger();
+    luna::reset_access_logger();
 }
 
 TEST(basic_functioning, async_start)

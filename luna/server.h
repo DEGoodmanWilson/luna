@@ -40,8 +40,8 @@ public:
 
     using endpoint_handler_cb = std::function<response(const request &req)>;
 
-    using error_handler_cb = std::function<void(response &response, //a hook for modifying in place to insert default content
-                                                request_method method,
+    using error_handler_cb = std::function<void(const request &request,
+                                                response &response, //a hook for modifying in place to insert default content
                                                 const std::string &path)>;
     // MHD config options
 

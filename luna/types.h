@@ -9,6 +9,7 @@
 #include <string>
 #include <regex>
 #include <map>
+#include <chrono>
 #include <functional>
 #include <stdint.h>
 
@@ -114,8 +115,30 @@ private:
 
 basic_authorization get_basic_authorization(const request_headers &headers);
 
+
+enum class request_method
+{
+    UNKNOWN = 0,
+    GET,
+    POST,
+    PUT,
+    PATCH,
+    DELETE,
+    OPTIONS,
+    //Yes, there are more than these. Later, though. Later.
+    //HEAD,
+};
+
+std::string to_string(luna::request_method method);
+
 struct request
 {
+    std::chrono::system_clock::time_point start;
+    std::chrono::system_clock::time_point end;
+    std::string ip_address;
+    request_method method;
+    std::string path;
+    std::string http_version;
     endpoint_matches matches;
     query_params params;
     request_headers headers;
@@ -212,18 +235,6 @@ struct unauthorized_response : public response
     unauthorized_response(const std::string &realm, const authorization_kind kind = authorization_kind::BASIC) : response{401, {{"WWW-Authenticate", to_string(kind) + " realm=\"" + realm + "\""}}} {}
 };
 
-enum class request_method
-{
-    UNKNOWN = 0,
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    OPTIONS,
-    //Yes, there are more than these. Later, though. Later.
-    //HEAD,
-};
 
 namespace parameter
 {
