@@ -139,5 +139,4 @@ TEST(types, test_method_to_string)
     ASSERT_EQ("PATCH", luna::to_string(luna::request_method::PATCH));
     ASSERT_EQ("DELETE", luna::to_string(luna::request_method::DELETE));
     ASSERT_EQ("OPTIONS", luna::to_string(luna::request_method::OPTIONS));
-
 }

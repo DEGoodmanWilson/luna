@@ -9,6 +9,18 @@
 #include <luna/luna.h>
 #include <cpr/cpr.h>
 
+namespace luna
+{
+bool is_redirect_(status_code code);
+}
+
+TEST(advanced_functioning, is_redirect_)
+{
+    ASSERT_TRUE(luna::is_redirect_(301));
+    ASSERT_FALSE(luna::is_redirect_(200));
+    ASSERT_FALSE(luna::is_redirect_(400));
+}
+
 TEST(advanced_functioning, get_basic_regexes)
 {
     luna::server server{luna::server::port{8080}};

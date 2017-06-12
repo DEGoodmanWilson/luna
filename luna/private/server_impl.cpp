@@ -13,6 +13,11 @@
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
+#ifdef LUNA_TESTING
+#define STATIC
+#else
+#define STATIC static
+#endif
 
 namespace luna
 {
@@ -67,7 +72,7 @@ struct connection_info_struct
 
 std::string default_mime_type{"text/html; charset=UTF-8"};
 
-static const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
+STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
                                                                            response &response,
                                                                            const std::string &path)
     {
@@ -86,13 +91,13 @@ static const server::error_handler_cb default_error_handler_callback_ = [](const
         }
     };
 
-static const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
+STATIC const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
     {
         return true;
     };
 
-static status_code default_success_code_(request_method method)
+STATIC status_code default_success_code_(request_method method)
 {
     if (method == request_method::POST)
     {
@@ -102,21 +107,21 @@ static status_code default_success_code_(request_method method)
     return 200;
 }
 
-static bool is_error_(status_code code)
+STATIC bool is_error_(status_code code)
 {
     if (code < 300) return false;
 
     return true;
 }
 
-static bool is_redirect_(status_code code)
+STATIC bool is_redirect_(status_code code)
 {
     if ((code >= 300) && code < 400) return true;
 
     return false;
 }
 
-static request_method method_str_to_enum_(const char *method_str)
+STATIC request_method method_str_to_enum_(const char *method_str)
 {
     if (!std::strcmp(method_str, GET))
     {
@@ -152,11 +157,6 @@ static request_method method_str_to_enum_(const char *method_str)
 }
 
 //TODO I hate this.
-#ifdef LUNA_TESTING
-#define STATIC
-#else
-#define STATIC static
-#endif
 STATIC request_method method_str_to_enum_(const std::string &method_str)
 {
     return method_str_to_enum_(method_str.c_str());
