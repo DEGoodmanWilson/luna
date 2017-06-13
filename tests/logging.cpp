@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 
-TEST(logging, smoke_test)
+TEST(logging, error_logger_test)
 {
     std::string log_str{"NOPE"};
     luna::log_level log_lvl{luna::log_level::FATAL};
@@ -21,6 +21,7 @@ TEST(logging, smoke_test)
     luna::error_log(luna::log_level::DEBUG, "hello");
     ASSERT_EQ("hello", log_str);
     ASSERT_EQ(luna::log_level::DEBUG, log_lvl);
+
     luna::reset_error_logger();
 }
 
@@ -37,6 +38,8 @@ TEST(logging, basic_formatting_test)
     luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
     luna::access_log(req);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
+
+    luna::reset_access_logger();
 }
 
 TEST(logging, basic_formatting_test_2)
@@ -52,4 +55,6 @@ TEST(logging, basic_formatting_test_2)
     luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
     luna::access_log(req);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
+
+    luna::reset_access_logger();
 }

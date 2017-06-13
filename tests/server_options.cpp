@@ -41,11 +41,10 @@ TEST(server_options, set_error_handler_cb)
     luna::server server{luna::server::error_handler_cb
                                 {
                                         [](const luna::request &request,
-                                           luna::response &response, //a hook for modifying in place to insert default content
-                                           const std::string &path)
+                                           luna::response &response) //a hook for modifying in place to insert default content
                                             {
                                                 ASSERT_EQ(404, response.status_code);
-                                                ASSERT_EQ("/test", path);
+                                                ASSERT_EQ("/test", request.path);
                                                 ASSERT_EQ(luna::request_method::GET, request.method);
                                             }
                                 }
