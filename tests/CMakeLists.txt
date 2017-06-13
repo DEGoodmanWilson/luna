@@ -22,6 +22,7 @@ add_executable(luna_tests
         logging.cpp
         options.cpp
         customization.cpp
+        server_impl.cpp
         )
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")

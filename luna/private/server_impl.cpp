@@ -10,6 +10,7 @@
 #include <fstream>
 #include <magic.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
@@ -163,9 +164,14 @@ STATIC request_method method_str_to_enum_(const std::string &method_str)
 
 STATIC std::string addr_to_str_(const struct sockaddr *addr)
 {
-    //TODO do this better. This is stupid.
-    if(addr && addr->sa_family == 0x02)
-        return std::to_string(addr->sa_data[2])+"."+std::to_string(addr->sa_data[3])+"."+std::to_string(addr->sa_data[4])+"."+std::to_string(addr->sa_data[5]);
+    if(addr)
+    {
+        char str[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN) == NULL) {
+            return "";
+        }
+        return str; //makes a copy, since we are returning an std::string
+    }
     return "";
 }
 
