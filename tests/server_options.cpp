@@ -10,6 +10,7 @@
 #include <cpr/cpr.h>
 #include <mutex>
 #include <thread>
+#include <array>
 #include <chrono>
 #include "server_impl.h"
 
@@ -117,7 +118,7 @@ TEST(server_options, set_thread_pool_size)
                                   if (count > max_count) max_count = count;
                                   mutex.unlock();
 
-                                  std::this_thread::sleep_for(50ms);
+                                  std::this_thread::sleep_for(100ms);
 
                                   mutex.lock();
                                   --count;
@@ -125,18 +126,19 @@ TEST(server_options, set_thread_pool_size)
                                   return {"Hello"};
                               });
 
-    std::thread threads[10];
-    for (int x = 0; x < 10; ++x)
+    const int thread_count{50};
+    std::array<std::thread, thread_count> threads;
+    for (auto &t : threads)
     {
-        threads[x] = std::thread{[]()
-                                     {
-                                         cpr::Get(cpr::Url{"http://localhost:8080/test"});
-                                     }};
+        t = std::thread{[]()
+        {
+            cpr::Get(cpr::Url{"http://localhost:8080/test"});
+        }};
     }
 
-    for (int x = 0; x < 10; ++x)
+    for (auto &t : threads)
     {
-        threads[x].join();
+        t.join();
     }
 
     ASSERT_EQ(0, count);
