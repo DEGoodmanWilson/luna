@@ -6,7 +6,7 @@
 
 #include "luna/config.h"
 #include "luna/types.h"
-#include <strstream>
+#include <sstream>
 #include <regex>
 
 std::string to_string(luna::log_level value)
