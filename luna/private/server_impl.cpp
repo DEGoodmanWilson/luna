@@ -167,6 +167,7 @@ STATIC std::string addr_to_str_(const struct sockaddr *addr)
     if(addr)
     {
         char str[INET_ADDRSTRLEN];
+        //TODO how do we know if we have a v6 address here?
         if (inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN) == NULL) {
             return "";
         }
