@@ -1,8 +1,25 @@
+/////////////////
+//
+// TLS
+//
+// A demonstration for serving simple webpages securely with luna.
+// This app demonstrates, very briefly, how to serve secure endpoints with TLS
+//
+/////////////////
+
 #include <string>
 #include <iostream>
 #include <luna/luna.h>
 
 using namespace luna;
+
+////
+// Of course, you need some certificates. At the moment, the only built-in supported method is to read them from
+// memory as character strings; and the server must be restarted if the values change. We'll look at improving
+// this in the future, but for now this is how it goes.
+//
+// You will need both the private key and the public certificate, as here. This cert only works with `localhost` so
+// don't use them in production ;)
 
 const char* key_pem = R"key(
 -----BEGIN RSA PRIVATE KEY-----
@@ -46,30 +63,45 @@ T5NU9xUNbQugJdCMSm+5TLeU5UhsvGqxVDAcIr3w9Iwsyti9CzRs6TzUog==
 )key";
 
 
+// Here are our loggers, just like in the basic_webapp example
+void ex_error_log(log_level level, const std::string &message)
+{
+    std::cout << "[" << to_string(level) << "] " << message << std::endl;
+}
+
+void ex_access_log(const luna::request &request)
+{
+    std::cout << request.ip_address << ": " << luna::to_string(request.method) << " " << request.path << " "
+              << request.http_version << " " << request.headers.at("user-agent") << std::endl;
+}
+
+
 int main(void)
 {
-    set_error_logger([](log_level level, const std::string &message)
-    {
-        std::cout << "[" << to_string(level) << "] " << message << std::endl;
-    });
+    // Set up the logging
+    set_error_logger(ex_error_log);
+    set_access_logger(ex_access_log);
 
-    set_access_logger([](const luna::request &request)
-    {
-        std::cout << request.ip_address << ": " << luna::to_string(request.method) << " " << request.path << " " << request.http_version << " " << request.headers.at("user-agent") << std::endl;
-    });
+    // Here we add debugging output, and we pass in the private key and the public certificate to luna
+    // Notice that setting up TLS precludes the possibility of serving non-https webpages, unfortunately. This is a bug.
+    server server{
+            server::port{8443},
+            server::debug_output{true},
+            server::https_mem_key{key_pem},
+            server::https_mem_cert{cert_pem}};
 
 
-
-    luna::server server{luna::server::debug_output{true}, luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
-
-    server.handle_request(luna::request_method::GET,
+    // from here, everything is the same!
+    // try reaching:
+    // https://localhost:8442/hello_world
+    server.handle_request(request_method::GET,
                           "/hello_world",
-                          [](auto req) -> luna::response
+                          [](auto req) -> response
                               {
                                   return {"<h1>Hello, World!</h1>"};
                               });
 
-    server.await(); //run forever, basically, or until the server decides to kill itself.
 
-    // Open at https://localhost:8080/hello_world
+    // Block until the server shuts down, which is never. We could also do other things with this thread as well.
+    server.await();
 }

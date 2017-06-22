@@ -53,6 +53,3 @@ A C++14 capable compiler (tested against gcc 4.9, clang 3.6), CMake 2.8. [Conan]
 
 [MIT](https://github.com/DEGoodmanWilson/luna/blob/master/LICENSE)
 
-## Disclaimer
-
-This library has only begun, and is a constant state of flux.
