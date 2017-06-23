@@ -258,6 +258,8 @@ private:
     void set_option_(middleware::after_request_handler value);
     void set_option_(middleware::after_error value);
 
+    //static asset caching
+    void set_option_(std::pair<cache::read, cache::write> value);
 };
 
 //for testing purposes only.

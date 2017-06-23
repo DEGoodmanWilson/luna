@@ -134,6 +134,8 @@ public:
     void set_option(middleware::after_request_handler value);
     void set_option(middleware::after_error value);
 
+    //static asset caching
+    void set_option(std::pair<cache::read, cache::write> value);
 
 private:
     std::mutex lock_;
@@ -163,9 +165,13 @@ private:
     std::vector<std::string> https_key_password_;
 
     // middlewares
-    middleware::before_request_handler middleware_before_request_handler;
-    middleware::after_request_handler middleware_after_request_handler;
-    middleware::after_error middleware_after_error;
+    middleware::before_request_handler middleware_before_request_handler_;
+    middleware::after_request_handler middleware_after_request_handler_;
+    middleware::after_error middleware_after_error_;
+
+    // static asset caching
+    cache::read cache_read_;
+    cache::write cache_write_;
 
     //options
     std::vector<MHD_OptionItem> options_;
@@ -240,16 +246,16 @@ private:
 
     ///// helpers
 
-    int render_response_(
+    bool render_response_(
             request &request,
             response &response,
             MHD_Connection *connection) const;
 
-    int render_error_(request &request,
+    bool render_error_(request &request,
                       response &response,
                       MHD_Connection *connection) const;
 
-    int render_error_(request &request,
+    bool render_error_(request &request,
                       response &&response,
                       MHD_Connection *connection) const;
 

@@ -27,7 +27,7 @@ addons: &addons
 
 env:
   matrix:
-    - COMPILER=g++-4.9 CCOMPILER=gcc-4.9 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna GENERATE_COVERAGE=ON
+    - COMPILER=g++-4.9 CCOMPILER=gcc-4.9 GENERATE_COVERAGE=ON
 
 
 install:
@@ -53,7 +53,7 @@ after_success:
 matrix:
   include:
     # gcc 4.9
-    - env: COMPILER=g++-4.9 CCOMPILER=gcc-4.9 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna GENERATE_COVERAGE=ON
+    - env: COMPILER=g++-4.9 CCOMPILER=gcc-4.9 GENERATE_COVERAGE=ON
       addons:
         apt:
           packages:
@@ -65,7 +65,7 @@ matrix:
           sources: *sources
 
     # gcc 5
-    - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5
       addons:
         apt:
           packages:
@@ -77,7 +77,7 @@ matrix:
           sources: *sources
 
     # Clang 3.6
-    - env: COMPILER=clang++-3.6 CCOMPILER=clang-3.6 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+    - env: COMPILER=clang++-3.6 CCOMPILER=clang-3.6
       addons:
         apt:
           packages:
@@ -89,7 +89,7 @@ matrix:
           sources: *sources
 
     # Clang 3.7
-    - env: COMPILER=clang++-3.7 CCOMPILER=clang-3.7 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+    - env: COMPILER=clang++-3.7 CCOMPILER=clang-3.7
       addons:
         apt:
           packages:
@@ -101,7 +101,7 @@ matrix:
           sources: *sources
 
     # Clang 3.8
-    - env: COMPILER=clang++-3.8 CCOMPILER=clang-3.8 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+    - env: COMPILER=clang++-3.8 CCOMPILER=clang-3.8
       addons:
         apt:
           packages:
@@ -114,19 +114,19 @@ matrix:
 
     # Xcode 6.4
     - os: osx
-      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES
       osx_image: xcode6.4
 
     # Xcode 7
     - os: osx
-      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES
       osx_image: xcode7.3
 
     # Xcode 8
     - os: osx
-      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES GENERATE_COVERAGE=ON STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
+      env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES GENERATE_COVERAGE=ON
       osx_image: xcode8
 
   # at the moment, gcc5 is failing on libmagic :(
   allow_failures:
-    - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+    - env: COMPILER=g++-5 CCOMPILER=gcc-5

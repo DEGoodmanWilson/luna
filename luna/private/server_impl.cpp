@@ -75,27 +75,27 @@ std::string default_mime_type{"text/html; charset=UTF-8"};
 
 STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
                                                                            response &response)
+{
+    if (response.content.empty())
     {
-        if (response.content.empty())
+        response.content_type = "text/html; charset=UTF-8";
+        //we'd best render it ourselves.
+        switch (response.status_code)
         {
-            response.content_type = "text/html; charset=UTF-8";
-            //we'd best render it ourselves.
-            switch (response.status_code)
-            {
-                case 404:
-                    response.content = "<h1>Not found</h1>";
-                    break;
-                default:
-                    response.content = "<h1>So sorry, generic server error</h1>";
-            }
+            case 404:
+                response.content = "<h1>Not found</h1>";
+                break;
+            default:
+                response.content = "<h1>So sorry, generic server error</h1>";
         }
-    };
+    }
+};
 
 STATIC const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
-    {
-        return true;
-    };
+{
+    return true;
+};
 
 STATIC status_code default_success_code_(request_method method)
 {
@@ -164,11 +164,12 @@ STATIC request_method method_str_to_enum_(const std::string &method_str)
 
 STATIC std::string addr_to_str_(const struct sockaddr *addr)
 {
-    if(addr)
+    if (addr)
     {
         char str[INET_ADDRSTRLEN];
         //TODO how do we know if we have a v6 address here?
-        if (inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN) == NULL) {
+        if (inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN) == NULL)
+        {
             return "";
         }
         return str; //makes a copy, since we are returning an std::string
@@ -198,8 +199,10 @@ server::server_impl::server_impl() :
         error_handler_callback_{default_error_handler_callback_},
         accept_policy_callback_{default_accept_policy_callback_},
         port_{8080},
-        server_identifier_{std::string{LUNA_NAME}+"/"+LUNA_VERSION}
-{ }
+        server_identifier_{std::string{LUNA_NAME} + "/" + LUNA_VERSION},
+        cache_read_{nullptr},
+        cache_write_{nullptr}
+{}
 
 
 void server::server_impl::start()
@@ -267,7 +270,8 @@ void server::server_impl::start()
 
     if (!daemon_)
     {
-        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) + "?)"); //TODO set some real error flags perhaps?
+        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) +
+                  "?)"); //TODO set some real error flags perhaps?
         return;
     }
     running_cv_.notify_all(); //daemon_ has changed value
@@ -298,7 +302,7 @@ void server::server_impl::await()
     std::mutex m;
     {
         std::unique_lock<std::mutex> lk(m);
-        running_cv_.wait(lk, [this]{return daemon_ == nullptr;});
+        running_cv_.wait(lk, [this] { return daemon_ == nullptr; });
     }
 }
 
@@ -320,7 +324,11 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    parameter::validators &&validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(std::move(path), callback, std::move(validators))));
+    return std::make_pair(method,
+                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                                           std::make_tuple(std::move(path),
+                                                                           callback,
+                                                                           std::move(validators))));
 }
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
@@ -329,7 +337,9 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    parameter::validators &&validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(path, callback, std::move(validators))));
+    return std::make_pair(method,
+                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                                           std::make_tuple(path, callback, std::move(validators))));
 }
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
@@ -338,7 +348,9 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    const parameter::validators &validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(std::move(path), callback, validators)));
+    return std::make_pair(method,
+                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                                           std::make_tuple(std::move(path), callback, validators)));
 }
 
 server::request_handler_handle server::server_impl::handle_request(request_method method,
@@ -347,7 +359,9 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    const parameter::validators &validators)
 {
     std::lock_guard<std::mutex> guard{lock_};
-    return std::make_pair(method, request_handlers_[method].insert(std::end(request_handlers_[method]), std::make_tuple(path, callback, validators)));
+    return std::make_pair(method,
+                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                                           std::make_tuple(path, callback, validators)));
 }
 
 server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
@@ -356,14 +370,14 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
     std::regex regex{mount_point + "(.*)"};
     std::string local_path{path_to_files};
     return handle_request(request_method::GET, regex, [=](const request &req) -> response
-        {
-            std::string path = local_path + "/" + req.matches[1];
+    {
+        std::string path = local_path + "/" + req.matches[1];
 
-            LOG_DEBUG(std::string{"File requested:  "}+req.matches[1]);
-            LOG_DEBUG(std::string{"Serve from    :  "}+path);
-            
-            return response::from_file(path);
-        });
+        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
+        LOG_DEBUG(std::string{"Serve from    :  "} + path);
+
+        return response::from_file(path);
+    });
 }
 
 void server::server_impl::remove_request_handler(request_handler_handle item)
@@ -397,7 +411,7 @@ void server::server_impl::remove_error_handler(error_handler_handle item)
 
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
-    switch(kind)
+    switch (kind)
     {
         case MHD_HEADER_KIND:
         case MHD_RESPONSE_HEADER_KIND:
@@ -434,7 +448,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
     if (!*con_cls)
     {
-        connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method, connection, 65535, iterate_postdata_shim_);
+        connection_info_struct *con_info = new(std::nothrow) connection_info_struct(method,
+                                                                                    connection,
+                                                                                    65535,
+                                                                                    iterate_postdata_shim_);
         if (!con_info) return MHD_NO; //TODO what does this mean?
 
         *con_cls = con_info;
@@ -458,7 +475,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     if (*upload_data_size != 0)
     {
         //TODO note that we just drop BINARY data on the floor at present!! See iterate_postdata_shim_()
-        if( MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) == MHD_NO)
+        if (MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) == MHD_NO)
         {
             //MHD couldn't parse it, maybe we can.
             con_info->body.append(upload_data, *upload_data_size);
@@ -474,7 +491,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     // construct request object
-    auto ip_address =  addr_to_str_(MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
+    auto ip_address = addr_to_str_(MHD_get_connection_info(connection,
+                                                           MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
 
     request req{start, start, ip_address, method, url_str, http_version, {}, query_params, header, con_info->body};
 
@@ -513,24 +531,26 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 // TODO this can probably be optimized
                 bool valid_params = true;
                 auto validators = std::get<parameter::validators>(handler_tuple);
-                for(const auto &validator : validators)
+                for (const auto &validator : validators)
                 {
                     bool present = (query_params.count(validator.key) == 0) ? false : true;
-                    if(present)
+                    if (present)
                     {
                         //run the validator
-                        if(!validator.validation_func(query_params[validator.key]))
+                        if (!validator.validation_func(query_params[validator.key]))
                         {
-                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
+                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" +
+                                              validator.key};
                             LOG_ERROR(error);
                             response = {400, "text/plain", error};
                             valid_params = false;
                             break; //stop examining params
                         }
                     }
-                    else if(validator.required) //not present, but required
+                    else if (validator.required) //not present, but required
                     {
-                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" + validator.key};
+                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" +
+                                          validator.key};
                         LOG_ERROR(error);
                         response = {400, "text/plain", error};
                         valid_params = false;
@@ -539,12 +559,12 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
                 }
 
-                if(valid_params)
+                if (valid_params)
                 {
                     //made it this far! try the callback
 
                     //first, the before middlewares
-                    for(const auto &mw : middleware_before_request_handler.funcs)
+                    for (const auto &mw : middleware_before_request_handler_.funcs)
                     {
                         mw(req);
                     }
@@ -552,7 +572,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                     response = callback(req);
 
                     //now, the after middlewares
-                    for(const auto &mw : middleware_after_request_handler.funcs)
+                    for (const auto &mw : middleware_after_request_handler_.funcs)
                     {
                         mw(response);
                     }
@@ -580,7 +600,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
             if (response.content_type.empty()) //no content type assigned, use the default
             {
-                if(response.file.empty())
+                if (response.file.empty())
                 {
                     //serving dynamic content, use the default type
                     response.content_type = default_mime_type;
@@ -614,7 +634,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             if (is_error_(response.status_code))
             {
                 //now, the after_error middlewares
-                for(const auto &mw : middleware_after_error.funcs)
+                for (const auto &mw : middleware_after_error_.funcs)
                 {
                     mw(response);
                 }
@@ -629,7 +649,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     /* unsupported HTTP method */
     //now, the after_error middlewares TODO this could be refactored. The logic is starting to become tortured.
     response response{404};
-    for(const auto &mw : middleware_after_error.funcs)
+    for (const auto &mw : middleware_after_error_.funcs)
     {
         mw(response);
     }
@@ -637,11 +657,11 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 }
 
 //TODO this should be a static non-class function, I think.
-int server::server_impl::render_response_(request &request,
+bool server::server_impl::render_response_(request &request,
                                           response &response,
                                           MHD_Connection *connection) const
 {
-    struct MHD_Response *mhd_response;
+    struct MHD_Response *mhd_response{nullptr};
 
     //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
 
@@ -649,32 +669,53 @@ int server::server_impl::render_response_(request &request,
     // TODO this mhd_response could be cached to speed things up!
     if (!response.file.empty()) //we have a filename, load up that file and ignore the rest
     {
-        response.status_code = 200; //default success
-
-        auto file = fopen(response.file.c_str(), "r");
-        if (!file)
+        //first, let's check the cache!
+        if (cache_read_)
         {
-            return render_error_(request, {404}, connection);
+            response.content = cache_read_(response.file);
+            mhd_response = MHD_create_response_from_buffer(response.content.length(),
+                                                           (void *) response.content.c_str(),
+                                                           MHD_RESPMEM_MUST_COPY);
         }
-        else
-        {
-            auto fd = fileno(file);
-            struct stat stat_buf;
-            auto rc = fstat(fd, &stat_buf);
-            auto fsize = stat_buf.st_size;
 
-            mhd_response = MHD_create_response_from_fd(fsize, fd);
+        if (response.content.empty())
+        {
+            //cache miss, or missing cache: look for the file on disk
+            response.status_code = 200; //default success
+
+            auto file = fopen(response.file.c_str(), "r");
+            if (!file)
+            {
+                return render_error_(request, {404}, connection);
+            }
+            else
+            {
+                auto fd = fileno(file);
+                struct stat stat_buf;
+                auto rc = fstat(fd, &stat_buf);
+                auto fsize = stat_buf.st_size;
+
+                mhd_response = MHD_create_response_from_fd(fsize, fd);
+
+                //TODO put this in a worker thread to reduce impact, and make access to the cache thread safe!
+                if(cache_write_)
+                {
+                    std::ifstream ifs(response.file);
+                    cache_write_(response.file, {(std::istreambuf_iterator<char>(ifs) ), (std::istreambuf_iterator<char>())} );
+                }
+            }
         }
     }
+    // we're loading this from the buffer in response.content, no problem.
     else
     {
         mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                            (void *) response.content.c_str(),
-                                                            MHD_RESPMEM_MUST_COPY);
+                                                       (void *) response.content.c_str(),
+                                                       MHD_RESPMEM_MUST_COPY);
 
     }
 
-    for(const auto&header : response.headers)
+    for (const auto &header : response.headers)
     {
         MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
     }
@@ -683,7 +724,7 @@ int server::server_impl::render_response_(request &request,
 
     MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
 
-    auto ret = MHD_queue_response(connection, response.status_code, mhd_response);
+    bool ret = MHD_queue_response(connection, response.status_code, mhd_response);
 
     request.end = std::chrono::system_clock::now();
 
@@ -691,21 +732,19 @@ int server::server_impl::render_response_(request &request,
     auto end_c = std::chrono::system_clock::to_time_t(request.end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-//    sstr << "[" << luna::put_time(&tm, "%c") << "] " << client_address << " " << method << " " << url << " " << response.status_code << " [" << response.content_type << "] (" << std::chrono::duration_cast<std::chrono::milliseconds>(request.end - request.start).count() << "ms)";
-//    LOG_INFO(sstr.str());
     access_log(request);
 
     MHD_destroy_response(mhd_response);
     return ret;
 }
 
-int server::server_impl::render_error_(request &request, response &response, MHD_Connection *connection) const
+bool server::server_impl::render_error_(request & request, response & response, MHD_Connection * connection) const
 {
     /* unsupported HTTP method */
     error_handler_callback_(request, response); //hook for modifying response
 
     // get custom error page if exists
-    if(error_handlers_.count(response.status_code))
+    if (error_handlers_.count(response.status_code))
     {
         error_handlers_.at(response.status_code)(request, response); //re-render response
     }
@@ -713,7 +752,7 @@ int server::server_impl::render_error_(request &request, response &response, MHD
     return render_response_(request, response, connection);
 }
 
-int server::server_impl::render_error_(request &request, response &&response, MHD_Connection *connection) const
+bool server::server_impl::render_error_(request & request, response && response, MHD_Connection * connection) const
 {
     /* unsupported HTTP method */
     error_handler_callback_(request, response); //hook for modifying response
@@ -765,7 +804,7 @@ void server::server_impl::request_completed_callback_shim_(void *cls, struct MHD
     }
 }
 
-void * server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
+void *server::server_impl::uri_logger_callback_shim_(void *cls, const char *uri, struct MHD_Connection *con)
 {
 //    LOG_DEBUG(uri); //TODO and stuff about the connection too!
     return nullptr;
@@ -788,7 +827,7 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
 
 //    std::cout << "***" << key << ":" << (data ? data : "[null]") << std::endl;
 
-    if(key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
+    if (key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
     {
         auto con_info = static_cast<connection_info_struct *>(cls);
         parse_kv_(&con_info->post_params, kind, key, data);
@@ -848,9 +887,10 @@ void server::server_impl::set_option(server::debug_output value)
 void server::server_impl::set_option(server::use_thread_per_connection value)
 {
     use_thread_per_connection_ = static_cast<bool>(value);
-    if(use_epoll_if_available_)
+    if (use_epoll_if_available_)
     {
-        LOG_ERROR("Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available");
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available");
         use_epoll_if_available_ = false; //not compatible!
     }
 }
@@ -858,9 +898,10 @@ void server::server_impl::set_option(server::use_thread_per_connection value)
 void server::server_impl::set_option(use_epoll_if_available value)
 {
     use_epoll_if_available_ = static_cast<bool>(value);
-    if(use_thread_per_connection_)
+    if (use_thread_per_connection_)
     {
-        LOG_ERROR("Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection");
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection");
         use_thread_per_connection_ = false; //not compatible!
     }
 }
@@ -927,14 +968,16 @@ void server::server_impl::set_option(const server::https_mem_key &value)
 {
     // we must make a durable copy of these strings before tossing around char pointers to their internals
     https_mem_key_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0, const_cast<char *>(https_mem_key_[https_mem_key_.size()-1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0,
+                        const_cast<char *>(https_mem_key_[https_mem_key_.size() - 1].c_str())});
     ssl_mem_key_set_ = true;
 }
 
 void server::server_impl::set_option(const server::https_mem_cert &value)
 {
     https_mem_cert_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0, const_cast<char *>(https_mem_cert_[https_mem_cert_.size()-1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0,
+                        const_cast<char *>(https_mem_cert_[https_mem_cert_.size() - 1].c_str())});
     ssl_mem_cert_set_ = true;
 }
 
@@ -946,7 +989,8 @@ void server::server_impl::set_option(const server::https_mem_cert &value)
 void server::server_impl::set_option(const server::https_priorities &value)
 {
     https_priorities_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0, const_cast<char *>(https_priorities_[https_priorities_.size()-1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0,
+                        const_cast<char *>(https_priorities_[https_priorities_.size() - 1].c_str())});
 }
 
 void server::server_impl::set_option(server::listen_socket value)
@@ -983,7 +1027,8 @@ void server::server_impl::set_option(server::thread_stack_size value)
 void server::server_impl::set_option(const server::https_mem_trust &value)
 {
     https_mem_trust_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0, const_cast<char *>(https_mem_trust_[https_mem_trust_.size()-1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0,
+                        const_cast<char *>(https_mem_trust_[https_mem_trust_.size() - 1].c_str())});
 }
 
 void server::server_impl::set_option(server::connection_memory_increment value)
@@ -1004,7 +1049,8 @@ void server::server_impl::set_option(server::connection_memory_increment value)
 void server::server_impl::set_option(const server::https_mem_dhparams &value)
 {
     https_mem_dhparams_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0, const_cast<char *>(https_mem_dhparams_[https_mem_dhparams_.size() - 1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0,
+                        const_cast<char *>(https_mem_dhparams_[https_mem_dhparams_.size() - 1].c_str())});
 }
 
 //void server::server_impl::set_option(server::listening_address_reuse value)
@@ -1015,7 +1061,8 @@ void server::server_impl::set_option(const server::https_mem_dhparams &value)
 void server::server_impl::set_option(const server::https_key_password &value)
 {
     https_key_password_.emplace_back(value);
-    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0, const_cast<char *>(https_key_password_[https_key_password_.size() - 1].c_str())});
+    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0,
+                        const_cast<char *>(https_key_password_[https_key_password_.size() - 1].c_str())});
 }
 
 //void server::server_impl::set_option(server::notify_connection value)
@@ -1035,18 +1082,23 @@ void server::server_impl::set_option(const server::append_to_server_identifier &
 
 void server::server_impl::set_option(middleware::before_request_handler value)
 {
-    middleware_before_request_handler = value;
+    middleware_before_request_handler_ = value;
 }
 
 void server::server_impl::set_option(middleware::after_request_handler value)
 {
-    middleware_after_request_handler = value;
+    middleware_after_request_handler_ = value;
 }
 
 void server::server_impl::set_option(middleware::after_error value)
 {
-    middleware_after_error = value;
+    middleware_after_error_ = value;
 }
 
+void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
+{
+    cache_read_ = std::get<cache::read>(value);
+    cache_write_ = std::get<cache::write>(value);
+}
 
 } //namespace luna
