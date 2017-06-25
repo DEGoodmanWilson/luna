@@ -8,6 +8,10 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 #include <cpr/cpr.h>
+#include <array>
+#include <thread>
+#include <chrono>
+
 
 TEST(file_service, serve_file_404)
 {
@@ -157,7 +161,7 @@ TEST(file_service, cache_read_write)
     ASSERT_FALSE(cache_hit);
 
 
-    // first call loads from file
+    // first call loads from file and writes to cache
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
     ASSERT_EQ("hello", res.text);
@@ -170,4 +174,111 @@ TEST(file_service, cache_read_write)
     ASSERT_EQ("goodbye", res.text);
     ASSERT_EQ("goodbye", cache);
     ASSERT_TRUE(cache_hit);
+}
+
+TEST(file_service, check_cache_threading)
+{
+    std::string cache;
+    const std::thread::id original_thread{std::this_thread::get_id()};
+
+    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    {
+        EXPECT_NE(original_thread, std::this_thread::get_id());
+        cache = value;
+        return true;
+    };
+
+    luna::server server{luna::cache::build(nullptr, write)};
+    server.serve_files("/", "../tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello", cache);
+}
+
+TEST(file_service, long_running_cache_writes)
+{
+    std::string cache;
+
+    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    {
+        //This sleep will ensure that the thread calling the cache write will outlive the server object.
+        std::this_thread::sleep_for(std::chrono::milliseconds{100});
+        cache = value;
+        return true;
+    };
+
+    {
+        luna::server server{luna::cache::build(nullptr, write)};
+        server.serve_files("/", "../tests/public");
+
+        ASSERT_EQ("", cache);
+
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+        ASSERT_EQ("hello", res.text);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds{200});
+    ASSERT_EQ("hello", cache);
+}
+
+TEST(file_service, check_cache_speedup)
+{
+    std::map<std::string, std::string> cache;
+    int cache_writes;
+
+    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    {
+        cache[key] = value;
+        ++cache_writes;
+        return true;
+    };
+
+    luna::cache::read read = [&](const std::string &key) -> std::string
+    {
+        return cache[key];
+    };
+
+
+    //first, without cache
+    std::chrono::high_resolution_clock::time_point t1, t2, t3, t4;
+    {
+        luna::server server;
+        server.serve_files("/", "../tests/public");
+        t1 = std::chrono::high_resolution_clock::now();
+        int times{100};
+        while (times)
+        {
+            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmre.png"});
+            --times;
+        }
+        t2 = std::chrono::high_resolution_clock::now();
+    }
+    auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+
+    std::cout << "No cacheing:   " << no_cache_duration << std::endl;
+
+
+    //second, with, cache
+    {
+        luna::server server{luna::cache::build(read, write)};
+        server.serve_files("/", "../tests/public");
+
+        // load into cache
+        cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+
+        t3 = std::chrono::high_resolution_clock::now();
+        int times{100};
+        while (times)
+        {
+            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmre.png"});
+            --times;
+        }
+        t4 = std::chrono::high_resolution_clock::now();
+    }
+    auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+
+    std::cout << "With cacheing: " << cache_duration << std::endl;
+    ASSERT_EQ(1, cache_writes);
+    ASSERT_LT(cache_duration, no_cache_duration);
 }

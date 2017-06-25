@@ -13,6 +13,7 @@
 #include <iostream>
 #include <chrono>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 #include <condition_variable>
 
@@ -179,6 +180,14 @@ private:
     struct MHD_Daemon *daemon_;
 
     std::condition_variable running_cv_;
+
+    // for the file cache; many threads can read, but we need to restrict writing to one thread.
+    // TODO Making this static achieves the desired result of being able to access the mutex even after an instance of
+    //  the class is destroyed, but it will be a bottleneck if you have multiple servers with their own independent
+    //  caches. We can improve this later.
+    //  We can improve this by adding a new cache handler where concurrency is handled in the callbacks themselves.
+    //  Maybe.
+    static std::shared_timed_mutex cache_mutex_;
 
     ///// internal use-only callbacks
 

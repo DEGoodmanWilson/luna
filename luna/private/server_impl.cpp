@@ -188,6 +188,8 @@ STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 }
 ///////////////////////////
 
+std::shared_timed_mutex server::server_impl::cache_mutex_;
+
 server::server_impl::server_impl() :
         debug_output_{false},
         lock_{},
@@ -672,6 +674,7 @@ bool server::server_impl::render_response_(request &request,
         //first, let's check the cache!
         if (cache_read_)
         {
+            std::shared_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
             response.content = cache_read_(response.file);
             mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                            (void *) response.content.c_str(),
@@ -681,6 +684,7 @@ bool server::server_impl::render_response_(request &request,
         if (response.content.empty())
         {
             //cache miss, or missing cache: look for the file on disk
+
             response.status_code = 200; //default success
 
             auto file = fopen(response.file.c_str(), "r");
@@ -697,11 +701,15 @@ bool server::server_impl::render_response_(request &request,
 
                 mhd_response = MHD_create_response_from_fd(fsize, fd);
 
-                //TODO put this in a worker thread to reduce impact, and make access to the cache thread safe!
-                if(cache_write_)
+                if(cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
-                    std::ifstream ifs(response.file);
-                    cache_write_(response.file, {(std::istreambuf_iterator<char>(ifs) ), (std::istreambuf_iterator<char>())} );
+                    //TODO this might be destroyed out from underneath us! How to keep this from happening?
+                    std::thread t([writer{cache_write_}, file{response.file}] () {
+                        std::unique_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
+                        std::ifstream ifs(file);
+                        writer(file, {(std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())});
+                    });
+                    t.detach();
                 }
             }
         }
