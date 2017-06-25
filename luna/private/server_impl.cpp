@@ -675,10 +675,14 @@ bool server::server_impl::render_response_(request &request,
         if (cache_read_)
         {
             std::shared_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
-            response.content = cache_read_(response.file);
-            mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                           (void *) response.content.c_str(),
-                                                           MHD_RESPMEM_MUST_COPY);
+            auto cache_hit = cache_read_(response.file);
+            if(cache_hit)
+            {
+                response.content = cache_hit->c_str();
+                mhd_response = MHD_create_response_from_buffer(response.content.length(),
+                                                               (void *) response.content.c_str(),
+                                                               MHD_RESPMEM_MUST_COPY);
+            }
         }
 
         if (response.content.empty())
@@ -707,7 +711,7 @@ bool server::server_impl::render_response_(request &request,
                     std::thread t([writer{cache_write_}, file{response.file}] () {
                         std::unique_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
                         std::ifstream ifs(file);
-                        writer(file, {(std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>())});
+                        writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
                     });
                     t.detach();
                 }

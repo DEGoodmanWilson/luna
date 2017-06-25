@@ -324,8 +324,8 @@ struct after_error
 
 namespace cache
 {
-using read = std::function<std::string(const std::string &key)>; //yes, std::stirng can contain binary data! It's just a wrapper around a char array after all
-using write = std::function<bool(const std::string &key, const std::string &value)>; //you are going to need to copy the data out of value, it's ok. We can maybe speed this up later.
+using read = std::function<std::shared_ptr<std::string>(const std::string &key)>; //yes, std::stirng can contain binary data! It's just a wrapper around a char array after all
+using write = std::function<bool(const std::string &key, std::shared_ptr<std::string> value)>; //you are going to need to copy the data out of value, it's ok. We can maybe speed this up later.
 template<typename T, typename U>
 std::pair<read,write> build(T t, U u)
 {

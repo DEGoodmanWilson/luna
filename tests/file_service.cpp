@@ -1,7 +1,7 @@
 //
 // luna
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 
@@ -101,9 +101,11 @@ TEST(file_service, self_serve_html_file_override_mime_type)
 
 TEST(file_service, cache_read_1)
 {
-    luna::cache::read read = [](const std::string &key) -> std::string
+    std::shared_ptr<std::string> cache = std::make_shared<std::string>("hello");
+
+    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
-        return "hello";
+        return cache;
     };
 
     luna::server server{luna::cache::build(read, nullptr)};
@@ -115,9 +117,9 @@ TEST(file_service, cache_read_1)
 
 TEST(file_service, cache_write_1)
 {
-    std::string cache;
+    std::shared_ptr<std::string> cache;
 
-    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value) -> bool
     {
         cache = value;
         return true;
@@ -126,28 +128,28 @@ TEST(file_service, cache_write_1)
     luna::server server{luna::cache::build(nullptr, write)};
     server.serve_files("/", "../tests/public");
 
-    ASSERT_EQ("", cache);
+    ASSERT_EQ(nullptr, cache);
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
     ASSERT_EQ("hello", res.text);
-    ASSERT_EQ("hello", cache);
+    ASSERT_EQ("hello", *cache);
 }
 
 TEST(file_service, cache_read_write)
 {
-    std::string cache;
+    std::shared_ptr<std::string> cache;
     bool cache_hit{false};
 
-    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value) -> bool
     {
         cache = value;
         return true;
     };
 
-    luna::cache::read read = [&](const std::string &key) -> std::string
+    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
-        if (!cache.empty())
+        if (cache && !cache->empty())
         {
             cache_hit = true;
         }
@@ -157,7 +159,7 @@ TEST(file_service, cache_read_write)
     luna::server server{luna::cache::build(read, write)};
     server.serve_files("/", "../tests/public");
 
-    ASSERT_EQ("", cache);
+    ASSERT_EQ(nullptr, cache);
     ASSERT_FALSE(cache_hit);
 
 
@@ -165,23 +167,23 @@ TEST(file_service, cache_read_write)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
     ASSERT_EQ("hello", res.text);
-    ASSERT_EQ("hello", cache);
+    ASSERT_EQ("hello", *cache);
     ASSERT_FALSE(cache_hit);
 
     // second call loads from cache
-    cache = "goodbye";
+    cache = std::make_shared<std::string>("goodbye");
     res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("goodbye", res.text);
-    ASSERT_EQ("goodbye", cache);
+    ASSERT_EQ("goodbye", *cache);
     ASSERT_TRUE(cache_hit);
 }
 
 TEST(file_service, check_cache_threading)
 {
-    std::string cache;
+    std::shared_ptr<std::string> cache;
     const std::thread::id original_thread{std::this_thread::get_id()};
 
-    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value) -> bool
     {
         EXPECT_NE(original_thread, std::this_thread::get_id());
         cache = value;
@@ -193,14 +195,14 @@ TEST(file_service, check_cache_threading)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
-    ASSERT_EQ("hello", cache);
+    ASSERT_EQ("hello", *cache);
 }
 
 TEST(file_service, long_running_cache_writes)
 {
-    std::string cache;
+    std::shared_ptr<std::string> cache;
 
-    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value) -> bool
     {
         //This sleep will ensure that the thread calling the cache write will outlive the server object.
         std::this_thread::sleep_for(std::chrono::milliseconds{100});
@@ -212,44 +214,46 @@ TEST(file_service, long_running_cache_writes)
         luna::server server{luna::cache::build(nullptr, write)};
         server.serve_files("/", "../tests/public");
 
-        ASSERT_EQ("", cache);
+        ASSERT_EQ(nullptr, cache);
 
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
         ASSERT_EQ("hello", res.text);
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds{200});
-    ASSERT_EQ("hello", cache);
+    ASSERT_EQ("hello", *cache);
 }
 
 TEST(file_service, check_cache_speedup)
 {
-    std::map<std::string, std::string> cache;
+    std::map<std::string, std::shared_ptr<std::string>> cache;
     int cache_writes;
 
-    luna::cache::write write = [&](const std::string &key, const std::string &value) -> bool
+    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value) -> bool
     {
         cache[key] = value;
         ++cache_writes;
         return true;
     };
 
-    luna::cache::read read = [&](const std::string &key) -> std::string
+    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
         return cache[key];
     };
 
 
     //first, without cache
+    const int total_times{100};
+
     std::chrono::high_resolution_clock::time_point t1, t2, t3, t4;
     {
         luna::server server;
         server.serve_files("/", "../tests/public");
         t1 = std::chrono::high_resolution_clock::now();
-        int times{100};
+        int times{total_times};
         while (times)
         {
-            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmre.png"});
+            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
             --times;
         }
         t2 = std::chrono::high_resolution_clock::now();
@@ -265,13 +269,13 @@ TEST(file_service, check_cache_speedup)
         server.serve_files("/", "../tests/public");
 
         // load into cache
-        cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+        cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
 
         t3 = std::chrono::high_resolution_clock::now();
-        int times{100};
+        int times{total_times};
         while (times)
         {
-            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmre.png"});
+            auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
             --times;
         }
         t4 = std::chrono::high_resolution_clock::now();
