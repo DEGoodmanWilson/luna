@@ -16,7 +16,8 @@
 TEST(file_service, serve_file_404)
 {
     luna::server server{};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/foobar.txt"});
     ASSERT_EQ(404, res.status_code);
@@ -25,7 +26,8 @@ TEST(file_service, serve_file_404)
 TEST(file_service, serve_text_file)
 {
     luna::server server{};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
@@ -47,7 +49,8 @@ TEST(file_service, serve_text_file2)
 TEST(file_service, serve_html_file)
 {
     luna::server server{};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
@@ -57,7 +60,8 @@ TEST(file_service, serve_html_file)
 TEST(file_service, serve_binary_file)
 {
     luna::server server{};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/luna.jpg"});
     ASSERT_EQ(200, res.status_code);
@@ -109,7 +113,8 @@ TEST(file_service, cache_read_1)
     };
 
     luna::server server{luna::cache::build(read, nullptr)};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/foobar"});
 
     ASSERT_EQ("hello", res.text);
@@ -126,7 +131,8 @@ TEST(file_service, cache_write_1)
     };
 
     luna::server server{luna::cache::build(nullptr, write)};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     ASSERT_EQ(nullptr, cache);
 
@@ -157,7 +163,8 @@ TEST(file_service, cache_read_write)
     };
 
     luna::server server{luna::cache::build(read, write)};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     ASSERT_EQ(nullptr, cache);
     ASSERT_FALSE(cache_hit);
@@ -191,7 +198,8 @@ TEST(file_service, check_cache_threading)
     };
 
     luna::server server{luna::cache::build(nullptr, write)};
-    server.serve_files("/", "../tests/public");
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
@@ -212,7 +220,8 @@ TEST(file_service, long_running_cache_writes)
 
     {
         luna::server server{luna::cache::build(nullptr, write)};
-        server.serve_files("/", "../tests/public");
+        std::string path{std::getenv("STATIC_ASSET_PATH")};
+        server.serve_files("/", path + "/tests/public");
 
         ASSERT_EQ(nullptr, cache);
 
@@ -248,7 +257,8 @@ TEST(file_service, check_cache_speedup)
     std::chrono::high_resolution_clock::time_point t1, t2, t3, t4;
     {
         luna::server server;
-        server.serve_files("/", "../tests/public");
+        std::string path{std::getenv("STATIC_ASSET_PATH")};
+        server.serve_files("/", path + "/tests/public");
         t1 = std::chrono::high_resolution_clock::now();
         int times{total_times};
         while (times)
@@ -266,7 +276,8 @@ TEST(file_service, check_cache_speedup)
     //second, with, cache
     {
         luna::server server{luna::cache::build(read, write)};
-        server.serve_files("/", "../tests/public");
+        std::string path{std::getenv("STATIC_ASSET_PATH")};
+        server.serve_files("/", path + "/tests/public");
 
         // load into cache
         cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
