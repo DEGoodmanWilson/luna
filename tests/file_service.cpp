@@ -38,8 +38,8 @@ TEST(file_service, serve_text_file2)
 {
     luna::server server{};
     std::string mount{"/"};
-    std::string filepath{"../tests/public"};
-    server.serve_files(mount, filepath);
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files(mount, path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
@@ -76,7 +76,8 @@ TEST(file_service, self_serve_html_file)
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
-                              std::string full_path = "../tests/public/test.html";
+                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string full_path = path + "/tests/public/test.html";
                               return luna::response::from_file(full_path);
                           });
 
@@ -92,7 +93,8 @@ TEST(file_service, self_serve_html_file_override_mime_type)
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
-                              std::string full_path = "../tests/public/test.html";
+                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string full_path = path + "/tests/public/test.html";
                               luna::response resp = luna::response::from_file(full_path);
                               resp.content_type = "text/foobar";
                               return resp;

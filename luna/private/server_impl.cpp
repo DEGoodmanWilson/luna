@@ -708,7 +708,8 @@ bool server::server_impl::render_response_(request &request,
                 if(cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
                     //TODO this might be destroyed out from underneath us! How to keep this from happening?
-                    std::thread t([writer{cache_write_}, file{response.file}] () {
+                    std::thread t([writer = cache_write_, file = response.file] ()
+                    {
                         std::unique_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
                         std::ifstream ifs(file);
                         writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
