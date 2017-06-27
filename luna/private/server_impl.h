@@ -18,6 +18,22 @@
 #include <condition_variable>
 
 
+// NOTE: Apple prior to macOS 12 doesn't support shared mutexes :(
+#if defined (__APPLE__)
+#include <Availability.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_12
+#define NO_SHARED_LOCK
+g#endif
+#endif
+
+#if defined(NO_SHARED_LOCK)
+#define SHARED_LOCK std::unique_lock
+#define SHARED_MUTEX std::mutex
+#else
+#define SHARED_LOCK std::shared_lock
+#define SHARED_MUTEX std::shared_timed_mutex
+#endif
+
 namespace luna
 {
 
@@ -187,7 +203,8 @@ private:
     //  caches. We can improve this later.
     //  We can improve this by adding a new cache handler where concurrency is handled in the callbacks themselves.
     //  Maybe.
-    static std::shared_timed_mutex cache_mutex_;
+
+    static SHARED_MUTEX cache_mutex_;
 
     ///// internal use-only callbacks
 

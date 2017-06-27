@@ -188,7 +188,7 @@ STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 }
 ///////////////////////////
 
-std::shared_timed_mutex server::server_impl::cache_mutex_;
+SHARED_MUTEX server::server_impl::cache_mutex_;
 
 server::server_impl::server_impl() :
         debug_output_{false},
@@ -674,7 +674,7 @@ bool server::server_impl::render_response_(request &request,
         //first, let's check the cache!
         if (cache_read_)
         {
-            std::shared_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
+            SHARED_LOCK<SHARED_MUTEX> lock{server_impl::cache_mutex_};
             auto cache_hit = cache_read_(response.file);
             if(cache_hit)
             {
@@ -710,7 +710,7 @@ bool server::server_impl::render_response_(request &request,
                     //TODO this might be destroyed out from underneath us! How to keep this from happening?
                     std::thread t([writer = cache_write_, file = response.file] ()
                     {
-                        std::unique_lock<std::shared_timed_mutex> lock{server_impl::cache_mutex_};
+                        std::unique_lock<SHARED_MUTEX> lock{server_impl::cache_mutex_};
                         std::ifstream ifs(file);
                         writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
                     });
