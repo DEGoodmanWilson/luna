@@ -21,7 +21,8 @@
 // NOTE: Apple prior to macOS 12 doesn't support shared mutexes :(
 #if defined (__APPLE__)
 #include <Availability.h>
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_12
+#if __apple_build_version__ < 8000000
+#pragma message ( "No support for std::shared_lock!" )
 #define NO_SHARED_LOCK
 #endif
 #endif
