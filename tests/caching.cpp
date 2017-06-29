@@ -46,6 +46,9 @@ TEST(cacheing, cache_write_1)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
     ASSERT_EQ("hello", res.text);
+    // second call loads from cache
+    cache = std::make_shared<std::string>("goodbye");
+    res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
 }
@@ -54,6 +57,7 @@ TEST(cacheing, cache_read_write)
 {
     std::shared_ptr<std::string> cache;
 
+    bool cache_write{false};
     bool cache_hit{false};
 
     luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
@@ -77,7 +81,11 @@ TEST(cacheing, cache_read_write)
     // first call loads from file and writes to cache
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
+    //TODO this is still indeterministic
+    // add a delay to ensure cache write is complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     ASSERT_EQ("hello", res.text);
+    ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
     ASSERT_FALSE(cache_hit);
 
@@ -107,6 +115,9 @@ TEST(cacheing, check_cache_threading)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
+    //TODO this is still indeterministic
+    // add a delay to ensure cache write is complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
 }
