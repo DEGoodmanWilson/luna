@@ -206,6 +206,7 @@ private:
     //  Maybe.
 
     static SHARED_MUTEX cache_mutex_;
+    std::vector<std::thread> cache_threads_;
 
     ///// internal use-only callbacks
 
@@ -276,15 +277,15 @@ private:
     bool render_response_(
             request &request,
             response &response,
-            MHD_Connection *connection) const;
+            MHD_Connection *connection);
 
     bool render_error_(request &request,
                       response &response,
-                      MHD_Connection *connection) const;
+                      MHD_Connection *connection);
 
     bool render_error_(request &request,
                       response &&response,
-                      MHD_Connection *connection) const;
+                      MHD_Connection *connection);
 
 
 };

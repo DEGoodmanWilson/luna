@@ -292,6 +292,15 @@ void server::server_impl::stop()
 {
     if (daemon_)
     {
+        //Wait for any pending cache operations to finish.
+        for(auto & t : cache_threads_)
+        {
+            if(t.joinable())
+            {
+                t.join();
+            }
+        }
+
         MHD_stop_daemon(daemon_);
         LOG_INFO("Luna server stopped");
         daemon_ = nullptr;
@@ -661,7 +670,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 //TODO this should be a static non-class function, I think.
 bool server::server_impl::render_response_(request &request,
                                           response &response,
-                                          MHD_Connection *connection) const
+                                          MHD_Connection *connection)
 {
     struct MHD_Response *mhd_response{nullptr};
 
@@ -707,14 +716,12 @@ bool server::server_impl::render_response_(request &request,
 
                 if(cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
-                    //TODO this might be destroyed out from underneath us! How to keep this from happening?
-                    std::thread t([writer = cache_write_, file = response.file] ()
+                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file] ()
                     {
                         std::unique_lock<SHARED_MUTEX> lock{server_impl::cache_mutex_};
                         std::ifstream ifs(file);
                         writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
-                    });
-                    t.detach();
+                    }});
                 }
             }
         }
@@ -751,7 +758,7 @@ bool server::server_impl::render_response_(request &request,
     return ret;
 }
 
-bool server::server_impl::render_error_(request & request, response & response, MHD_Connection * connection) const
+bool server::server_impl::render_error_(request & request, response & response, MHD_Connection * connection)
 {
     /* unsupported HTTP method */
     error_handler_callback_(request, response); //hook for modifying response
@@ -765,7 +772,7 @@ bool server::server_impl::render_error_(request & request, response & response, 
     return render_response_(request, response, connection);
 }
 
-bool server::server_impl::render_error_(request & request, response && response, MHD_Connection * connection) const
+bool server::server_impl::render_error_(request & request, response && response, MHD_Connection * connection)
 {
     /* unsupported HTTP method */
     error_handler_callback_(request, response); //hook for modifying response
