@@ -106,7 +106,6 @@ TEST(cacheing, check_cache_threading)
     {
         EXPECT_NE(original_thread, std::this_thread::get_id());
         cache = value;
-        return true;
     };
 
     luna::server server{luna::cache::build(nullptr, write)};
@@ -131,7 +130,6 @@ TEST(cacheing, check_cache_speedup)
     {
         cache[key] = value;
         ++cache_writes;
-        return true;
     };
 
     auto read = [&](const std::string &key) -> std::shared_ptr<std::string>
