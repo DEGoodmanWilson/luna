@@ -17,7 +17,7 @@ TEST(cacheing, cache_read_1)
 {
     std::shared_ptr<std::string> cache = std::make_shared<std::string>("hello");
 
-    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
+    auto read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
         return cache;
     };
@@ -34,7 +34,7 @@ TEST(cacheing, cache_write_1)
 {
     std::shared_ptr<std::string> cache;
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         cache = value;
     };
@@ -60,12 +60,12 @@ TEST(cacheing, cache_read_write)
     bool cache_write{false};
     bool cache_hit{false};
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         cache = value;
     };
 
-    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
+    auto read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
         if (cache && !cache->empty())
         {
@@ -102,7 +102,7 @@ TEST(cacheing, check_cache_threading)
     std::shared_ptr<std::string> cache;
     const std::thread::id original_thread{std::this_thread::get_id()};
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         EXPECT_NE(original_thread, std::this_thread::get_id());
         cache = value;
@@ -125,20 +125,19 @@ TEST(cacheing, check_cache_threading)
 TEST(cacheing, check_cache_speedup)
 {
     std::map<std::string, std::shared_ptr<std::string>> cache;
-    int cache_writes;
+    int cache_writes{0};
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         cache[key] = value;
         ++cache_writes;
         return true;
     };
 
-    luna::cache::read read = [&](const std::string &key) -> std::shared_ptr<std::string>
+    auto read = [&](const std::string &key) -> std::shared_ptr<std::string>
     {
         return cache[key];
     };
-
 
     //first, without cache
     const int total_times{100};
@@ -160,7 +159,7 @@ TEST(cacheing, check_cache_speedup)
     auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 
     std::cout << "No cacheing:   " << no_cache_duration << std::endl;
-
+    ASSERT_EQ(0, cache_writes);
 
     //second, with, cache
     {
@@ -192,7 +191,7 @@ TEST(cacheing, cache_write_crasher_1)
 {
     std::shared_ptr<std::string> cache;
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds{500});
         cache = value;
@@ -216,7 +215,7 @@ TEST(cacheing, cache_write_crasher_2)
 {
     std::shared_ptr<std::string> cache;
 
-    luna::cache::write write = [&](const std::string &key, std::shared_ptr<std::string> value)
+    auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds{500});
         // if we aren't careful, this line will crash because cache will be out of scope!
