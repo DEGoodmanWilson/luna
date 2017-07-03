@@ -32,11 +32,13 @@ TEST(cacheing, cache_read_1)
 
 TEST(cacheing, cache_write_1)
 {
+    std::atomic<bool> cache_write{false};
     std::shared_ptr<std::string> cache;
 
     auto write = [&](const std::string &key, std::shared_ptr<std::string> value)
     {
         cache = value;
+        cache_write = true;
     };
 
     luna::server server{luna::cache::build(nullptr, write)};
@@ -49,6 +51,7 @@ TEST(cacheing, cache_write_1)
     // second call loads from cache
     cache = std::make_shared<std::string>("goodbye");
     res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
     ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
 }

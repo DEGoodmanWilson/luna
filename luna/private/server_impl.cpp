@@ -717,6 +717,7 @@ bool server::server_impl::render_response_(request &request,
                 if(cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+#pragma message ( "No support for C++14 lambda captures" )
                     auto writer = cache_write_;
                     auto file = response.file;
                     cache_threads_.emplace_back(std::thread{[writer, file] ()
