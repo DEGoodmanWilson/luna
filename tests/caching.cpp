@@ -45,15 +45,19 @@ TEST(cacheing, cache_write_1)
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
 
+    ASSERT_FALSE(static_cast<bool>(cache)); //assert the cache is empty before the first request
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
-
-    ASSERT_EQ("hello", res.text);
-    // second call loads from cache
-    cache = std::make_shared<std::string>("goodbye");
-    res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     while(!cache_write); //This is a silly and cheap thread synchronization mechanism
-    ASSERT_TRUE(static_cast<bool>(cache));
-    ASSERT_EQ("hello", *cache);
+    ASSERT_EQ("hello", res.text); // assert the cache got written to
+
+    // Let's change the cache to ensure that the cache is written to once it contains something.
+    cache = std::make_shared<std::string>("goodbye");
+    cache_write = false;
+    ASSERT_EQ("goodbye", *cache); // assert the cache was not updated with the file contents
+    res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    ASSERT_EQ("hello", res.text); // assert the file was read from
+    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
+    ASSERT_EQ("hello", *cache); // assert the cache was written to
 }
 
 TEST(cacheing, cache_read_write)
