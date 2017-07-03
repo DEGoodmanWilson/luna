@@ -1,13 +1,17 @@
 //
 // luna
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 #include <cpr/cpr.h>
+#include <array>
+#include <thread>
+#include <chrono>
+
 
 TEST(file_service, serve_file_404)
 {
@@ -33,10 +37,9 @@ TEST(file_service, serve_text_file)
 TEST(file_service, serve_text_file2)
 {
     luna::server server{};
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
     std::string mount{"/"};
-    std::string filepath{path + "/tests/public"};
-    server.serve_files(mount, filepath);
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files(mount, path + "/tests/public");
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
@@ -69,14 +72,14 @@ TEST(file_service, serve_binary_file)
 TEST(file_service, self_serve_html_file)
 {
     luna::server server{};
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.handle_request(luna::request_method::GET,
                           "/test.html",
                           [=](auto req) -> luna::response
-                              {
-                                  std::string full_path = path + "/tests/public/test.html";
-                                  return luna::response::from_file(full_path);
-                              });
+                          {
+                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string full_path = path + "/tests/public/test.html";
+                              return luna::response::from_file(full_path);
+                          });
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
@@ -86,16 +89,16 @@ TEST(file_service, self_serve_html_file)
 TEST(file_service, self_serve_html_file_override_mime_type)
 {
     luna::server server{};
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.handle_request(luna::request_method::GET,
                           "/test.html",
                           [=](auto req) -> luna::response
-                              {
-                                  std::string full_path = path + "/tests/public/test.html";
-                                  luna::response resp = luna::response::from_file(full_path);
-                                  resp.content_type = "text/foobar";
-                                  return resp;
-                              });
+                          {
+                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string full_path = path + "/tests/public/test.html";
+                              luna::response resp = luna::response::from_file(full_path);
+                              resp.content_type = "text/foobar";
+                              return resp;
+                          });
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);

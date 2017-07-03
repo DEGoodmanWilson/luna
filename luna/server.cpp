@@ -228,6 +228,12 @@ void server::set_option_(middleware::after_error value)
     impl_->set_option(value);
 }
 
+// caching
+void server::set_option_(std::pair<cache::read, cache::write> value)
+{
+    impl_->set_option(value);
+}
+
 server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations)
 {
     return impl_->handle_request(method, std::regex{std::move(path)}, callback, std::move(validations));
