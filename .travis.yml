@@ -41,7 +41,7 @@ install:
   - conan --version
 
   # Automatic detection of your arch, compiler, etc
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build=missing > /dev/null; else conan install -o build_luna_tests=True --build=missing > /dev/null; fi
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build > /dev/null; else conan install -o build_luna_tests=True --build > /dev/null; fi
 
 script:
   - conan build
@@ -70,6 +70,18 @@ matrix:
         apt:
           packages:
             - g++-5
+            - libssl-dev
+            - curl
+            - cmake
+            - cmake-data
+          sources: *sources
+
+    # gcc 6
+    - env: COMPILER=g++-6 CCOMPILER=gcc-6 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+      addons:
+        apt:
+          packages:
+            - g++-6
             - libssl-dev
             - curl
             - cmake
@@ -126,7 +138,3 @@ matrix:
     - os: osx
       env: COMPILER=clang++ CCOMPILER=clang IS_APPLE=YES GENERATE_COVERAGE=ON STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
       osx_image: xcode8
-
-  # at the moment, gcc5 is failing on libmagic :(
-  allow_failures:
-    - env: COMPILER=g++-5 CCOMPILER=gcc-5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
