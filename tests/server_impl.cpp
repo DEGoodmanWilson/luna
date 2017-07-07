@@ -35,8 +35,6 @@ TEST(server_impl, ip_address_rendering)
     ASSERT_EQ(addr_str, luna::addr_to_str_(&addr));
 }
 
-
-
 TEST(server_impl, is_redirect_)
 {
     ASSERT_TRUE(luna::is_redirect_(301));
@@ -55,6 +53,7 @@ TEST(server_impl, method_str_to_enum)
     ASSERT_EQ(luna::request_method::PATCH, luna::method_str_to_enum_("PATCH"));
     ASSERT_EQ(luna::request_method::DELETE, luna::method_str_to_enum_("DELETE"));
     ASSERT_EQ(luna::request_method::OPTIONS, luna::method_str_to_enum_("OPTIONS"));
+    ASSERT_EQ(luna::request_method::UNKNOWN, luna::method_str_to_enum_("WAT"));
 }
 
 // check that await actually works, and that we can shut down a server.

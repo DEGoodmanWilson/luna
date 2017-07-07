@@ -137,6 +137,49 @@ TEST(validation, required_validation_pass)
     ASSERT_EQ("hello", res.text);
 }
 
+TEST(validation, required_validation_pass_lvalue_1)
+{
+    luna::server server{luna::server::port{8080}};
+
+    const std::regex host_path{"/test"};
+
+    server.handle_request(luna::request_method::GET,
+                          host_path,
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          },
+                          {
+                                  {"key", luna::parameter::required}
+                          }
+    );
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+TEST(validation, required_validation_pass_lvalue_2)
+{
+    luna::server server{luna::server::port{8080}};
+
+    const std::regex host_path{"/test"};
+    const luna::parameter::validators validators{
+            {"key", luna::parameter::required}
+    };
+
+    server.handle_request(luna::request_method::GET,
+                          host_path,
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          },
+                          validators
+    );
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
 TEST(validation, required_validation_fail)
 {
     luna::server server{luna::server::port{8080}};
