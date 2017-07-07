@@ -13,7 +13,14 @@ Luna also depends upon the CMake build system, and the Conan dependency manager.
 
 Luna is available from (and makes use of the) the [Conan](https://www.conan.io) dependency manager. And so should you. It's pretty good.
 
-To incorporate Luna into your project using Conan, create a file called `conanfile.txt`, and add the following:
+To incorporate Luna into your project using Conan, first execute the following command to add the luna repository to a place that Conan can find it:
+                                                         
+```
+$ conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
+```
+
+Then create a file called `conanfile.txt`, and add the following:
+
 
 ```
 [requires]
