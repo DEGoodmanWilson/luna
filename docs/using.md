@@ -59,7 +59,7 @@ The following options exist, but only really affect development of Luna
 
 ## CMake
 
-If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. You can specify the `cmake` generator in the `conanfile.txt`:
+If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. You can specify the `cmake` generator in the `conanfile.txt` before running `conan install`:
 
 ```
 [generators]
