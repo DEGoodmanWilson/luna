@@ -59,7 +59,14 @@ The following options exist, but only really affect development of Luna
 
 ## CMake
 
-If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. Add the following lines somewhere near the top of your `CMakeLists.txt`:
+If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. You can specify the `cmake` generator in the `conanfile.txt` before running `conan install`:
+
+```
+[generators]
+cmake
+```
+
+Then add the following lines somewhere near the top of your `CMakeLists.txt`:
 
 ```cmake
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
