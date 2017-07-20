@@ -350,3 +350,106 @@ TEST(advanced_functioning, append_server_string)
     server_str += " foobar";
     ASSERT_EQ(server_str, res.header["Server"]);
 }
+
+
+TEST(file_service, check_paths_1)
+{
+    luna::server server{};
+
+    server.handle_request(luna::request_method::GET,
+                          "/.*",
+                          [](auto req) -> luna::response
+                          {
+                              return {"first"};
+                          });
+
+    server.handle_request(luna::request_method::GET,
+                          "/second",
+                          [](auto req) -> luna::response
+                          {
+                              return {"second"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("first", res.text);
+
+    res = cpr::Get(cpr::Url{"http://localhost:8080/second"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("first", res.text); //YUP THAT'S RIGHT!
+}
+
+TEST(file_service, check_paths_2)
+{
+    luna::server server{};
+
+    server.handle_request(luna::request_method::GET,
+                          "/second",
+                          [](auto req) -> luna::response
+                          {
+                              return {"second"};
+                          });
+
+    server.handle_request(luna::request_method::GET,
+                          "/.*",
+                          [](auto req) -> luna::response
+                          {
+                              return {"first"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("first", res.text);
+
+    res = cpr::Get(cpr::Url{"http://localhost:8080/second"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("second", res.text); //YUP THAT'S RIGHT!
+}
+
+
+TEST(file_service, check_paths_4)
+{
+    luna::server server{};
+
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    server.handle_request(luna::request_method::GET,
+                          "/second",
+                          [](auto req) -> luna::response
+                          {
+                              return {"second"};
+                          });
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+
+    res = cpr::Get(cpr::Url{"http://localhost:8080/second"});
+    ASSERT_EQ(404, res.status_code); //YUP THAT'S RIGHT!
+}
+
+TEST(file_service, check_paths_3)
+{
+    luna::server server{};
+
+
+    server.handle_request(luna::request_method::GET,
+                          "/first",
+                          [](auto req) -> luna::response
+                          {
+                              return {"first"};
+                          });
+
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+
+    res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("first", res.text);
+}

@@ -34,7 +34,7 @@ TEST(file_service, serve_text_file)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(file_service, serve_text_file2)
+TEST(file_service, serve_text_file_2)
 {
     luna::server server{};
     std::string mount{"/"};
