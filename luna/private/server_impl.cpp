@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
+#include "luna/private/mimetypes.h"
 
 #ifdef LUNA_TESTING
 #define STATIC
@@ -293,9 +294,9 @@ void server::server_impl::stop()
     if (daemon_)
     {
         //Wait for any pending cache operations to finish.
-        for(auto & t : cache_threads_)
+        for (auto &t : cache_threads_)
         {
-            if(t.joinable())
+            if (t.joinable())
             {
                 t.join();
             }
@@ -636,25 +637,40 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 {
                     // We are serving a static asset, Calculate the MIME type if not specified
                     luna::response error_response{500}; //in case bad things happen
-                    magic_t magic_cookie;
-                    magic_cookie = magic_open(MAGIC_MIME);
-                    if (magic_cookie == NULL)
-                    {
-                        // These lines should basically never get hit in testing
-                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                    }
-                    if (magic_load(magic_cookie, NULL) != 0)
-                    {
-                        magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                    }
 
-                    std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
-                    magic_close(magic_cookie);
-                    response.content_type = magic_full;
+                    // first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
+                    std::string mime_type;
+
+                    //extract the file extension
+                    const auto ext_begin{response.file.find_last_of(".")};
+                    const auto ext{response.file.substr(ext_begin+1)};
+                    const auto iter = mime_types.find(ext);
+                    if(iter != mime_types.end())
+                    {
+                        mime_type = iter->second;
+                    }
+                    else // fall back on libmagic
+                    {
+                        magic_t magic_cookie;
+                        magic_cookie = magic_open(MAGIC_MIME);
+                        if (magic_cookie == NULL)
+                        {
+                            // These lines should basically never get hit in testing
+                            response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                            // I am dubious that if we had an issue allocating memory above that the following will work, TBH
+                            return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
+                        }
+                        if (magic_load(magic_cookie, NULL) != 0)
+                        {
+                            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+                            response.status_code = 500;                                                 //LCOV_EXCL_LINE
+                            return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
+                        }
+
+                        mime_type = magic_file(magic_cookie, response.file.c_str());
+                        magic_close(magic_cookie);
+                    }
+                    response.content_type = mime_type;
                 }
             }
 
@@ -685,8 +701,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
 //TODO this should be a static non-class function, I think.
 bool server::server_impl::render_response_(request &request,
-                                          response &response,
-                                          MHD_Connection *connection)
+                                           response &response,
+                                           MHD_Connection *connection)
 {
     struct MHD_Response *mhd_response{nullptr};
 
@@ -701,7 +717,7 @@ bool server::server_impl::render_response_(request &request,
         {
             SHARED_LOCK<SHARED_MUTEX> lock{server_impl::cache_mutex_};
             auto cache_hit = cache_read_(response.file);
-            if(cache_hit)
+            if (cache_hit)
             {
                 response.content = cache_hit->c_str();
                 mhd_response = MHD_create_response_from_buffer(response.content.length(),
@@ -730,7 +746,7 @@ bool server::server_impl::render_response_(request &request,
 
                 mhd_response = MHD_create_response_from_fd(fsize, fd);
 
-                if(cache_write_) //only write to the cache if we didn't hit it the first time.
+                if (cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
 #pragma message ( "No support for C++14 lambda captures" )
@@ -738,18 +754,21 @@ bool server::server_impl::render_response_(request &request,
                     auto file = response.file;
                     cache_threads_.emplace_back(std::thread{[writer, file] ()
 #else
-                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file] ()
+                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file]()
 #endif
-                    {
-                        std::unique_lock<SHARED_MUTEX> lock{server_impl::cache_mutex_};
-                        std::ifstream ifs(file);
-                        writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
-                    }});
+                                                            {
+                                                                std::unique_lock<SHARED_MUTEX> lock{
+                                                                        server_impl::cache_mutex_};
+                                                                std::ifstream ifs(file);
+                                                                writer(file,
+                                                                       std::make_shared<std::string>(std::istreambuf_iterator<char>(
+                                                                               ifs), std::istreambuf_iterator<char>()));
+                                                            }});
                 }
             }
         }
     }
-    // we're loading this from the buffer in response.content, no problem.
+        // we're loading this from the buffer in response.content, no problem.
     else
     {
         mhd_response = MHD_create_response_from_buffer(response.content.length(),

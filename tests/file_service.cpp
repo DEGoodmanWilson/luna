@@ -104,3 +104,23 @@ TEST(file_service, self_serve_html_file_override_mime_type)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/foobar", res.header["Content-Type"]);
 }
+
+TEST(file_service, css_has_its_own_mime_issues)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.css"});
+    ASSERT_EQ("text/css", res.header["Content-Type"]);
+}
+
+TEST(file_service, js_has_its_own_mime_issues)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.js"});
+    ASSERT_EQ("text/javascript", res.header["Content-Type"]);
+}
