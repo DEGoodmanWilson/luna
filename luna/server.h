@@ -148,6 +148,7 @@ public:
     request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations);
 
     request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
+    request_handler_handle serve_files(std::string &&mount_point, std::string &&path_to_files);
 
     void remove_request_handler(request_handler_handle item);
 

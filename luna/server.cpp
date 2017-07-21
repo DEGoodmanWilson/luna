@@ -256,7 +256,12 @@ server::request_handler_handle server::handle_request(request_method method, con
 
 server::request_handler_handle server::serve_files(const std::string &mount_point, const std::string &path_to_files)
 {
-    return impl_->serve_files(mount_point, path_to_files);
+    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
+}
+
+server::request_handler_handle server::serve_files(std::string &&mount_point, std::string &&path_to_files)
+{
+    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
 }
 
 server::error_handler_handle server::handle_404(error_handler_cb callback)

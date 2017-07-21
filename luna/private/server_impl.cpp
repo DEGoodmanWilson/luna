@@ -379,10 +379,26 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
                                                                 const std::string &path_to_files)
 {
     std::regex regex{mount_point + "(.*)"};
-    std::string local_path{path_to_files};
+    std::string local_path{path_to_files + "/"};
     return handle_request(request_method::GET, regex, [=](const request &req) -> response
     {
-        std::string path = local_path + "/" + req.matches[1];
+        std::string path = local_path + req.matches[1];
+
+        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
+        LOG_DEBUG(std::string{"Serve from    :  "} + path);
+
+        return response::from_file(path);
+    });
+}
+
+server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
+                                                                std::string &&path_to_files)
+{
+    std::regex regex{std::move(mount_point) + "(.*)"};
+    std::string local_path{std::move(path_to_files) + "/"};
+    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+    {
+        std::string path = local_path + req.matches[1];
 
         LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
         LOG_DEBUG(std::string{"Serve from    :  "} + path);
