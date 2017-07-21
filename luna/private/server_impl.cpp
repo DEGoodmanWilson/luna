@@ -642,8 +642,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                     std::string mime_type;
 
                     //extract the file extension
-                    const auto ext_begin{response.file.find_last_of(".")};
-                    const auto ext{response.file.substr(ext_begin+1)};
+                    const auto ext_begin = response.file.find_last_of(".");
+                    const auto ext = response.file.substr(ext_begin+1);
                     const auto iter = mime_types.find(ext);
                     if(iter != mime_types.end())
                     {
