@@ -31,7 +31,7 @@ public:
 
     MAKE_BOOL_LIKE(use_epoll_if_available);
 
-    MAKE_UINT16_T_LIKE(port);
+    MAKE_INT_LIKE(int, port);
 
     MAKE_STRING_LIKE(mime_type);
 
