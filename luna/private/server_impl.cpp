@@ -164,15 +164,22 @@ STATIC request_method method_str_to_enum_(const std::string &method_str)
 
 STATIC std::string addr_to_str_(const struct sockaddr *addr)
 {
-    if (addr)
+    if(addr)
     {
         char str[INET_ADDRSTRLEN];
-        //TODO how do we know if we have a v6 address here?
-        if (inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN) == NULL)
+
+        switch(addr->sa_family)
         {
-            return "";
+            case AF_INET:
+                inet_ntop(addr->sa_family, &(reinterpret_cast<const sockaddr_in *>(addr)->sin_addr), str, INET_ADDRSTRLEN);
+                break;
+            case AF_INET6:
+                inet_ntop(addr->sa_family, &(reinterpret_cast<const sockaddr_in6 *>(addr)->sin6_addr), str, INET_ADDRSTRLEN);
+                break;
+            default:
+                return "";
         }
-        return str; //makes a copy, since we are returning an std::string
+        return std::string{str};
     }
     return "";
 }
