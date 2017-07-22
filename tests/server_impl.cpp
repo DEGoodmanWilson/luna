@@ -28,11 +28,13 @@ TEST(server_impl, addr_to_string_with_null)
 TEST(server_impl, ip_address_rendering)
 {
     std::string addr_str{"46.218.45.195"};
-    struct sockaddr addr;
-    int s = inet_pton(AF_INET, addr_str.c_str(), &addr);
-
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    int s = inet_pton(addr.sin_family, addr_str.c_str(), &(addr.sin_addr));
     ASSERT_TRUE(s);
-    ASSERT_EQ(addr_str, luna::addr_to_str_(&addr));
+
+    sockaddr *addr_ptr = reinterpret_cast<sockaddr *>(&addr);
+    ASSERT_EQ(addr_str, luna::addr_to_str_(addr_ptr));
 }
 
 TEST(server_impl, is_redirect_)
