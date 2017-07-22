@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
+#include "luna/private/file_helpers.h"
 
 #ifdef LUNA_TESTING
 #define STATIC
@@ -22,7 +23,6 @@
 
 namespace luna
 {
-
 //TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
 
 #define LOG_FATAL(mesg) \
@@ -293,9 +293,9 @@ void server::server_impl::stop()
     if (daemon_)
     {
         //Wait for any pending cache operations to finish.
-        for(auto & t : cache_threads_)
+        for (auto &t : cache_threads_)
         {
-            if(t.joinable())
+            if (t.joinable())
             {
                 t.join();
             }
@@ -312,7 +312,7 @@ void server::server_impl::await()
 {
     std::mutex m;
     {
-        std::unique_lock<std::mutex> lk(m);
+        std::unique_lock <std::mutex> lk(m);
         running_cv_.wait(lk, [this] { return daemon_ == nullptr; });
     }
 }
@@ -334,7 +334,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    parameter::validators &&validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(std::move(path),
@@ -347,7 +347,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    parameter::validators &&validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(path, callback, std::move(validators))));
@@ -358,7 +358,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    const parameter::validators &validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(std::move(path), callback, validators)));
@@ -369,7 +369,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    const parameter::validators &validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(path, callback, validators)));
@@ -379,10 +379,26 @@ server::request_handler_handle server::server_impl::serve_files(const std::strin
                                                                 const std::string &path_to_files)
 {
     std::regex regex{mount_point + "(.*)"};
-    std::string local_path{path_to_files};
+    std::string local_path{path_to_files + "/"};
     return handle_request(request_method::GET, regex, [=](const request &req) -> response
     {
-        std::string path = local_path + "/" + req.matches[1];
+        std::string path = local_path + req.matches[1];
+
+        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
+        LOG_DEBUG(std::string{"Serve from    :  "} + path);
+
+        return response::from_file(path);
+    });
+}
+
+server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
+                                                                std::string &&path_to_files)
+{
+    std::regex regex{std::move(mount_point) + "(.*)"};
+    std::string local_path{std::move(path_to_files) + "/"};
+    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+    {
+        std::string path = local_path + req.matches[1];
 
         LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
         LOG_DEBUG(std::string{"Serve from    :  "} + path);
@@ -395,7 +411,7 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     request_handlers_[item.first].erase(item.second);
 }
 
@@ -406,7 +422,7 @@ server::error_handler_handle server::server_impl::handle_404(server::error_handl
 
 server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     error_handlers_[code] = callback;
     return code;
 }
@@ -415,7 +431,7 @@ void server::server_impl::remove_error_handler(error_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     error_handlers_.erase(item);
 }
 
@@ -512,7 +528,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
-    std::unique_lock<std::mutex> ulock{lock_};
+    std::unique_lock <std::mutex> ulock{lock_};
     for (const auto &handler_tuple : request_handlers_[method])
     {
         std::smatch pieces_match;
@@ -522,7 +538,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         {
             ulock.unlock(); // found a match, can unlock as iterator will not continue
 
-            std::vector<std::string> matches;
+            std::vector <std::string> matches;
             LOG_DEBUG(std::string{"    match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
@@ -609,39 +625,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 response.status_code = default_success_code_(method);
             }
 
-            if (response.content_type.empty()) //no content type assigned, use the default
-            {
-                if (response.file.empty())
-                {
-                    //serving dynamic content, use the default type
-                    response.content_type = default_mime_type;
-                }
-                else
-                {
-                    // We are serving a static asset, Calculate the MIME type if not specified
-                    luna::response error_response{500}; //in case bad things happen
-                    magic_t magic_cookie;
-                    magic_cookie = magic_open(MAGIC_MIME);
-                    if (magic_cookie == NULL)
-                    {
-                        // These lines should basically never get hit in testing
-                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                    }
-                    if (magic_load(magic_cookie, NULL) != 0)
-                    {
-                        magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-                        response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                        return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                    }
-
-                    std::string magic_full{magic_file(magic_cookie, response.file.c_str())};
-                    magic_close(magic_cookie);
-                    response.content_type = magic_full;
-                }
-            }
-
             if (is_error_(response.status_code))
             {
                 //now, the after_error middlewares
@@ -667,10 +650,64 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     return render_error_(req, response, connection);
 }
 
+int escaped_stat_(const std::string &file, struct stat *st)
+{
+    auto result = stat(file.c_str(), st);
+
+    if ((result != 0) && (errno == ENOENT))
+    {
+        //try it again, escaped
+        std::string escaped_path{file};
+
+        result = stat(escaped_path.c_str(), st);
+    }
+
+    return result;
+}
+
+std::string get_mime_type_(const std::string &file)
+{
+// We are serving a static asset, Calculate the MIME type if not specified
+
+// first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
+    std::string mime_type;
+
+//extract the file extension
+    const auto ext_begin = file.find_last_of(".");
+    const auto ext = file.substr(ext_begin + 1);
+    const auto iter = mime_types.find(ext);
+    if (iter != mime_types.end())
+    {
+        mime_type = iter->second;
+    }
+    else // fall back on libmagic
+    {
+        magic_t magic_cookie;
+        magic_cookie = magic_open(MAGIC_MIME);
+        if (magic_cookie == NULL)
+        {
+// These lines should basically never get hit in testing
+// I am dubious that if we had an issue allocating memory above that the following will work, TBH
+            return "";   //LCOV_EXCL_LINE
+        }
+        if (magic_load(magic_cookie, NULL) != 0)
+        {
+            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+            return "";   //LCOV_EXCL_LINE
+        }
+
+        mime_type = magic_file(magic_cookie, file.c_str());
+        magic_close(magic_cookie);
+    }
+
+    return mime_type;
+}
+
+
 //TODO this should be a static non-class function, I think.
 bool server::server_impl::render_response_(request &request,
-                                          response &response,
-                                          MHD_Connection *connection)
+                                           response &response,
+                                           MHD_Connection *connection)
 {
     struct MHD_Response *mhd_response{nullptr};
 
@@ -685,7 +722,7 @@ bool server::server_impl::render_response_(request &request,
         {
             SHARED_LOCK<SHARED_MUTEX> lock{server_impl::cache_mutex_};
             auto cache_hit = cache_read_(response.file);
-            if(cache_hit)
+            if (cache_hit)
             {
                 response.content = cache_hit->c_str();
                 mhd_response = MHD_create_response_from_buffer(response.content.length(),
@@ -700,12 +737,46 @@ bool server::server_impl::render_response_(request &request,
 
             response.status_code = 200; //default success
 
-            auto file = fopen(response.file.c_str(), "r");
-            if (!file)
+            // TODO replace with new c++17 std::filesystem implementation. Later.
+            // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
+
+            struct stat st;
+            auto stat_ret = escaped_stat_(response.file, &st);
+
+            if(S_ISDIR(st.st_mode))
+            {
+                LOG_DEBUG("Found folder " + response.file);
+                if(response.file[response.file.size()-1] != '/')
+                {
+                    response.file += "/";
+                }
+                for(const auto name : index_filenames)
+                {
+                    std::string induced_filename{response.file + name};
+                    LOG_DEBUG("Looking for          : " + induced_filename);
+                    stat_ret = escaped_stat_(induced_filename, &st);
+                    if(stat_ret == 0)
+                    {
+                        response.file = induced_filename;
+                        break;
+                    }
+                }
+            } else {
+                LOG_DEBUG("Not a folder " + response.file);
+            }
+
+            if(stat_ret != 0)
             {
                 return render_error_(request, {404}, connection);
             }
-            else
+
+
+            /// determine mime type!
+
+
+            LOG_DEBUG("Actually serving file: "+response.file);
+            auto file = fopen(response.file.c_str(), "r");
+            // because we already checked, this is guaranteed to work
             {
                 auto fd = fileno(file);
                 struct stat stat_buf;
@@ -714,7 +785,7 @@ bool server::server_impl::render_response_(request &request,
 
                 mhd_response = MHD_create_response_from_fd(fsize, fd);
 
-                if(cache_write_) //only write to the cache if we didn't hit it the first time.
+                if (cache_write_) //only write to the cache if we didn't hit it the first time.
                 {
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
 #pragma message ( "No support for C++14 lambda captures" )
@@ -722,24 +793,40 @@ bool server::server_impl::render_response_(request &request,
                     auto file = response.file;
                     cache_threads_.emplace_back(std::thread{[writer, file] ()
 #else
-                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file] ()
+                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file]()
 #endif
-                    {
-                        std::unique_lock<SHARED_MUTEX> lock{server_impl::cache_mutex_};
-                        std::ifstream ifs(file);
-                        writer(file, std::make_shared<std::string>(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()));
-                    }});
+                                                            {
+                                                                std::unique_lock<SHARED_MUTEX> lock{
+                                                                        server_impl::cache_mutex_};
+                                                                std::ifstream ifs(file);
+                                                                writer(file,
+                                                                       std::make_shared<std::string>(std::istreambuf_iterator<char>(
+                                                                               ifs), std::istreambuf_iterator<char>()));
+                                                            }});
                 }
             }
         }
     }
-    // we're loading this from the buffer in response.content, no problem.
+        // we're loading this from the buffer in response.content, no problem.
     else
     {
         mhd_response = MHD_create_response_from_buffer(response.content.length(),
                                                        (void *) response.content.c_str(),
                                                        MHD_RESPMEM_MUST_COPY);
 
+    }
+
+    if (response.content_type.empty()) //no content type assigned, use the default
+    {
+        if (response.file.empty())
+        {
+            //serving dynamic content, use the default type
+            response.content_type = default_mime_type;
+        }
+        else
+        {
+            response.content_type = get_mime_type_(response.file);
+        }
     }
 
     for (const auto &header : response.headers)
@@ -759,7 +846,7 @@ bool server::server_impl::render_response_(request &request,
     auto end_c = std::chrono::system_clock::to_time_t(request.end);
     std::stringstream sstr;
     auto tm = luna::gmtime(end_c);
-    access_log(request);
+    access_log(request, response);
 
     MHD_destroy_response(mhd_response);
     return ret;

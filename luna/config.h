@@ -23,7 +23,7 @@ enum class log_level
 };
 
 
-using access_logger_cb = std::function<void(const request &request)>;
+using access_logger_cb = std::function<void(const request &request, const response &response)>;
 using error_logger_cb = std::function<void(log_level level, const std::string &string)>;
 
 void set_access_logger(access_logger_cb logger);
@@ -32,7 +32,7 @@ void reset_access_logger();
 void set_error_logger(error_logger_cb logger);
 void reset_error_logger();
 
-void access_log(const luna::request& request);
+void access_log(const request& request, const response &response);
 void error_log(log_level level, const std::string &string);
 
 } //namespace luna

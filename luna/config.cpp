@@ -55,10 +55,10 @@ void reset_error_logger()
 }
 
 
-void access_log(const request &request)
+void access_log(const request &request, const response &response)
 {
     if(access_logger_)
-        access_logger_(request);
+        access_logger_(request, response);
 }
 
 void error_log(luna::log_level level, const std::string &message)

@@ -80,6 +80,6 @@ set(LIB_LUNA_SOURCE_FILES
         luna/config.cpp
         luna/config.h
         luna/private/safer_times.h
-        )
+        luna/private/file_helpers.h)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 target_link_libraries(luna ${CONAN_LIBS})

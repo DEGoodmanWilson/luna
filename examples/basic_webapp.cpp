@@ -25,10 +25,10 @@ void ex_error_log(log_level level, const std::string &message)
     std::cout << "[" << to_string(level) << "] " << message << std::endl;
 }
 
-void ex_access_log(const luna::request &request)
+void ex_access_log(const luna::request &request, const luna::response &response)
 {
-    std::cout << request.ip_address << ": " << luna::to_string(request.method) << " " << request.path << " "
-              << request.http_version << " " << request.headers.at("user-agent") << std::endl;
+    std::cout << request.ip_address << ": " << luna::to_string(request.method) << " [" << response.status_code << "] "
+              << request.path << " " << request.http_version << " " << request.headers.at("user-agent") << std::endl;
 }
 
 ////

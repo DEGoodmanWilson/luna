@@ -28,7 +28,7 @@ TEST(logging, error_logger_test)
 TEST(logging, basic_formatting_test)
 {
     std::string log_str;
-    luna::set_access_logger([&](const luna::request &request)
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
                      {
                          std::stringstream message;
                          message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
@@ -36,7 +36,8 @@ TEST(logging, basic_formatting_test)
                      });
 
     luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
-    luna::access_log(req);
+    luna::response res{200, "OK"};
+    luna::access_log(req, res);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
 
     luna::reset_access_logger();
@@ -45,7 +46,7 @@ TEST(logging, basic_formatting_test)
 TEST(logging, basic_formatting_test_2)
 {
     std::string log_str;
-    luna::set_access_logger([&](const luna::request &request)
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
                      {
                          std::stringstream message;
                          message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
@@ -53,7 +54,8 @@ TEST(logging, basic_formatting_test_2)
                      });
 
     luna::request req{std::chrono::system_clock::now(), std::chrono::system_clock::now(), "", luna::request_method::GET, "/", "HTTP/1.0", {}, {}, {}, ""};
-    luna::access_log(req);
+    luna::response res{200, "OK"};
+    luna::access_log(req, res);
     ASSERT_EQ("GET / HTTP/1.0", log_str);
 
     luna::reset_access_logger();

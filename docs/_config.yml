@@ -8,7 +8,7 @@
 # Site settings
 product_name: &product_name Luna
 title: *product_name
-version: 3.0.0
+version: 3.1.0
 email: degoodmanwilson@gmail.com
 description: >
   An embedded HTTP(S) server and web framework in modern C++
