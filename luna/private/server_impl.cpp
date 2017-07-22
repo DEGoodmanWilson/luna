@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
-#include "luna/private/mimetypes.h"
+#include "luna/private/file_helpers.h"
 
 #ifdef LUNA_TESTING
 #define STATIC
@@ -699,6 +699,21 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     return render_error_(req, response, connection);
 }
 
+int escaped_stat(const std::string &file, struct stat *st)
+{
+    auto result =  stat(file.c_str(), st);
+
+    if( (result != 0) && (errno == ENOENT) )
+    {
+       //try it again, escaped
+        std::string escaped_path{"\"" + file + "\""};
+        result =  stat(escaped_path.c_str(), st);
+    }
+
+    return result;
+}
+
+
 //TODO this should be a static non-class function, I think.
 bool server::server_impl::render_response_(request &request,
                                            response &response,
@@ -732,12 +747,69 @@ bool server::server_impl::render_response_(request &request,
 
             response.status_code = 200; //default success
 
-            auto file = fopen(response.file.c_str(), "r");
-            if (!file)
+            // TODO replace with new c++17 std::filesystem implementation. Later.
+            // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
+
+            struct stat st;
+            auto stat_ret = escaped_stat(response.file, &st);
+            if(S_ISDIR(st.st_mode))
+            {
+                if(response.file[response.file.size()-1] != '/')
+                {
+                    response.file += "/";
+                }
+                std::string induced_file_name;
+                for(const auto name : index_filenames)
+                {
+                    auto induced_filename{response.file + name};
+                    stat_ret = escaped_stat(induced_filename, &st);
+                    if(stat_ret == 0)
+                    {
+                        response.file = induced_filename;
+                        break;
+                    }
+                    std::string error{"Attempting to find file " + induced_filename + " but got error "};
+                    switch (errno)
+                    {
+                        case EACCES:
+                            LOG_DEBUG(error + "EACCES");
+                            break;
+                        case EBADF:
+                            LOG_DEBUG(error + "EBADF");
+                            break;
+                        case EFAULT:
+                            LOG_DEBUG(error + "EFAULT");
+                            break;
+                        case ELOOP:
+                            LOG_DEBUG(error + "ELOOP");
+                            break;
+                        case ENAMETOOLONG:
+                            LOG_DEBUG(error + "ENAMETOOLONG");
+                            break;
+                        case ENOENT:
+                            LOG_DEBUG(error + "ENOENT");
+                            break;
+                        case ENOMEM:
+                            LOG_DEBUG(error + "ENOMEM");
+                            break;
+                        case ENOTDIR:
+                            LOG_DEBUG(error + "ENOTDIR");
+                            break;
+                        case EOVERFLOW:
+                            LOG_DEBUG(error + "EOVERFLOW");
+                            break;
+                    }
+                }
+            }
+
+            if(stat_ret != 0)
             {
                 return render_error_(request, {404}, connection);
             }
-            else
+
+
+            auto file = fopen(response.file.c_str(), "r");
+            // because we already checked, this is guaranteed to work
             {
                 auto fd = fileno(file);
                 struct stat stat_buf;

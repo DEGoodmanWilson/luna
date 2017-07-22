@@ -124,3 +124,45 @@ TEST(file_service, js_has_its_own_mime_issues)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.js"});
     ASSERT_EQ("text/javascript", res.header["Content-Type"]);
 }
+
+TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test/"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello html", res.text);
+}
+
+TEST(file_service, directory_is_alias_for_index_html)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello html", res.text);
+}
+
+TEST(file_service, empty_dir_with_trailing_slash_throws_404)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/empty/"});
+    ASSERT_EQ(404, res.status_code);
+}
+
+TEST(file_service, empty_dir_throws_404)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/empty"});
+    ASSERT_EQ(404, res.status_code);
+}
