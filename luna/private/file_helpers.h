@@ -9,13 +9,20 @@
 
 #pragma once
 
-static const std::unordered_map<std::string, std::string> mime_types{
-        {"css", "text/css"},
-        {"js", "text/javascript"},
-};
+namespace luna
+{
 
-static const std::vector<std::string> index_filenames
+static const std::unordered_map <std::string, std::string> mime_types
+        {
+                {"html", "text/html"},
+                {"htm", "text/html"},
+                {"css", "text/css"},
+                {"js",  "text/javascript"},
+        };
+
+static const std::vector <std::string> index_filenames
         {
                 "index.html",
-                "index.htm"
+                "index.htm",
         };
+} //namespace luna

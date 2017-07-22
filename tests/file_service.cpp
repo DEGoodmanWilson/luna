@@ -54,7 +54,7 @@ TEST(file_service, serve_html_file)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
+    ASSERT_EQ("text/html", res.header["Content-Type"]);
 }
 
 TEST(file_service, serve_binary_file)
@@ -83,7 +83,7 @@ TEST(file_service, self_serve_html_file)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html; charset=us-ascii", res.header["Content-Type"]);
+    ASSERT_EQ("text/html", res.header["Content-Type"]);
 }
 
 TEST(file_service, self_serve_html_file_override_mime_type)
@@ -133,6 +133,7 @@ TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test/"});
     ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("text/html", res.header["Content-Type"]);
     ASSERT_EQ("hello html", res.text);
 }
 
@@ -144,6 +145,7 @@ TEST(file_service, directory_is_alias_for_index_html)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("text/html", res.header["Content-Type"]);
     ASSERT_EQ("hello html", res.text);
 }
 

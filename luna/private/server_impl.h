@@ -278,7 +278,7 @@ private:
 
     bool render_response_(
             request &request,
-            response &response,
+            response &local_response,
             MHD_Connection *connection);
 
     bool render_error_(request &request,

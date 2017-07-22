@@ -23,7 +23,6 @@
 
 namespace luna
 {
-
 //TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
 
 #define LOG_FATAL(mesg) \
@@ -313,7 +312,7 @@ void server::server_impl::await()
 {
     std::mutex m;
     {
-        std::unique_lock<std::mutex> lk(m);
+        std::unique_lock <std::mutex> lk(m);
         running_cv_.wait(lk, [this] { return daemon_ == nullptr; });
     }
 }
@@ -335,7 +334,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    parameter::validators &&validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(std::move(path),
@@ -348,7 +347,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    parameter::validators &&validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(path, callback, std::move(validators))));
@@ -359,7 +358,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    const parameter::validators &validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(std::move(path), callback, validators)));
@@ -370,7 +369,7 @@ server::request_handler_handle server::server_impl::handle_request(request_metho
                                                                    server::endpoint_handler_cb callback,
                                                                    const parameter::validators &validators)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     return std::make_pair(method,
                           request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                            std::make_tuple(path, callback, validators)));
@@ -412,7 +411,7 @@ void server::server_impl::remove_request_handler(request_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     request_handlers_[item.first].erase(item.second);
 }
 
@@ -423,7 +422,7 @@ server::error_handler_handle server::server_impl::handle_404(server::error_handl
 
 server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
 {
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     error_handlers_[code] = callback;
     return code;
 }
@@ -432,7 +431,7 @@ void server::server_impl::remove_error_handler(error_handler_handle item)
 {
     //TODO this is expensive. Find a better way to store this stuff.
     //TODO validate we are receiving a valid iterator!!
-    std::lock_guard<std::mutex> guard{lock_};
+    std::lock_guard <std::mutex> guard{lock_};
     error_handlers_.erase(item);
 }
 
@@ -529,7 +528,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
-    std::unique_lock<std::mutex> ulock{lock_};
+    std::unique_lock <std::mutex> ulock{lock_};
     for (const auto &handler_tuple : request_handlers_[method])
     {
         std::smatch pieces_match;
@@ -539,7 +538,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         {
             ulock.unlock(); // found a match, can unlock as iterator will not continue
 
-            std::vector<std::string> matches;
+            std::vector <std::string> matches;
             LOG_DEBUG(std::string{"    match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
@@ -626,54 +625,6 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 response.status_code = default_success_code_(method);
             }
 
-            if (response.content_type.empty()) //no content type assigned, use the default
-            {
-                if (response.file.empty())
-                {
-                    //serving dynamic content, use the default type
-                    response.content_type = default_mime_type;
-                }
-                else
-                {
-                    // We are serving a static asset, Calculate the MIME type if not specified
-                    luna::response error_response{500}; //in case bad things happen
-
-                    // first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
-                    std::string mime_type;
-
-                    //extract the file extension
-                    const auto ext_begin = response.file.find_last_of(".");
-                    const auto ext = response.file.substr(ext_begin+1);
-                    const auto iter = mime_types.find(ext);
-                    if(iter != mime_types.end())
-                    {
-                        mime_type = iter->second;
-                    }
-                    else // fall back on libmagic
-                    {
-                        magic_t magic_cookie;
-                        magic_cookie = magic_open(MAGIC_MIME);
-                        if (magic_cookie == NULL)
-                        {
-                            // These lines should basically never get hit in testing
-                            response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                            // I am dubious that if we had an issue allocating memory above that the following will work, TBH
-                            return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                        }
-                        if (magic_load(magic_cookie, NULL) != 0)
-                        {
-                            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-                            response.status_code = 500;                                                 //LCOV_EXCL_LINE
-                            return render_error_(req, error_response, connection);   //LCOV_EXCL_LINE
-                        }
-
-                        mime_type = magic_file(magic_cookie, response.file.c_str());
-                        magic_close(magic_cookie);
-                    }
-                    response.content_type = mime_type;
-                }
-            }
-
             if (is_error_(response.status_code))
             {
                 //now, the after_error middlewares
@@ -699,18 +650,57 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     return render_error_(req, response, connection);
 }
 
-int escaped_stat(const std::string &file, struct stat *st)
+int escaped_stat_(const std::string &file, struct stat *st)
 {
-    auto result =  stat(file.c_str(), st);
+    auto result = stat(file.c_str(), st);
 
-    if( (result != 0) && (errno == ENOENT) )
+    if ((result != 0) && (errno == ENOENT))
     {
-       //try it again, escaped
-        std::string escaped_path{"\"" + file + "\""};
-        result =  stat(escaped_path.c_str(), st);
+        //try it again, escaped
+        std::string escaped_path{file};
+
+        result = stat(escaped_path.c_str(), st);
     }
 
     return result;
+}
+
+std::string get_mime_type_(const std::string &file)
+{
+// We are serving a static asset, Calculate the MIME type if not specified
+
+// first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
+    std::string mime_type;
+
+//extract the file extension
+    const auto ext_begin = file.find_last_of(".");
+    const auto ext = file.substr(ext_begin + 1);
+    const auto iter = mime_types.find(ext);
+    if (iter != mime_types.end())
+    {
+        mime_type = iter->second;
+    }
+    else // fall back on libmagic
+    {
+        magic_t magic_cookie;
+        magic_cookie = magic_open(MAGIC_MIME);
+        if (magic_cookie == NULL)
+        {
+// These lines should basically never get hit in testing
+// I am dubious that if we had an issue allocating memory above that the following will work, TBH
+            return "";   //LCOV_EXCL_LINE
+        }
+        if (magic_load(magic_cookie, NULL) != 0)
+        {
+            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
+            return "";   //LCOV_EXCL_LINE
+        }
+
+        mime_type = magic_file(magic_cookie, file.c_str());
+        magic_close(magic_cookie);
+    }
+
+    return mime_type;
 }
 
 
@@ -751,55 +741,28 @@ bool server::server_impl::render_response_(request &request,
             // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
 
             struct stat st;
-            auto stat_ret = escaped_stat(response.file, &st);
+            auto stat_ret = escaped_stat_(response.file, &st);
+
             if(S_ISDIR(st.st_mode))
             {
+                LOG_DEBUG("Found folder " + response.file);
                 if(response.file[response.file.size()-1] != '/')
                 {
                     response.file += "/";
                 }
-                std::string induced_file_name;
                 for(const auto name : index_filenames)
                 {
                     auto induced_filename{response.file + name};
-                    stat_ret = escaped_stat(induced_filename, &st);
+                    LOG_DEBUG("Looking for          : "+induced_filename);
+                    stat_ret = escaped_stat_(induced_filename, &st);
                     if(stat_ret == 0)
                     {
                         response.file = induced_filename;
                         break;
                     }
-                    std::string error{"Attempting to find file " + induced_filename + " but got error "};
-                    switch (errno)
-                    {
-                        case EACCES:
-                            LOG_DEBUG(error + "EACCES");
-                            break;
-                        case EBADF:
-                            LOG_DEBUG(error + "EBADF");
-                            break;
-                        case EFAULT:
-                            LOG_DEBUG(error + "EFAULT");
-                            break;
-                        case ELOOP:
-                            LOG_DEBUG(error + "ELOOP");
-                            break;
-                        case ENAMETOOLONG:
-                            LOG_DEBUG(error + "ENAMETOOLONG");
-                            break;
-                        case ENOENT:
-                            LOG_DEBUG(error + "ENOENT");
-                            break;
-                        case ENOMEM:
-                            LOG_DEBUG(error + "ENOMEM");
-                            break;
-                        case ENOTDIR:
-                            LOG_DEBUG(error + "ENOTDIR");
-                            break;
-                        case EOVERFLOW:
-                            LOG_DEBUG(error + "EOVERFLOW");
-                            break;
-                    }
                 }
+            } else {
+                LOG_DEBUG("Not a folder " + response.file);
             }
 
             if(stat_ret != 0)
@@ -808,6 +771,10 @@ bool server::server_impl::render_response_(request &request,
             }
 
 
+            /// determine mime type!
+
+
+            LOG_DEBUG("Actually serving file: "+response.file);
             auto file = fopen(response.file.c_str(), "r");
             // because we already checked, this is guaranteed to work
             {
@@ -847,6 +814,19 @@ bool server::server_impl::render_response_(request &request,
                                                        (void *) response.content.c_str(),
                                                        MHD_RESPMEM_MUST_COPY);
 
+    }
+
+    if (response.content_type.empty()) //no content type assigned, use the default
+    {
+        if (response.file.empty())
+        {
+            //serving dynamic content, use the default type
+            response.content_type = default_mime_type;
+        }
+        else
+        {
+            response.content_type = get_mime_type_(response.file);
+        }
     }
 
     for (const auto &header : response.headers)
