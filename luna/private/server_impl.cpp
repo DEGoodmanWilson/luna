@@ -752,8 +752,8 @@ bool server::server_impl::render_response_(request &request,
                 }
                 for(const auto name : index_filenames)
                 {
-                    auto induced_filename{response.file + name};
-                    LOG_DEBUG("Looking for          : "+induced_filename);
+                    std::string induced_filename{response.file + name};
+                    LOG_DEBUG("Looking for          : " + induced_filename);
                     stat_ret = escaped_stat_(induced_filename, &st);
                     if(stat_ret == 0)
                     {
