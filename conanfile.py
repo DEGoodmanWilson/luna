@@ -2,7 +2,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "3.1.1"
+    version = "3.2.0"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
