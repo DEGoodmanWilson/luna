@@ -284,4 +284,25 @@ void server::remove_error_handler(server::error_handler_handle item)
     impl_->remove_error_handler(item);
 }
 
+void server::add_global_header(std::string &&header, std::string &&value)
+{
+    impl_->add_global_header(std::move(header), std::move(value));
+}
+
+void server::add_global_header(const std::string &header, std::string &&value)
+{
+    impl_->add_global_header(header, std::move(value));
+}
+
+void server::add_global_header(std::string &&header, const std::string &value)
+{
+    impl_->add_global_header(std::move(header), value);
+}
+
+void server::add_global_header(const std::string &header, const std::string &value)
+{
+    impl_->add_global_header(header, value);
+}
+
+
 }

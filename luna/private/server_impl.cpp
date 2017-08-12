@@ -216,9 +216,6 @@ server::server_impl::server_impl() :
 
 void server::server_impl::start()
 {
-    //TODO not super happy that this has to come outside the constructor.
-    // Would strongly prefer if the wrapper constructor could just forward all its varargs to this constructor
-
     MHD_OptionItem options[options_.size() + 1];
     uint16_t idx = 0;
     for (const auto &opt : options_)
@@ -442,6 +439,25 @@ void server::server_impl::remove_error_handler(error_handler_handle item)
     error_handlers_.erase(item);
 }
 
+void server::server_impl::add_global_header(std::string &&header, std::string &&value)
+{
+    global_headers_.emplace(std::move(header), std::move(value));
+}
+
+void server::server_impl::add_global_header(const std::string &header, std::string &&value)
+{
+    global_headers_.emplace(header, std::move(value));
+}
+
+void server::server_impl::add_global_header(std::string &&header, const std::string &value)
+{
+    global_headers_.emplace(std::move(header), value);
+}
+
+void server::server_impl::add_global_header(const std::string &header, const std::string &value)
+{
+    global_headers_.emplace(header, value);
+}
 
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
@@ -710,6 +726,18 @@ std::string get_mime_type_(const std::string &file)
     return mime_type;
 }
 
+void server::server_impl::load_global_headers_(response &response)
+{
+    for (const auto &header : global_headers_)
+    {
+        // TODO this would be a great place for c++17 ::merge function
+        if (response.headers.count(header.first) == 0)
+        {
+            LOG_DEBUG("Overriding global header '" + header.first + "' with value '" + header.second + "'");
+            response.headers[header.first] = header.second;
+        }
+    }
+}
 
 //TODO this should be a static non-class function, I think.
 bool server::server_impl::render_response_(request &request,
@@ -717,6 +745,8 @@ bool server::server_impl::render_response_(request &request,
                                            MHD_Connection *connection)
 {
     struct MHD_Response *mhd_response{nullptr};
+
+    load_global_headers_(response);
 
     //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
 
