@@ -156,6 +156,16 @@ public:
 
     void remove_error_handler(error_handler_handle item);
 
+    // TODO is this really necessary? It seems overmuch.
+    void add_global_header(std::string &&header, std::string &&value);
+
+    void add_global_header(const std::string &header, std::string &&value);
+
+    void add_global_header(std::string &&header, const std::string &value);
+
+    void add_global_header(const std::string &header, const std::string &value);
+
+
     explicit operator bool();
 
 private:

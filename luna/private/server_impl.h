@@ -82,6 +82,14 @@ public:
 
     void remove_error_handler(error_handler_handle item);
 
+    void add_global_header(std::string &&header, std::string &&value);
+
+    void add_global_header(const std::string &header, std::string &&value);
+
+    void add_global_header(std::string &&header, const std::string &value);
+
+    void add_global_header(const std::string &header, const std::string &value);
+
     void set_option(debug_output value);
 
     void set_option(use_thread_per_connection value);
@@ -162,6 +170,8 @@ private:
 
     std::map<request_method, server::request_handlers> request_handlers_;
     std::map<status_code, server::error_handler_cb> error_handlers_;
+
+    luna::headers global_headers_;
 
     bool debug_output_;
 
@@ -289,6 +299,8 @@ private:
                       response &&response,
                       MHD_Connection *connection);
 
+
+    void load_global_headers_(response &response);
 
 };
 
