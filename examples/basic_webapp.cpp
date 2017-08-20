@@ -28,7 +28,7 @@ void ex_error_log(log_level level, const std::string &message)
 void ex_access_log(const luna::request &request, const luna::response &response)
 {
     std::cout << request.ip_address << ": " << luna::to_string(request.method) << " [" << response.status_code << "] "
-              << request.path << " " << request.http_version << " " << request.headers.at("user-agent") << std::endl;
+              << request.path << " " << request.http_version << " " << (request.headers.count("user-agent") ? request.headers.at("user-agent") : "[no user-agent]") << std::endl;
 }
 
 ////
