@@ -15,6 +15,10 @@
 #include "luna/config.h"
 #include "luna/private/file_helpers.h"
 
+// TODO
+// * multiple headers with same name
+// * catch exceptions in user logger and middleware functions, throw 500 when they happen.
+
 #ifdef LUNA_TESTING
 #define STATIC
 #else
@@ -260,8 +264,8 @@ void server::server_impl::start()
     }
     else
     {
-        LOG_DEBUG("No threading options set, will use poll");
-        flags |= MHD_USE_POLL_INTERNALLY;
+        LOG_DEBUG("No threading options set, will use select");
+        flags |= MHD_USE_SELECT_INTERNALLY;
     }
 
     daemon_ = MHD_start_daemon(flags,
