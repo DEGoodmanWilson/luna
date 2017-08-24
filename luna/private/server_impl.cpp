@@ -13,7 +13,6 @@
 #include <arpa/inet.h>
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
-#include "luna/private/file_helpers.h"
 
 // TODO
 // * multiple headers with same name
@@ -174,8 +173,6 @@ STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 }
 ///////////////////////////
 
-SHARED_MUTEX server::server_impl::cache_mutex_;
-
 server::server_impl::server_impl() :
         debug_output_{false},
         lock_{},
@@ -185,9 +182,7 @@ server::server_impl::server_impl() :
         use_epoll_if_available_{false},
         daemon_{nullptr},
         accept_policy_callback_{default_accept_policy_callback_},
-        port_{8080},
-        cache_read_{nullptr},
-        cache_write_{nullptr}
+        port_{8080}
 {}
 
 
@@ -273,15 +268,6 @@ void server::server_impl::stop()
 {
     if (daemon_)
     {
-        //Wait for any pending cache operations to finish.
-        for (auto &t : cache_threads_)
-        {
-            if (t.joinable())
-            {
-                t.join();
-            }
-        }
-
         MHD_stop_daemon(daemon_);
         LOG_INFO("Luna server stopped");
         daemon_ = nullptr;
@@ -955,8 +941,7 @@ void server::server_impl::set_option(middleware::after_error value)
 
 void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
 {
-    cache_read_ = std::get<cache::read>(value);
-    cache_write_ = std::get<cache::write>(value);
+    response_generator_.set_option(value);
 }
 
 } //namespace luna

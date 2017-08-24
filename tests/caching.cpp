@@ -12,6 +12,7 @@
 #include <thread>
 #include <chrono>
 
+/*
 
 TEST(cacheing, cache_read_1)
 {
@@ -237,3 +238,4 @@ TEST(cacheing, cache_write_crasher_2)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
 }
+ */

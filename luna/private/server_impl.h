@@ -11,31 +11,10 @@
 #include "server.h"
 #include <microhttpd.h>
 #include <cstring>
-#include <iostream>
 #include <chrono>
 #include <mutex>
-#include <shared_mutex>
 #include <thread>
 #include <condition_variable>
-
-
-// NOTE: Apple prior to macOS 12 doesn't support shared mutexes :(
-// This is a ridiculous hack.
-#if defined (__APPLE__)
-#include <Availability.h>
-#if __apple_build_version__ < 8020000
-#pragma message ( "No support for std::shared_lock!" )
-#define NO_SHARED_LOCK
-#endif
-#endif
-
-#if defined(NO_SHARED_LOCK)
-#define SHARED_LOCK std::unique_lock
-#define SHARED_MUTEX std::mutex
-#else
-#define SHARED_LOCK std::shared_lock
-#define SHARED_MUTEX std::shared_timed_mutex
-#endif
 
 namespace luna
 {
@@ -161,8 +140,9 @@ public:
     void set_option(middleware::after_request_handler value);
     void set_option(middleware::after_error value);
 
-    //static asset caching
+    //static asset cacheing
     void set_option(std::pair<cache::read, cache::write> value);
+
 
 private:
     std::mutex lock_;
@@ -194,26 +174,12 @@ private:
     middleware::before_request_handler middleware_before_request_handler_;
     middleware::after_request_handler middleware_after_request_handler_;
 
-    // static asset caching
-    cache::read cache_read_;
-    cache::write cache_write_;
-
     //options
     std::vector<MHD_OptionItem> options_;
 
     struct MHD_Daemon *daemon_;
 
     std::condition_variable running_cv_;
-
-    // for the file cache; many threads can read, but we need to restrict writing to one thread.
-    // TODO Making this static achieves the desired result of being able to access the mutex even after an instance of
-    //  the class is destroyed, but it will be a bottleneck if you have multiple servers with their own independent
-    //  caches. We can improve this later.
-    //  We can improve this by adding a new cache handler where concurrency is handled in the callbacks themselves.
-    //  Maybe.
-
-    static SHARED_MUTEX cache_mutex_;
-    std::vector<std::thread> cache_threads_;
 
     ///// internal use-only callbacks
 
