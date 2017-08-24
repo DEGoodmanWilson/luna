@@ -80,6 +80,11 @@ set(LIB_LUNA_SOURCE_FILES
         luna/config.cpp
         luna/config.h
         luna/private/safer_times.h
-        luna/private/file_helpers.h luna/private/cacheable_response.cpp luna/private/cacheable_response.h luna/private/response_generator.cpp luna/private/response_generator.h)
+        luna/private/file_helpers.h
+        luna/private/cacheable_response.cpp
+        luna/private/cacheable_response.h
+        luna/private/response_generator.cpp
+        luna/private/response_generator.h
+        )
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 target_link_libraries(luna ${CONAN_LIBS})

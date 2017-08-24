@@ -83,13 +83,11 @@ public:
 
     void remove_error_handler(error_handler_handle item);
 
-    void add_global_header(std::string &&header, std::string &&value);
-
-    void add_global_header(const std::string &header, std::string &&value);
-
-    void add_global_header(std::string &&header, const std::string &value);
-
-    void add_global_header(const std::string &header, const std::string &value);
+    template<class H, class V>
+    void add_global_header(H &&header, V &&value)
+    {
+        response_generator_.add_global_header(std::forward<H>(header), std::forward<V>(value));
+    };
 
     void set_option(debug_output value);
 
@@ -170,7 +168,6 @@ private:
     std::mutex lock_;
 
     std::map<request_method, server::request_handlers> request_handlers_;
-    std::map<status_code, server::error_handler_cb> error_handlers_;
 
     luna::headers global_headers_;
 
@@ -185,8 +182,6 @@ private:
 
     uint16_t port_;
 
-    std::string server_identifier_;
-
     // string copies of options
     std::vector<std::string> https_mem_key_;
     std::vector<std::string> https_mem_cert_;
@@ -198,7 +193,6 @@ private:
     // middlewares
     middleware::before_request_handler middleware_before_request_handler_;
     middleware::after_request_handler middleware_after_request_handler_;
-    middleware::after_error middleware_after_error_;
 
     // static asset caching
     cache::read cache_read_;
@@ -233,9 +227,6 @@ private:
 
 
     ////// external-use callbacks that can be set with options
-
-    error_handler_cb error_handler_callback_; //has a default value
-
     accept_policy_cb accept_policy_callback_; //has a default value
 
     unescaper_cb unescaper_callback_;
