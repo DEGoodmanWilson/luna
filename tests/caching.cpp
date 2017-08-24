@@ -10,6 +10,7 @@
 #include <cpr/cpr.h>
 #include <array>
 #include <thread>
+#include <iostream>
 #include <chrono>
 
 TEST(cacheing, cache_read_1)
@@ -47,7 +48,7 @@ TEST(cacheing, cache_write_1)
     ASSERT_FALSE(static_cast<bool>(cache)); //assert the cache is empty before the first request
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text); // assert the file was read from
-    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
+    while (!cache_write); //This is a silly and cheap thread synchronization mechanism
     ASSERT_EQ("hello", *cache); // assert the cache was written to
 
 
@@ -57,7 +58,7 @@ TEST(cacheing, cache_write_1)
     ASSERT_EQ("goodbye", *cache); // assert the cache was not updated with the file contents
     res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text); // assert the file was read from
-    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
+    while (!cache_write); //This is a silly and cheap thread synchronization mechanism
     ASSERT_EQ("hello", *cache); // assert the cache was written to
 }
 
@@ -90,7 +91,7 @@ TEST(cacheing, cache_read_write)
     // first call loads from file and writes to cache
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
 
-    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
+    while (!cache_write); //This is a silly and cheap thread synchronization mechanism
     ASSERT_EQ("hello", res.text);
     ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
@@ -123,7 +124,7 @@ TEST(cacheing, check_cache_threading)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
-    while(!cache_write); //This is a silly and cheap thread synchronization mechanism
+    while (!cache_write); //This is a silly and cheap thread synchronization mechanism
     ASSERT_TRUE(static_cast<bool>(cache));
     ASSERT_EQ("hello", *cache);
 }
@@ -226,7 +227,7 @@ TEST(cacheing, cache_write_crasher_2)
         // if we aren't careful, this line will crash because cache will be out of scope!
         // The server should wait to halt until all cache writes are complete, to help novice programmers avoid this mistake.
         // This way, when the program exits, we won't get a segfault waiting on the last cache write operations to finish up.
-        cache=value;
+        cache = value;
     };
 
     luna::server server{luna::cache::build(nullptr, write)};
@@ -239,7 +240,7 @@ TEST(cacheing, cache_write_crasher_2)
 
 TEST(fd_cacheing, hit_the_fd_cache)
 {
-    luna::server server{luna::server::enable_internal_file_caching{true}};
+    luna::server server{luna::server::enable_internal_file_cache{true}};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
 
@@ -263,6 +264,47 @@ TEST(fd_cacheing, hit_the_fd_cache)
     }
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
     std::cout << "With cacheing: " << cache_duration << std::endl;
+
+    ASSERT_LT(cache_duration, no_cache_duration);
+}
+
+TEST(fd_cacheing, test_cache_timeout)
+{
+    luna::server server{luna::server::enable_internal_file_cache{true},
+                        luna::server::internal_file_cache_keep_alive{std::chrono::milliseconds{100}}};
+
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    // We can only test this indirectly, through speedups. This might be very unreliable.
+    std::chrono::high_resolution_clock::time_point t1, t2, t3, t4;
+
+    {
+        // load the cache
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+    }
+
+    {
+        // read the cached value
+        t1 = std::chrono::high_resolution_clock::now();
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+        t2 = std::chrono::high_resolution_clock::now();
+        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+    }
+    auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "With cacheing:   " << cache_duration << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds{110});
+
+    {
+        // cache should be invalidated now.
+        t3 = std::chrono::high_resolution_clock::now();
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+        t4 = std::chrono::high_resolution_clock::now();
+        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+    }
+    auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+    std::cout << "No cacheing: " << no_cache_duration << std::endl;
 
     ASSERT_LT(cache_duration, no_cache_duration);
 }

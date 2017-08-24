@@ -11,6 +11,7 @@
 #include <functional>
 #include <microhttpd.h>
 #include <memory>
+#include <chrono>
 
 namespace luna
 {
@@ -95,7 +96,9 @@ public:
     MAKE_STRING_LIKE(server_identifier);
     MAKE_STRING_LIKE(append_to_server_identifier);
 
-    MAKE_BOOL_LIKE(enable_internal_file_caching);
+    MAKE_BOOL_LIKE(enable_internal_file_cache);
+
+    using internal_file_cache_keep_alive = std::chrono::milliseconds;
 
 
     server()
@@ -273,7 +276,8 @@ private:
     // user-provided static asset caching
     void set_option_(std::pair<cache::read, cache::write> value);
     // internally-provided static asset caching
-    void set_option_(enable_internal_file_caching value);
+    void set_option_(enable_internal_file_cache value);
+    void set_option_(internal_file_cache_keep_alive value);
 };
 
 //for testing purposes only.

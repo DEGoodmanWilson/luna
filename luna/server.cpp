@@ -234,7 +234,12 @@ void server::set_option_(std::pair<cache::read, cache::write> value)
     impl_->set_option(value);
 }
 
-void server::set_option_(server::enable_internal_file_caching value)
+void server::set_option_(server::enable_internal_file_cache value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(internal_file_cache_keep_alive value)
 {
     impl_->set_option(value);
 }

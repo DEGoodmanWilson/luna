@@ -47,11 +47,6 @@ static const server::error_handler_cb default_error_handler_callback_ = [](const
     }
 };
 
-//void add_uniform_headers_(std::shared_ptr<cacheable_response> response)
-//{
-//
-//}
-
 std::string get_mime_type_(const std::string &file)
 {
 // We are serving a static asset, Calculate the MIME type if not specified
@@ -103,7 +98,8 @@ response_generator::response_generator() :
         cache_read_{nullptr},
         cache_write_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
-        use_fd_cache_{false}
+        use_fd_cache_{false},
+        cache_keep_alive_{std::chrono::milliseconds{1000}}
 {}
 
 response_generator::~response_generator()
@@ -227,12 +223,20 @@ response_generator::from_file_(const request &request, response &response)
         // cache miss, or missing cache: look for the file in our local fd cache
         SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
 
-        if(use_fd_cache_ &&fd_cache_.count(response.file))
+        if(use_fd_cache_ && fd_cache_.count(response.file))
         {
-            fd_cache_[response.file]->cached = true;
-            return fd_cache_[response.file];
-        }
+            auto cache = fd_cache_[response.file];
+            // has the cache expired?
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - cache->time_cached);
+            if(duration.count() <= cache_keep_alive_.count())
+            {
+                cache->cached = true;
+                return cache;
+            }
 
+            // else lets invalidate the cache
+            fd_cache_.erase(response.file);
+        }
     }
 
 
@@ -334,6 +338,7 @@ response_generator::from_file_(const request &request, response &response)
                 // this should be quite fast, so we'll do it synchronously
                 // TODO put a cap on how big the cache can be!
                 std::unique_lock<SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
+                response_mhd->time_cached = std::chrono::system_clock::now();
                 fd_cache_[response.file] = response_mhd;
             }
         }
@@ -369,9 +374,14 @@ void response_generator::set_option(middleware::after_error value)
     middleware_after_error_ = value;
 }
 
-void response_generator::set_option(server::enable_internal_file_caching &value)
+void response_generator::set_option(server::enable_internal_file_cache value)
 {
     use_fd_cache_ = static_cast<bool>(value);
+}
+
+void response_generator::set_option(server::internal_file_cache_keep_alive value)
+{
+    cache_keep_alive_ = value;
 }
 
 void response_generator::set_option(std::pair<cache::read, cache::write> value)

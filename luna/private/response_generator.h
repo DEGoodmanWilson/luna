@@ -12,6 +12,8 @@
 #include <shared_mutex>
 #include <mutex>
 #include <thread>
+#include <chrono>
+
 
 // NOTE: Apple prior to macOS 12 doesn't support shared mutexes :(
 // This is a ridiculous hack.
@@ -48,7 +50,8 @@ public:
     void set_option(const server::append_to_server_identifier &value);
     void set_option(const server::mime_type &mime_type);
     void set_option(middleware::after_error value);
-    void set_option(server::enable_internal_file_caching &value);
+    void set_option(server::enable_internal_file_cache value);
+    void set_option(server::internal_file_cache_keep_alive value);
     //static asset caching
     void set_option(std::pair<cache::read, cache::write> value);
 
@@ -99,6 +102,7 @@ private:
     bool use_fd_cache_;
     static SHARED_MUTEX fd_cache_mutex_;
     std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
+    std::chrono::milliseconds cache_keep_alive_;
 
     // error handling
     server::error_handler_cb error_handler_callback_;

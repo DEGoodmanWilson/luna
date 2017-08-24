@@ -951,7 +951,12 @@ void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
     response_generator_.set_option(value);
 }
 
-void server::server_impl::set_option(server::enable_internal_file_caching value)
+void server::server_impl::set_option(server::enable_internal_file_cache value)
+{
+    response_generator_.set_option(value);
+}
+
+void server::server_impl::set_option(internal_file_cache_keep_alive value)
 {
     response_generator_.set_option(value);
 }
