@@ -156,17 +156,22 @@ response_generator::generate_response(const request &request, response &response
     }
 
 
-    // Add headers to response object
-    for (const auto &header : response.headers)
+    // Add headers to response object, but only if it needs it
+    if(!response_mhd->cached)
     {
-        MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        for (const auto &header : response.headers)
+        {
+            MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        }
+        for (const auto &header : global_headers_)
+        {
+            MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        }
+        MHD_add_response_header(response_mhd->mhd_response,
+                                MHD_HTTP_HEADER_CONTENT_TYPE,
+                                response.content_type.c_str());
+        MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
     }
-    for (const auto &header : global_headers_)
-    {
-        MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
-    }
-    MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
-    MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
 
     // TODO can we cache this response?
     return response_mhd;
@@ -223,6 +228,7 @@ response_generator::from_file_(const request &request, response &response)
 
         if(fd_cache_.count(response.file))
         {
+            fd_cache_[response.file]->cached = true;
             return fd_cache_[response.file];
         }
 

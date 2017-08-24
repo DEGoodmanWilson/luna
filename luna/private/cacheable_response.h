@@ -17,6 +17,7 @@ struct cacheable_response
 {
     struct MHD_Response *mhd_response;
     luna::status_code status_code;
+    bool cached;
 
     cacheable_response(struct MHD_Response *mhd_response, luna::status_code status_code);
 
