@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "safer_times.h"
+#include "luna/private/safer_times.h"
+#include "luna/private/response_generator.h"
 #include "server.h"
 #include <microhttpd.h>
 #include <cstring>
@@ -285,19 +286,21 @@ private:
 
 
     ///// helpers
+    response_generator response_generator_;
 
-    bool render_response_(
-            request &request,
-            response &local_response,
-            MHD_Connection *connection);
 
-    bool render_error_(request &request,
-                      response &response,
-                      MHD_Connection *connection);
-
-    bool render_error_(request &request,
-                      response &&response,
-                      MHD_Connection *connection);
+//    bool render_response_(
+//            request &request,
+//            response &local_response,
+//            MHD_Connection *connection);
+//
+//    bool render_error_(request &request,
+//                      response &response,
+//                      MHD_Connection *connection);
+//
+//    bool render_error_(request &request,
+//                      response &&response,
+//                      MHD_Connection *connection);
 
 
     void load_global_headers_(response &response);

@@ -75,7 +75,6 @@ struct connection_info_struct
     }
 };
 
-std::string default_mime_type{"text/html; charset=UTF-8"};
 
 STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
                                                                            response &response)
@@ -100,30 +99,6 @@ STATIC const server::accept_policy_cb default_accept_policy_callback_ = [](const
 {
     return true;
 };
-
-STATIC status_code default_success_code_(request_method method)
-{
-    if (method == request_method::POST)
-    {
-        return 201;
-    }
-
-    return 200;
-}
-
-STATIC bool is_error_(status_code code)
-{
-    if (code < 300) return false;
-
-    return true;
-}
-
-STATIC bool is_redirect_(status_code code)
-{
-    if ((code >= 300) && code < 400) return true;
-
-    return false;
-}
 
 STATIC request_method method_str_to_enum_(const char *method_str)
 {
@@ -548,7 +523,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     auto ip_address = addr_to_str_(MHD_get_connection_info(connection,
                                                            MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
 
-    request req{start, start, ip_address, method, url_str, http_version, {}, query_params, header, con_info->body};
+    luna::request request{start, start, ip_address, method, url_str, http_version, {}, query_params, header, con_info->body};
 
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
 
@@ -565,7 +540,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         {
             ulock.unlock(); // found a match, can unlock as iterator will not continue
 
-            std::vector <std::string> matches;
+            std::vector<std::string> matches;
             LOG_DEBUG(std::string{"    match: "} + url);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
@@ -575,7 +550,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 matches.emplace_back(sub_match.str());
             }
 
-            req.matches = matches;
+            request.matches = matches;
             response response;
 
             auto callback = std::get<endpoint_handler_cb>(handler_tuple);
@@ -583,6 +558,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
             {
                 // Validate the parameters passed in
                 // TODO this can probably be optimized
+                // TODO refactor this out!
                 bool valid_params = true;
                 auto validators = std::get<parameter::validators>(handler_tuple);
                 for (const auto &validator : validators)
@@ -620,10 +596,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                     //first, the before middlewares
                     for (const auto &mw : middleware_before_request_handler_.funcs)
                     {
-                        mw(req);
+                        mw(request);
                     }
 
-                    response = callback(req);
+                    response = callback(request);
 
                     //now, the after middlewares
                     for (const auto &mw : middleware_after_request_handler_.funcs)
@@ -632,7 +608,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                     }
                 }
             }
-                //TODO there is surely a more robust way to do this;
+
+            // TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
                 LOG_ERROR(std::string{"Request handler for \"" + url_str + "\" threw an exception: "} + e.what());
@@ -647,25 +624,14 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
                 //TODO render the stack trace, etc.
             }
 
-            if (response.status_code == 0) //no status code was provided, assume success
-            {
-                response.status_code = default_success_code_(method);
-            }
 
-            if (is_error_(response.status_code))
-            {
-                //now, the after_error middlewares
-                for (const auto &mw : middleware_after_error_.funcs)
-                {
-                    mw(response);
-                }
-                return render_error_(req, response, connection);
-            }
+            auto my_response = response_generator_.generate_response(request, response);
 
-            //else render success
-            return render_response_(req, response, connection);
+            return MHD_queue_response(connection, my_response->status_code, my_response->mhd_response);
         }
     }
+
+    // TODO refactor this
 
     /* unsupported HTTP method */
     //now, the after_error middlewares TODO this could be refactored. The logic is starting to become tortured.
@@ -674,245 +640,9 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     {
         mw(response);
     }
-    return render_error_(req, response, connection);
-}
 
-int escaped_stat_(const std::string &file, struct stat *st)
-{
-    auto result = stat(file.c_str(), st);
-
-    if ((result != 0) && (errno == ENOENT))
-    {
-        //try it again, escaped
-        std::string escaped_path{file};
-
-        result = stat(escaped_path.c_str(), st);
-    }
-
-    return result;
-}
-
-std::string get_mime_type_(const std::string &file)
-{
-// We are serving a static asset, Calculate the MIME type if not specified
-
-// first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
-    std::string mime_type;
-
-//extract the file extension
-    const auto ext_begin = file.find_last_of(".");
-    const auto ext = file.substr(ext_begin + 1);
-    const auto iter = mime_types.find(ext);
-    if (iter != mime_types.end())
-    {
-        mime_type = iter->second;
-    }
-    else // fall back on libmagic
-    {
-        magic_t magic_cookie;
-        magic_cookie = magic_open(MAGIC_MIME);
-        if (magic_cookie == NULL)
-        {
-// These lines should basically never get hit in testing
-// I am dubious that if we had an issue allocating memory above that the following will work, TBH
-            return "";   //LCOV_EXCL_LINE
-        }
-        if (magic_load(magic_cookie, NULL) != 0)
-        {
-            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-            return "";   //LCOV_EXCL_LINE
-        }
-
-        mime_type = magic_file(magic_cookie, file.c_str());
-        magic_close(magic_cookie);
-    }
-
-    return mime_type;
-}
-
-void server::server_impl::load_global_headers_(response &response)
-{
-    for (const auto &header : global_headers_)
-    {
-        // TODO this would be a great place for c++17 ::merge function
-        if (response.headers.count(header.first) == 0)
-        {
-            LOG_DEBUG("Overriding global header '" + header.first + "' with value '" + header.second + "'");
-            response.headers[header.first] = header.second;
-        }
-    }
-}
-
-//TODO this should be a static non-class function, I think.
-bool server::server_impl::render_response_(request &request,
-                                           response &response,
-                                           MHD_Connection *connection)
-{
-    struct MHD_Response *mhd_response{nullptr};
-
-    load_global_headers_(response);
-
-    //TODO allow callbacks in the response object, in which case use `MHD_create_response_from_callback`
-
-    // We want to serve a file, in which case use `MHD_create_response_from_fd`
-    // TODO this mhd_response could be cached to speed things up!
-    if (!response.file.empty()) //we have a filename, load up that file and ignore the rest
-    {
-        //first, let's check the cache!
-        if (cache_read_)
-        {
-            SHARED_LOCK<SHARED_MUTEX> lock{server_impl::cache_mutex_};
-            auto cache_hit = cache_read_(response.file);
-            if (cache_hit)
-            {
-                response.content = cache_hit->c_str();
-                mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                               (void *) response.content.c_str(),
-                                                               MHD_RESPMEM_MUST_COPY);
-            }
-        }
-
-        if (response.content.empty())
-        {
-            //cache miss, or missing cache: look for the file on disk
-
-            response.status_code = 200; //default success
-
-            // TODO replace with new c++17 std::filesystem implementation. Later.
-            // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
-
-            struct stat st;
-            auto stat_ret = escaped_stat_(response.file, &st);
-
-            if(S_ISDIR(st.st_mode))
-            {
-                LOG_DEBUG("Found folder " + response.file);
-                if(response.file[response.file.size()-1] != '/')
-                {
-                    response.file += "/";
-                }
-                for(const auto name : index_filenames)
-                {
-                    std::string induced_filename{response.file + name};
-                    LOG_DEBUG("Looking for          : " + induced_filename);
-                    stat_ret = escaped_stat_(induced_filename, &st);
-                    if(stat_ret == 0)
-                    {
-                        response.file = induced_filename;
-                        break;
-                    }
-                }
-            } else {
-                LOG_DEBUG("Not a folder " + response.file);
-            }
-
-            if(stat_ret != 0)
-            {
-                return render_error_(request, {404}, connection);
-            }
-
-
-            /// determine mime type!
-
-
-            LOG_DEBUG("Actually serving file: "+response.file);
-            auto file = fopen(response.file.c_str(), "r");
-            // because we already checked, this is guaranteed to work
-            {
-                auto fd = fileno(file);
-                struct stat stat_buf;
-                auto rc = fstat(fd, &stat_buf);
-                auto fsize = stat_buf.st_size;
-
-                mhd_response = MHD_create_response_from_fd(fsize, fd);
-
-                if (cache_write_) //only write to the cache if we didn't hit it the first time.
-                {
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
-#pragma message ( "No support for C++14 lambda captures" )
-                    auto writer = cache_write_;
-                    auto file = response.file;
-                    cache_threads_.emplace_back(std::thread{[writer, file] ()
-#else
-                    cache_threads_.emplace_back(std::thread{[writer = cache_write_, file = response.file]()
-#endif
-                                                            {
-                                                                std::unique_lock<SHARED_MUTEX> lock{
-                                                                        server_impl::cache_mutex_};
-                                                                std::ifstream ifs(file);
-                                                                writer(file,
-                                                                       std::make_shared<std::string>(std::istreambuf_iterator<char>(
-                                                                               ifs), std::istreambuf_iterator<char>()));
-                                                            }});
-                }
-            }
-        }
-    }
-        // we're loading this from the buffer in response.content, no problem.
-    else
-    {
-        mhd_response = MHD_create_response_from_buffer(response.content.length(),
-                                                       (void *) response.content.c_str(),
-                                                       MHD_RESPMEM_MUST_COPY);
-
-    }
-
-    if (response.content_type.empty()) //no content type assigned, use the default
-    {
-        if (response.file.empty())
-        {
-            //serving dynamic content, use the default type
-            response.content_type = default_mime_type;
-        }
-        else
-        {
-            response.content_type = get_mime_type_(response.file);
-        }
-    }
-
-    for (const auto &header : response.headers)
-    {
-        MHD_add_response_header(mhd_response, header.first.c_str(), header.second.c_str());
-    }
-
-    MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
-
-    MHD_add_response_header(mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
-
-    bool ret = MHD_queue_response(connection, response.status_code, mhd_response);
-
-    request.end = std::chrono::system_clock::now();
-
-    // log it
-    auto end_c = std::chrono::system_clock::to_time_t(request.end);
-    std::stringstream sstr;
-    auto tm = luna::gmtime(end_c);
-    access_log(request, response);
-
-    MHD_destroy_response(mhd_response);
-    return ret;
-}
-
-bool server::server_impl::render_error_(request & request, response & response, MHD_Connection * connection)
-{
-    /* unsupported HTTP method */
-    error_handler_callback_(request, response); //hook for modifying response
-
-    // get custom error page if exists
-    if (error_handlers_.count(response.status_code))
-    {
-        error_handlers_.at(response.status_code)(request, response); //re-render response
-    }
-
-    return render_response_(request, response, connection);
-}
-
-bool server::server_impl::render_error_(request & request, response && response, MHD_Connection * connection)
-{
-    /* unsupported HTTP method */
-    error_handler_callback_(request, response); //hook for modifying response
-
-    return render_response_(request, response, connection);
+    auto my_response = response_generator_.generate_response(request, response);
+    return MHD_queue_response(connection, my_response->status_code, my_response->mhd_response);
 }
 
 /////////// callback shims
@@ -1063,7 +793,8 @@ void server::server_impl::set_option(use_epoll_if_available value)
 
 void server::server_impl::set_option(const server::mime_type &mime_type)
 {
-    default_mime_type = mime_type;
+    // TODO
+//    luna::default_mime_type = mime_type;
 }
 
 void server::server_impl::set_option(server::error_handler_cb handler)

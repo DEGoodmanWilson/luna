@@ -85,8 +85,6 @@ private: \
 
 using status_code = uint16_t;
 
-extern std::string default_mime_type;
-
 using endpoint_matches = std::vector<std::string>;
 
 using case_sensitive_map = std::map<std::string, std::string>;
@@ -181,10 +179,10 @@ struct response
     response(::luna::status_code status_code, const ::luna::request_headers& headers) : status_code{status_code}, headers{headers}, file{""}
     { }
 
-    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content_type{default_mime_type}, content{content}, file{""}
+    response(::luna::status_code status_code, std::string content) : status_code{status_code}, content{content}, file{""}
     { }
 
-    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content_type{default_mime_type}, content{content}, file{""}
+    response(::luna::status_code status_code, const ::luna::request_headers& headers, std::string content) : status_code{status_code}, headers{headers}, content{content}, file{""}
     { }
 
     response(::luna::status_code status_code, std::string content_type, std::string content) :
@@ -196,13 +194,13 @@ struct response
     { }
 
     // default success responses
-    response(const ::luna::request_headers& headers, std::string content) : status_code{0}, headers{headers}, content_type{default_mime_type}, content{content}, file{""}
+    response(const ::luna::request_headers& headers, std::string content) : status_code{0}, headers{headers}, content{content}, file{""}
     { }
 
     response(const ::luna::request_headers& headers) : status_code{0}, headers{headers}, file{""}
     { }
 
-    response(std::string content) : status_code{0}, content_type{default_mime_type}, content{content}, file{""}
+    response(std::string content) : status_code{0}, content{content}, file{""}
     { }
 
     response(const ::luna::request_headers& headers, std::string content_type, std::string content) :
