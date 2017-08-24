@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <sstream>
 #include <fstream>
 #include <magic.h>
 #include <sys/stat.h>
@@ -175,7 +174,6 @@ STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 
 server::server_impl::server_impl() :
         debug_output_{false},
-        lock_{},
         ssl_mem_cert_set_{false},
         ssl_mem_key_set_{false},
         use_thread_per_connection_{false},
@@ -601,7 +599,16 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     auto response_mhd = response_generator_.generate_response(request, response);
-    return MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);
+    auto retval = MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);
+
+    request.end = std::chrono::system_clock::now();
+
+    // log it
+    auto end_c = std::chrono::system_clock::to_time_t(request.end);
+    auto tm = luna::gmtime(end_c);
+    access_log(request, response);
+
+    return retval;
 }
 
 /////////// callback shims

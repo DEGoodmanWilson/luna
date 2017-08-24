@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <luna/luna.h>
+#include <cpr/cpr.h>
 
 TEST(logging, error_logger_test)
 {
@@ -59,4 +60,41 @@ TEST(logging, basic_formatting_test_2)
     ASSERT_EQ("GET / HTTP/1.0", log_str);
 
     luna::reset_access_logger();
+}
+
+TEST(access_logging, integration_test)
+{
+    std::string access_log_str;
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
+                            {
+                                std::stringstream message;
+                                message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
+                                access_log_str = message.str();
+                            });
+
+
+    std::string error_log_str;
+    luna::log_level log_lvl{luna::log_level::INFO};
+    luna::set_error_logger([&](luna::log_level level, const std::string& message)
+                           {
+                               error_log_str = message;
+                           });
+
+    luna::server server{};
+
+    server.handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    ASSERT_EQ("Luna server created on port 8080", error_log_str);
+    ASSERT_TRUE(access_log_str.empty());
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("GET /test HTTP/1.1", access_log_str);
+
+    luna::reset_access_logger();
+    luna::reset_error_logger();
 }

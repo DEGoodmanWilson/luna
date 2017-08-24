@@ -9,7 +9,6 @@
 #include <luna/luna.h>
 #include <cpr/cpr.h>
 
-// At the moment these crash. Why?
 TEST(options, default_404)
 {
     luna::server server{luna::server::port{8080}};
