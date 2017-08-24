@@ -12,8 +12,6 @@
 #include <thread>
 #include <chrono>
 
-/*
-
 TEST(cacheing, cache_read_1)
 {
     std::shared_ptr<std::string> cache = std::make_shared<std::string>("hello");
@@ -238,4 +236,31 @@ TEST(cacheing, cache_write_crasher_2)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ("hello", res.text);
 }
- */
+
+TEST(fd_cacheing, hit_the_fd_cache)
+{
+    luna::server server{};
+    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    server.serve_files("/", path + "/tests/public");
+
+    // We can only test this indirectly, through speedups. This might be very unreliable.
+    std::chrono::high_resolution_clock::time_point t1, t2, t3, t4;
+
+    {
+        t1 = std::chrono::high_resolution_clock::now();
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+        t2 = std::chrono::high_resolution_clock::now();
+    }
+    auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "No cacheing:   " << no_cache_duration << std::endl;
+
+    {
+        t3 = std::chrono::high_resolution_clock::now();
+        auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+        t4 = std::chrono::high_resolution_clock::now();
+    }
+    auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+    std::cout << "With cacheing: " << cache_duration << std::endl;
+
+    ASSERT_LT(cache_duration, no_cache_duration);
+}

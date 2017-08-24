@@ -87,11 +87,16 @@ private:
     //  We can improve this by adding a new cache handler where concurrency is handled in the callbacks themselves.
     //  Maybe.
     static SHARED_MUTEX cache_mutex_;
-    static std::mutex fd_mutex_;
     std::vector<std::thread> cache_threads_;
 
     cache::read cache_read_;
     cache::write cache_write_;
+
+    static std::mutex fd_mutex_;
+
+    // fd cache
+    static SHARED_MUTEX fd_cache_mutex_;
+    std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
 
     // error handling
     server::error_handler_cb error_handler_callback_;

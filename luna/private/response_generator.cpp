@@ -93,6 +93,7 @@ std::string get_mime_type_(const std::string &file)
 //////////////////////////////////////////////////////////////////////////////
 
 SHARED_MUTEX response_generator::cache_mutex_;
+SHARED_MUTEX response_generator::fd_cache_mutex_;
 std::mutex response_generator::fd_mutex_;
 
 
@@ -200,7 +201,7 @@ response_generator::from_file_(const request &request, response &response)
 {
     std::shared_ptr<cacheable_response> response_mhd;
 
-    //first, let's check the cache!
+    //first, let's check the user's in-memory cache!
     if (cache_read_)
     {
         SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
@@ -217,30 +218,46 @@ response_generator::from_file_(const request &request, response &response)
 
     if (!response_mhd)
     {
-        //cache miss, or missing cache: look for the file on disk
+        // cache miss, or missing cache: look for the file in our local fd cache
+        SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
+
+        if(fd_cache_.count(response.file))
+        {
+            return fd_cache_[response.file];
+        }
+
+    }
+
+
+    if (!response_mhd)
+    {
+        // cache miss, look for the file on disk
 
         // TODO check local fd cache
 
         // TODO replace with new c++17 std::filesystem implementation. Later.
         // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
         struct stat st;
-        auto stat_ret = stat(response.file.c_str(), &st);
+        auto filename = response.file;
+
+        auto stat_ret = stat(filename.c_str(), &st);
+
 
         if (S_ISDIR(st.st_mode))
         {
-            if (response.file[response.file.size() - 1] != '/')
+            if (filename[filename.size() - 1] != '/')
             {
-                response.file += "/";
+                filename += "/";
             }
             for (const auto name : index_filenames)
             {
-                std::string induced_filename{response.file + name};
+                std::string induced_filename{filename + name};
                 {
                     stat_ret = stat(induced_filename.c_str(), &st);
                 }
                 if (stat_ret == 0)
                 {
-                    response.file = induced_filename;
+                    filename = induced_filename;
                     break;
                 }
             }
@@ -269,11 +286,11 @@ response_generator::from_file_(const request &request, response &response)
             // determine mime type
             if(response.content_type.empty())
             {
-                response.content_type = get_mime_type_(response.file);
+                response.content_type = get_mime_type_(filename);
             }
 
 
-            auto file = fopen(response.file.c_str(), "r");
+            auto file = fopen(filename.c_str(), "r");
 
             // because we already checked with stat(), this is guaranteed to work
 
@@ -299,11 +316,19 @@ response_generator::from_file_(const request &request, response &response)
                                                                     response_generator::cache_mutex_};
                                                             std::unique_lock<std::mutex> fd_lock{
                                                                     response_generator::fd_mutex_};
-                                                            std::ifstream ifs{filename};
-                                                            writer(filename,
+                                                            std::ifstream ifs{res_filename};
+                                                            writer(res_filename,
                                                                    std::make_shared<std::string>(std::istreambuf_iterator<char>(
                                                                            ifs), std::istreambuf_iterator<char>()));
                                                         }});
+            }
+            else
+            {
+                // write the response to our own fd cache
+                // this should be quite fast, so we'll do it synchronously
+                // TODO put a cap on how big the cache can be!
+                std::unique_lock<SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
+                fd_cache_[response.file] = response_mhd;
             }
         }
     }
@@ -377,24 +402,6 @@ void response_generator::remove_error_handler(server::error_handler_handle item)
     //TODO validate we are receiving a valid iterator!!
     error_handlers_.erase(item);
 }
-
-
-//
-/*
-bool response_generator::render_error_(request & request, response & response, MHD_Connection * connection)
-{
-    // unsupported HTTP method
-error_handler_callback_(request, response); //hook for modifying response
-
-// get custom error page if exists
-if (error_handlers_.count(response.status_code))
-{
-error_handlers_.at(response.status_code)(request, response); //re-render response
-}
-
-return render_response_(request, response, connection);
-}
-*/
 
 
 } //namespace luna
