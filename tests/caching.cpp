@@ -239,7 +239,7 @@ TEST(cacheing, cache_write_crasher_2)
 
 TEST(fd_cacheing, hit_the_fd_cache)
 {
-    luna::server server{};
+    luna::server server{luna::server::enable_internal_file_caching{true}};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     server.serve_files("/", path + "/tests/public");
 

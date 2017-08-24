@@ -48,6 +48,7 @@ public:
     void set_option(const server::append_to_server_identifier &value);
     void set_option(const server::mime_type &mime_type);
     void set_option(middleware::after_error value);
+    void set_option(server::enable_internal_file_caching &value);
     //static asset caching
     void set_option(std::pair<cache::read, cache::write> value);
 
@@ -95,6 +96,7 @@ private:
     static std::mutex fd_mutex_;
 
     // fd cache
+    bool use_fd_cache_;
     static SHARED_MUTEX fd_cache_mutex_;
     std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
 

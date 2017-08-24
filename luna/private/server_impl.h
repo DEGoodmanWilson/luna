@@ -142,6 +142,7 @@ public:
 
     //static asset cacheing
     void set_option(std::pair<cache::read, cache::write> value);
+    void set_option(server::enable_internal_file_caching value);
 
 
 private:

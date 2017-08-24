@@ -95,6 +95,8 @@ public:
     MAKE_STRING_LIKE(server_identifier);
     MAKE_STRING_LIKE(append_to_server_identifier);
 
+    MAKE_BOOL_LIKE(enable_internal_file_caching);
+
 
     server()
     {
@@ -268,8 +270,10 @@ private:
     void set_option_(middleware::after_request_handler value);
     void set_option_(middleware::after_error value);
 
-    //static asset caching
+    // user-provided static asset caching
     void set_option_(std::pair<cache::read, cache::write> value);
+    // internally-provided static asset caching
+    void set_option_(enable_internal_file_caching value);
 };
 
 //for testing purposes only.

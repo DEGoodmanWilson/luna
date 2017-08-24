@@ -951,4 +951,9 @@ void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
     response_generator_.set_option(value);
 }
 
+void server::server_impl::set_option(server::enable_internal_file_caching value)
+{
+    response_generator_.set_option(value);
+}
+
 } //namespace luna

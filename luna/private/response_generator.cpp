@@ -102,7 +102,8 @@ response_generator::response_generator() :
         server_identifier_{std::string{LUNA_NAME} + "/" + LUNA_VERSION},
         cache_read_{nullptr},
         cache_write_{nullptr},
-        error_handler_callback_{default_error_handler_callback_}
+        error_handler_callback_{default_error_handler_callback_},
+        use_fd_cache_{false}
 {}
 
 response_generator::~response_generator()
@@ -226,7 +227,7 @@ response_generator::from_file_(const request &request, response &response)
         // cache miss, or missing cache: look for the file in our local fd cache
         SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
 
-        if(fd_cache_.count(response.file))
+        if(use_fd_cache_ &&fd_cache_.count(response.file))
         {
             fd_cache_[response.file]->cached = true;
             return fd_cache_[response.file];
@@ -328,8 +329,7 @@ response_generator::from_file_(const request &request, response &response)
                                                                            ifs), std::istreambuf_iterator<char>()));
                                                         }});
             }
-            else
-            {
+            else if(use_fd_cache_) {
                 // write the response to our own fd cache
                 // this should be quite fast, so we'll do it synchronously
                 // TODO put a cap on how big the cache can be!
@@ -367,6 +367,11 @@ void response_generator::set_option(const server::mime_type &mime_type)
 void response_generator::set_option(middleware::after_error value)
 {
     middleware_after_error_ = value;
+}
+
+void response_generator::set_option(server::enable_internal_file_caching &value)
+{
+    use_fd_cache_ = static_cast<bool>(value);
 }
 
 void response_generator::set_option(std::pair<cache::read, cache::write> value)
