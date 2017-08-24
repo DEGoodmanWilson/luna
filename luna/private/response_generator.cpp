@@ -9,6 +9,7 @@
 #include <magic.h>
 #include "response_generator.h"
 #include "luna/private/file_helpers.h"
+
 namespace luna
 {
 
@@ -99,7 +100,7 @@ response_generator::response_generator() :
         cache_write_{nullptr},
         error_handler_callback_{default_error_handler_callback_},
         use_fd_cache_{false},
-        cache_keep_alive_{std::chrono::milliseconds{1000}}
+        cache_keep_alive_{std::chrono::minutes{30}}
 {}
 
 response_generator::~response_generator()
@@ -115,10 +116,10 @@ response_generator::~response_generator()
 }
 
 
-std::shared_ptr<cacheable_response>
+std::shared_ptr <cacheable_response>
 response_generator::generate_response(const request &request, response &response)
 {
-    std::shared_ptr<cacheable_response> response_mhd;
+    std::shared_ptr <cacheable_response> response_mhd;
 
     // Add default status code, if missing
     if (0 == response.status_code)
@@ -154,7 +155,7 @@ response_generator::generate_response(const request &request, response &response
 
 
     // Add headers to response object, but only if it needs it
-    if(!response_mhd->cached)
+    if (!response_mhd->cached)
     {
         for (const auto &header : response.headers)
         {
@@ -198,15 +199,15 @@ void response_generator::finish_rendering_error_response_(const request &request
     }
 }
 
-std::shared_ptr<cacheable_response>
+std::shared_ptr <cacheable_response>
 response_generator::from_file_(const request &request, response &response)
 {
-    std::shared_ptr<cacheable_response> response_mhd;
+    std::shared_ptr <cacheable_response> response_mhd;
 
     //first, let's check the user's in-memory cache!
     if (cache_read_)
     {
-        SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
+        SHARED_LOCK <SHARED_MUTEX> lock{response_generator::cache_mutex_};
         auto cache_hit = cache_read_(response.file);
         if (cache_hit)
         {
@@ -221,14 +222,15 @@ response_generator::from_file_(const request &request, response &response)
     if (!response_mhd)
     {
         // cache miss, or missing cache: look for the file in our local fd cache
-        SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
+        SHARED_LOCK <SHARED_MUTEX> lock{response_generator::cache_mutex_};
 
-        if(use_fd_cache_ && fd_cache_.count(response.file))
+        if (use_fd_cache_ && fd_cache_.count(response.file))
         {
             auto cache = fd_cache_[response.file];
             // has the cache expired?
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - cache->time_cached);
-            if(duration.count() <= cache_keep_alive_.count())
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now() - cache->time_cached);
+            if (duration.count() <= cache_keep_alive_.count())
             {
                 cache->cached = true;
                 return cache;
@@ -292,10 +294,10 @@ response_generator::from_file_(const request &request, response &response)
 
             // Made it this far, we have a file of some kind we need to load from the disk, wooo.
 
-            std::unique_lock<std::mutex> fd_lock{
+            std::unique_lock <std::mutex> fd_lock{
                     response_generator::fd_mutex_};
             // determine mime type
-            if(response.content_type.empty())
+            if (response.content_type.empty())
             {
                 response.content_type = get_mime_type_(filename);
             }
@@ -323,9 +325,9 @@ response_generator::from_file_(const request &request, response &response)
 //#endif
                 cache_threads_.emplace_back(std::thread{[LAMBDA_ARGS]()
                                                         {
-                                                            std::unique_lock<SHARED_MUTEX> cache_lock{
+                                                            std::unique_lock <SHARED_MUTEX> cache_lock{
                                                                     response_generator::cache_mutex_};
-                                                            std::unique_lock<std::mutex> fd_lock{
+                                                            std::unique_lock <std::mutex> fd_lock{
                                                                     response_generator::fd_mutex_};
                                                             std::ifstream ifs{res_filename};
                                                             writer(res_filename,
@@ -333,17 +335,18 @@ response_generator::from_file_(const request &request, response &response)
                                                                            ifs), std::istreambuf_iterator<char>()));
                                                         }});
             }
-            else if(use_fd_cache_) {
+            else if (use_fd_cache_)
+            {
                 // write the response to our own fd cache
                 // this should be quite fast, so we'll do it synchronously
                 // TODO put a cap on how big the cache can be!
-                std::unique_lock<SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
+                std::unique_lock <SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
                 response_mhd->time_cached = std::chrono::system_clock::now();
                 fd_cache_[response.file] = response_mhd;
             }
         }
     }
-    
+
     return response_mhd;
 };
 
@@ -384,7 +387,7 @@ void response_generator::set_option(server::internal_file_cache_keep_alive value
     cache_keep_alive_ = value;
 }
 
-void response_generator::set_option(std::pair<cache::read, cache::write> value)
+void response_generator::set_option(std::pair <cache::read, cache::write> value)
 {
     cache_read_ = std::get<cache::read>(value);
     cache_write_ = std::get<cache::write>(value);
