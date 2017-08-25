@@ -252,6 +252,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t2 = std::chrono::high_resolution_clock::now();
         ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("MISS", res.header["X-Luna-Cache"]);
     }
     auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
     std::cout << "No cacheing:   " << no_cache_duration << std::endl;
@@ -261,6 +262,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t4 = std::chrono::high_resolution_clock::now();
         ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("HIT", res.header["X-Luna-Cache"]);
     }
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
     std::cout << "With cacheing: " << cache_duration << std::endl;
@@ -282,6 +284,7 @@ TEST(fd_cacheing, test_cache_timeout)
     {
         // load the cache
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
+        ASSERT_EQ("MISS", res.header["X-Luna-Cache"]);
     }
 
     {
@@ -290,6 +293,7 @@ TEST(fd_cacheing, test_cache_timeout)
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t2 = std::chrono::high_resolution_clock::now();
         ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("HIT", res.header["X-Luna-Cache"]);
     }
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
     std::cout << "With cacheing:   " << cache_duration << std::endl;
@@ -302,6 +306,7 @@ TEST(fd_cacheing, test_cache_timeout)
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t4 = std::chrono::high_resolution_clock::now();
         ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("MISS", res.header["X-Luna-Cache"]);
     }
     auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
     std::cout << "No cacheing: " << no_cache_duration << std::endl;
