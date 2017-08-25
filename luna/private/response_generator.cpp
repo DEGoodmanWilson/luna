@@ -285,14 +285,14 @@ response_generator::from_file_(const request &request, response &response)
 
             if (cache_write_) //only write to the cache if we didn't hit it the first time.
             {
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
-#pragma message ( "No support for C++14 lambda captures" )
+//#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+//#pragma message ( "No support for C++14 lambda captures" )
                 auto writer = cache_write_;
                 auto filename = response.file;
-#define LAMBDA_ARGS writer, file
-#else
-#define LAMBDA_ARGS writer = cache_write_, filename = response.file
-#endif
+#define LAMBDA_ARGS writer, filename
+//#else
+//#define LAMBDA_ARGS writer = cache_write_, filename = response.file
+//#endif
                 cache_threads_.emplace_back(std::thread{[LAMBDA_ARGS]()
                                                         {
                                                             std::unique_lock<SHARED_MUTEX> cache_lock{
