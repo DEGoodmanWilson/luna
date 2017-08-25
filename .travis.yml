@@ -47,7 +47,7 @@ install:
   - conan remote add conan-transit https://conan-transit.bintray.com
 
   # Automatic detection of your arch, compiler, etc
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build; else conan install -o build_luna_tests=True --build; fi
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build > /dev/null; else conan install -o build_luna_tests=True --build > /dev/null; fi
 
 script:
   - conan build
