@@ -3,6 +3,8 @@ language: cpp
 sudo: false
 cache: ccache
 
+dist: precise
+
 compiler: clang
 
 # gcc 4.9 default
