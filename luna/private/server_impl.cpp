@@ -17,12 +17,6 @@
 // * multiple headers with same name
 // * catch exceptions in user logger and middleware functions, throw 500 when they happen.
 
-#ifdef LUNA_TESTING
-#define STATIC
-#else
-#define STATIC static
-#endif
-
 namespace luna
 {
 //TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
@@ -74,7 +68,7 @@ struct connection_info_struct
 };
 
 
-STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
+const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
                                                                            response &response)
 {
     if (response.content.empty())
@@ -92,13 +86,13 @@ STATIC const server::error_handler_cb default_error_handler_callback_ = [](const
     }
 };
 
-STATIC const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
+const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
 {
     return true;
 };
 
-STATIC request_method method_str_to_enum_(const char *method_str)
+request_method method_str_to_enum_(const char *method_str)
 {
     if (!std::strcmp(method_str, GET))
     {
@@ -134,12 +128,12 @@ STATIC request_method method_str_to_enum_(const char *method_str)
 }
 
 //TODO I hate this.
-STATIC request_method method_str_to_enum_(const std::string &method_str)
+request_method method_str_to_enum_(const std::string &method_str)
 {
     return method_str_to_enum_(method_str.c_str());
 }
 
-STATIC std::string addr_to_str_(const struct sockaddr *addr)
+std::string addr_to_str_(const struct sockaddr *addr)
 {
     if(addr)
     {
@@ -161,7 +155,7 @@ STATIC std::string addr_to_str_(const struct sockaddr *addr)
     return "";
 }
 
-STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
+MHD_ValueKind method_to_value_kind_enum_(request_method method)
 {
     if (method == request_method::GET)
     {

@@ -211,11 +211,16 @@ response_generator::from_file_(const request &request, response &response)
         auto cache_hit = cache_read_(response.file);
         if (cache_hit)
         {
+            error_log(log_level::DEBUG, "User cache: HIT");
             response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(cache_hit->length(),
                                                                                                 (void *) cache_hit->c_str(),
                                                                                                 MHD_RESPMEM_MUST_COPY),
                                                                 response.status_code);
             return response_mhd; //done!
+        }
+        else
+        {
+            error_log(log_level::DEBUG, "User cache: MISS");
         }
     }
 
@@ -233,16 +238,19 @@ response_generator::from_file_(const request &request, response &response)
             if (duration.count() <= cache_keep_alive_.count())
             {
                 response_mhd->cached = true;
+                error_log(log_level::DEBUG, "File cache: HIT");
+#ifdef LUNA_TESTING
                 auto header = MHD_get_response_header(response_mhd->mhd_response, "X-LUNA-CACHE");
                 if (header == nullptr)
                 {
                     MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
                 }
-                else if (!strncmp("MISS", header, 4))
+                else if (header[0] == 'M')
                 {
                     MHD_del_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
                     MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
                 }
+#endif
                 return response_mhd; // we can jump out early.
             }
 
@@ -349,7 +357,10 @@ response_generator::from_file_(const request &request, response &response)
         // TODO put a cap on how big the cache can be!
         std::unique_lock<SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
         response_mhd->time_cached = std::chrono::system_clock::now();
+        error_log(log_level::DEBUG, "File cache: MISS");
+#ifdef LUNA_TESTING
         MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
+#endif
         fd_cache_[response.file] = response_mhd;
     }
 
