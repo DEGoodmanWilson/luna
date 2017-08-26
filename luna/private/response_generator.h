@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2017 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #pragma once
@@ -65,17 +73,10 @@ public:
     server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
     void remove_error_handler(server::error_handler_handle item);
 
-//    server::error_handler_handle handle_404(server::error_handler_cb callback);
-//    server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
-//    void remove_error_handler(error_handler_handle item);
-
 
 private:
     std::shared_ptr<cacheable_response> from_file_(const luna::request &request, luna::response &response);
     void finish_rendering_error_response_(const request &request, response &response) const;
-
-//    std::string server_identifier_;
-//    std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
 
     std::unordered_map<status_code, cacheable_response> error_respone_cache_;
 

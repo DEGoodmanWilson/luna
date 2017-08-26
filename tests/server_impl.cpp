@@ -1,9 +1,16 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2017 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
 //
-
+// Copyright © 2016–2017 D.E. Goodman-Wilson
+//
 
 #include <gtest/gtest.h>
 #include <luna/luna.h>
@@ -35,14 +42,6 @@ TEST(server_impl, ip_address_rendering)
     sockaddr *addr_ptr = reinterpret_cast<sockaddr *>(&addr);
     ASSERT_EQ(addr_str, luna::addr_to_str_(addr_ptr));
 }
-
-//TEST(server_impl, is_redirect_)
-//{
-//    ASSERT_TRUE(luna::is_redirect_(301));
-//    ASSERT_FALSE(luna::is_redirect_(200));
-//    ASSERT_FALSE(luna::is_redirect_(400));
-//}
-
 
 
 TEST(server_impl, method_str_to_enum)

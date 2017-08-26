@@ -1,7 +1,18 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// borrowed and modified from G2log, which is in the public domain
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
+//
+//
+// this code borrowed and modified from G2log, which is in the public domain
 // https://github.com/KjellKod/g3log/blob/master/LICENSE
 // https://kjellkod.wordpress.com/2013/01/22/exploring-c11-part-2-localtime-and-time-again/
 //

@@ -1,4 +1,19 @@
+#
+#       _
+#   ___/__)
+#  (, /      __   _
+#    /   (_(_/ (_(_(_
+#   (________________
+#                    )
+#
+#  Luna
+#  a web framework in modern C++
+#
+#  Copyright © 2016–2017 D.E. Goodman-Wilson
+#
+
 cmake_minimum_required(VERSION 2.8)
+
 project(luna)
 
 ##### Use C++14

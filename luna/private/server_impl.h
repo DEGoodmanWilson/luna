@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #pragma once
@@ -247,24 +255,6 @@ private:
 
     ///// helpers
     response_generator response_generator_;
-
-
-//    bool render_response_(
-//            request &request,
-//            response &local_response,
-//            MHD_Connection *connection);
-//
-//    bool render_error_(request &request,
-//                      response &response,
-//                      MHD_Connection *connection);
-//
-//    bool render_error_(request &request,
-//                      response &&response,
-//                      MHD_Connection *connection);
-
-
-    void load_global_headers_(response &response);
-
 };
 
 } //namespace luna
