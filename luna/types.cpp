@@ -11,6 +11,8 @@
 namespace luna
 {
 
+
+
 std::string to_string(const authorization_kind kind)
 {
     switch (kind)

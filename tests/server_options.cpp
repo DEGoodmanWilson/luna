@@ -175,7 +175,8 @@ TEST(server_options, use_thread_per_connection)
         t.join();
     }
 
-    ASSERT_EQ(thread_count, thread_counter.size());
+    ASSERT_LT(1, thread_counter.size());
+    ASSERT_GE(thread_count, thread_counter.size());
 }
 
 TEST(server_options, set_connection_limit)
@@ -194,7 +195,7 @@ TEST(server_options, set_connection_limit)
                                   if (count > max_count) max_count = count;
                                   mutex.unlock();
 
-                                  std::this_thread::sleep_for(10ms);
+                                  std::this_thread::sleep_for(100ms);
 
                                   mutex.lock();
                                   --count;
@@ -217,5 +218,5 @@ TEST(server_options, set_connection_limit)
     }
 
     ASSERT_EQ(0, count);
-    ASSERT_EQ(2, max_count);
+    ASSERT_GE(2, max_count);
 }
