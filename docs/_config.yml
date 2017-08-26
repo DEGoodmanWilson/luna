@@ -1,17 +1,24 @@
-# Welcome to Jekyll!
 #
-# This config file is meant for settings that affect your whole blog, values
-# which you are expected to set up once and rarely need to edit after that.
-# For technical reasons, this file is *NOT* reloaded automatically when you use
-# 'jekyll serve'. If you change this file, please restart the server process.
+#       _
+#   ___/__)
+#  (, /      __   _
+#    /   (_(_/ (_(_(_
+#   (_____
+#         )
+#
+#  Luna
+#  a web framework in modern C++
+#
+#  Copyright © 2016–2017 D.E. Goodman-Wilson
+#
 
 # Site settings
 product_name: &product_name Luna
 title: *product_name
-version: s3.2.1
+version: s3.3.0
 email: degoodmanwilson@gmail.com
 description: >
-  An embedded HTTP(S) server and web framework in modern C++
+  A web framework in modern C++
 # Build settings
 markdown: kramdown
 gems:

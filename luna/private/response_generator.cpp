@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2017 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #include <sys/stat.h>
@@ -9,6 +17,7 @@
 #include <magic.h>
 #include "response_generator.h"
 #include "luna/private/file_helpers.h"
+
 namespace luna
 {
 
@@ -46,11 +55,6 @@ static const server::error_handler_cb default_error_handler_callback_ = [](const
         }
     }
 };
-
-//void add_uniform_headers_(std::shared_ptr<cacheable_response> response)
-//{
-//
-//}
 
 std::string get_mime_type_(const std::string &file)
 {
@@ -93,6 +97,7 @@ std::string get_mime_type_(const std::string &file)
 //////////////////////////////////////////////////////////////////////////////
 
 SHARED_MUTEX response_generator::cache_mutex_;
+SHARED_MUTEX response_generator::fd_cache_mutex_;
 std::mutex response_generator::fd_mutex_;
 
 
@@ -101,7 +106,9 @@ response_generator::response_generator() :
         server_identifier_{std::string{LUNA_NAME} + "/" + LUNA_VERSION},
         cache_read_{nullptr},
         cache_write_{nullptr},
-        error_handler_callback_{default_error_handler_callback_}
+        error_handler_callback_{default_error_handler_callback_},
+        use_fd_cache_{false},
+        cache_keep_alive_{std::chrono::minutes{30}}
 {}
 
 response_generator::~response_generator()
@@ -155,17 +162,22 @@ response_generator::generate_response(const request &request, response &response
     }
 
 
-    // Add headers to response object
-    for (const auto &header : response.headers)
+    // Add headers to response object, but only if it needs it
+    if (!response_mhd->cached)
     {
-        MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        for (const auto &header : response.headers)
+        {
+            MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        }
+        for (const auto &header : global_headers_)
+        {
+            MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        }
+        MHD_add_response_header(response_mhd->mhd_response,
+                                MHD_HTTP_HEADER_CONTENT_TYPE,
+                                response.content_type.c_str());
+        MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
     }
-    for (const auto &header : global_headers_)
-    {
-        MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
-    }
-    MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_CONTENT_TYPE, response.content_type.c_str());
-    MHD_add_response_header(response_mhd->mhd_response, MHD_HTTP_HEADER_SERVER, server_identifier_.c_str());
 
     // TODO can we cache this response?
     return response_mhd;
@@ -200,114 +212,166 @@ response_generator::from_file_(const request &request, response &response)
 {
     std::shared_ptr<cacheable_response> response_mhd;
 
-    //first, let's check the cache!
+    //first, let's check the user's in-memory cache!
     if (cache_read_)
     {
         SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
         auto cache_hit = cache_read_(response.file);
         if (cache_hit)
         {
-            response.content = cache_hit->c_str();
-            response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(response.content.length(),
-                                                                                                (void *) response.content.c_str(),
+            error_log(log_level::DEBUG, "User cache: HIT");
+            response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(cache_hit->length(),
+                                                                                                (void *) cache_hit->c_str(),
                                                                                                 MHD_RESPMEM_MUST_COPY),
                                                                 response.status_code);
+            return response_mhd; //done!
+        }
+        else
+        {
+            error_log(log_level::DEBUG, "User cache: MISS");
         }
     }
 
     if (!response_mhd)
     {
-        //cache miss, or missing cache: look for the file on disk
+        // cache miss, or missing cache: look for the file in our local fd cache
+        SHARED_LOCK<SHARED_MUTEX> lock{response_generator::cache_mutex_};
 
-        // TODO check local fd cache
-
-        // TODO replace with new c++17 std::filesystem implementation. Later.
-        // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
-        struct stat st;
-        auto stat_ret = stat(response.file.c_str(), &st);
-
-        if (S_ISDIR(st.st_mode))
+        if (use_fd_cache_ && fd_cache_.count(response.file))
         {
-            if (response.file[response.file.size() - 1] != '/')
+            response_mhd = fd_cache_[response.file];
+            // has the cache expired?
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now() - response_mhd->time_cached);
+            if (duration.count() <= cache_keep_alive_.count())
             {
-                response.file += "/";
-            }
-            for (const auto name : index_filenames)
-            {
-                std::string induced_filename{response.file + name};
+                response_mhd->cached = true;
+                error_log(log_level::DEBUG, "File cache: HIT");
+#ifdef LUNA_TESTING
+                auto header = MHD_get_response_header(response_mhd->mhd_response, "X-LUNA-CACHE");
+                if (header == nullptr)
                 {
-                    stat_ret = stat(induced_filename.c_str(), &st);
+                    MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
                 }
-                if (stat_ret == 0)
+                else if (header[0] == 'M')
                 {
-                    response.file = induced_filename;
-                    break;
+                    MHD_del_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
+                    MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
                 }
-            }
-        }
-
-        if (stat_ret != 0)
-        {
-            // The file doesn't exist
-            response.status_code = 404;
-            finish_rendering_error_response_(request, response);
-
-            response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(response.content.length(),
-                                                                                                (void *) response.content.c_str(),
-                                                                                                MHD_RESPMEM_MUST_COPY),
-                                                                response.status_code);
-
-        }
-        else
-        {
-            // The file _does_ exist, load it up!
-
-            // Made it this far, we have a file of some kind we need to load from the disk, wooo.
-
-            std::unique_lock<std::mutex> fd_lock{
-                    response_generator::fd_mutex_};
-            // determine mime type
-            if(response.content_type.empty())
-            {
-                response.content_type = get_mime_type_(response.file);
+#endif
+                return response_mhd; // we can jump out early.
             }
 
+            // else lets invalidate the cache
+            fd_cache_.erase(response.file);
+            response_mhd = nullptr; //delete our copy too
+        }
+    }
 
-            auto file = fopen(response.file.c_str(), "r");
 
-            // because we already checked with stat(), this is guaranteed to work
+    // cache miss, look for the file on disk
 
-            auto fd = fileno(file);
-            auto fsize = st.st_size;
+    // TODO replace with new c++17 std::filesystem implementation. Later.
+    // first we see if this is a folder or a file. If it is a folder, we look for some index.* files to use instead.
+    struct stat st;
+    auto filename = response.file;
 
-            response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_fd(fsize, fd),
-                                                                response.status_code);
+    auto stat_ret = stat(filename.c_str(), &st);
 
-            if (cache_write_) //only write to the cache if we didn't hit it the first time.
+
+    if (S_ISDIR(st.st_mode))
+    {
+        if (filename[filename.size() - 1] != '/')
+        {
+            filename += "/";
+        }
+        for (const auto name : index_filenames)
+        {
+            std::string induced_filename{filename + name};
             {
-//#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
-//#pragma message ( "No support for C++14 lambda captures" )
-                auto writer = cache_write_;
-                auto filename = response.file;
-#define LAMBDA_ARGS writer, filename
-//#else
-//#define LAMBDA_ARGS writer = cache_write_, filename = response.file
-//#endif
-                cache_threads_.emplace_back(std::thread{[LAMBDA_ARGS]()
-                                                        {
-                                                            std::unique_lock<SHARED_MUTEX> cache_lock{
-                                                                    response_generator::cache_mutex_};
-                                                            std::unique_lock<std::mutex> fd_lock{
-                                                                    response_generator::fd_mutex_};
-                                                            std::ifstream ifs{filename};
-                                                            writer(filename,
-                                                                   std::make_shared<std::string>(std::istreambuf_iterator<char>(
-                                                                           ifs), std::istreambuf_iterator<char>()));
-                                                        }});
+                stat_ret = stat(induced_filename.c_str(), &st);
+            }
+            if (stat_ret == 0)
+            {
+                filename = induced_filename;
+                break;
             }
         }
     }
-    
+
+    if (stat_ret != 0)
+    {
+        // The file doesn't exist
+        response.status_code = 404;
+        finish_rendering_error_response_(request, response);
+
+        response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(response.content.length(),
+                                                                                            (void *) response.content.c_str(),
+                                                                                            MHD_RESPMEM_MUST_COPY),
+                                                            response.status_code);
+
+        return response_mhd; // done!
+
+    }
+
+
+    // Made it this far, we have a file of some kind we need to load from the disk, wooo.
+
+    std::unique_lock<std::mutex> fd_lock{
+            response_generator::fd_mutex_};
+    // determine mime type
+    if (response.content_type.empty())
+    {
+        response.content_type = get_mime_type_(filename);
+    }
+
+
+    auto file = fopen(filename.c_str(), "r");
+
+    // because we already checked with stat(), this is guaranteed to work
+
+    auto fd = fileno(file);
+    auto fsize = st.st_size;
+
+    response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_fd(fsize, fd),
+                                                        response.status_code);
+
+    if (cache_write_) //only write to the cache if we didn't hit it the first time.
+    {
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+#pragma message ( "No support for C++14 lambda captures" )
+        auto writer = cache_write_;
+        auto filename = response.file;
+#define LAMBDA_ARGS writer, filename
+#else
+#define LAMBDA_ARGS writer = cache_write_, filename = response.file
+#endif
+        cache_threads_.emplace_back(std::thread{[LAMBDA_ARGS]()
+                                                {
+                                                    std::unique_lock<SHARED_MUTEX> cache_lock{
+                                                            response_generator::cache_mutex_};
+                                                    std::unique_lock<std::mutex> fd_lock{
+                                                            response_generator::fd_mutex_};
+                                                    std::ifstream ifs{filename};
+                                                    writer(filename,
+                                                           std::make_shared<std::string>(std::istreambuf_iterator<char>(
+                                                                   ifs), std::istreambuf_iterator<char>()));
+                                                }});
+    }
+    else if (use_fd_cache_)
+    {
+        // write the response to our own fd cache
+        // this should be quite fast, so we'll do it synchronously
+        // TODO put a cap on how big the cache can be!
+        std::unique_lock<SHARED_MUTEX> cache_lock{response_generator::fd_cache_mutex_};
+        response_mhd->time_cached = std::chrono::system_clock::now();
+        error_log(log_level::DEBUG, "File cache: MISS");
+#ifdef LUNA_TESTING
+        MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
+#endif
+        fd_cache_[response.file] = response_mhd;
+    }
+
     return response_mhd;
 };
 
@@ -336,6 +400,16 @@ void response_generator::set_option(const server::mime_type &mime_type)
 void response_generator::set_option(middleware::after_error value)
 {
     middleware_after_error_ = value;
+}
+
+void response_generator::set_option(server::enable_internal_file_cache value)
+{
+    use_fd_cache_ = static_cast<bool>(value);
+}
+
+void response_generator::set_option(server::internal_file_cache_keep_alive value)
+{
+    cache_keep_alive_ = value;
 }
 
 void response_generator::set_option(std::pair<cache::read, cache::write> value)
@@ -377,24 +451,6 @@ void response_generator::remove_error_handler(server::error_handler_handle item)
     //TODO validate we are receiving a valid iterator!!
     error_handlers_.erase(item);
 }
-
-
-//
-/*
-bool response_generator::render_error_(request & request, response & response, MHD_Connection * connection)
-{
-    // unsupported HTTP method
-error_handler_callback_(request, response); //hook for modifying response
-
-// get custom error page if exists
-if (error_handlers_.count(response.status_code))
-{
-error_handlers_.at(response.status_code)(request, response); //re-render response
-}
-
-return render_response_(request, response, connection);
-}
-*/
 
 
 } //namespace luna

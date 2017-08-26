@@ -115,11 +115,11 @@ server my_server{server::handler{&my_error_handler}};
 
 ## Threading options
 
-- `use_thread_per_connection`: Use an independent thread for each connection. Incompatible with `use_epoll_if_available` for reasons.
+- `use_thread_per_connection`: Use an independent thread for each connection. Incompatible with `use_epoll_if_available` for reasons. Generally not recommended, but you can give it a try if you like.
 
     Default: `false`
     
-- `thread_pool_size`: Things and stuff
+- `thread_pool_size`: Use more than one thread to serve connections. This is a good option to play with.
 
     Default: 1
     
@@ -127,9 +127,15 @@ server my_server{server::handler{&my_error_handler}};
 
     Default: system default
     
-- `use_epoll_if_available`: Use `epoll`. Only available on Linux.
+- `use_epoll_if_available`: Use `epoll` if available, or `poll` otherwise. Propably a good thing to try as well, even if you're not on Linux.
 
     Default: `false`
+
+## File cacheing options
+
+- `enable_internal_file_cache`: Cache file descriptors. Keeps files open, so they are faster to serve. This means of course that local changes to the filesystem will generally be ignored.
+
+- `internal_file_cache_keep_alive`: How long to hold a file in the cache before invalidating it. Once this interval has passed, the next request for this file will fetch it fresh of the disk. 30 minutes is the default. Only has meaning of you're using `enable_internal_file_cache{true}`.
 
 ## Callback options
 

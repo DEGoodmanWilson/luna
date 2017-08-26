@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #include "server.h"
@@ -230,6 +238,16 @@ void server::set_option_(middleware::after_error value)
 
 // caching
 void server::set_option_(std::pair<cache::read, cache::write> value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(server::enable_internal_file_cache value)
+{
+    impl_->set_option(value);
+}
+
+void server::set_option_(internal_file_cache_keep_alive value)
 {
     impl_->set_option(value);
 }

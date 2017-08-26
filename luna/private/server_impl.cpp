@@ -1,12 +1,19 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #include <algorithm>
 #include <iomanip>
-#include <sstream>
 #include <fstream>
 #include <magic.h>
 #include <sys/stat.h>
@@ -17,12 +24,6 @@
 // TODO
 // * multiple headers with same name
 // * catch exceptions in user logger and middleware functions, throw 500 when they happen.
-
-#ifdef LUNA_TESTING
-#define STATIC
-#else
-#define STATIC static
-#endif
 
 namespace luna
 {
@@ -75,7 +76,7 @@ struct connection_info_struct
 };
 
 
-STATIC const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
+const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
                                                                            response &response)
 {
     if (response.content.empty())
@@ -93,13 +94,13 @@ STATIC const server::error_handler_cb default_error_handler_callback_ = [](const
     }
 };
 
-STATIC const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
+const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                            socklen_t len) -> bool
 {
     return true;
 };
 
-STATIC request_method method_str_to_enum_(const char *method_str)
+request_method method_str_to_enum_(const char *method_str)
 {
     if (!std::strcmp(method_str, GET))
     {
@@ -135,12 +136,12 @@ STATIC request_method method_str_to_enum_(const char *method_str)
 }
 
 //TODO I hate this.
-STATIC request_method method_str_to_enum_(const std::string &method_str)
+request_method method_str_to_enum_(const std::string &method_str)
 {
     return method_str_to_enum_(method_str.c_str());
 }
 
-STATIC std::string addr_to_str_(const struct sockaddr *addr)
+std::string addr_to_str_(const struct sockaddr *addr)
 {
     if(addr)
     {
@@ -162,7 +163,7 @@ STATIC std::string addr_to_str_(const struct sockaddr *addr)
     return "";
 }
 
-STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
+MHD_ValueKind method_to_value_kind_enum_(request_method method)
 {
     if (method == request_method::GET)
     {
@@ -175,7 +176,6 @@ STATIC MHD_ValueKind method_to_value_kind_enum_(request_method method)
 
 server::server_impl::server_impl() :
         debug_output_{false},
-        lock_{},
         ssl_mem_cert_set_{false},
         ssl_mem_key_set_{false},
         use_thread_per_connection_{false},
@@ -601,7 +601,16 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     }
 
     auto response_mhd = response_generator_.generate_response(request, response);
-    return MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);
+    auto retval = MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);
+
+    request.end = std::chrono::system_clock::now();
+
+    // log it
+    auto end_c = std::chrono::system_clock::to_time_t(request.end);
+    auto tm = luna::gmtime(end_c);
+    access_log(request, response);
+
+    return retval;
 }
 
 /////////// callback shims
@@ -940,6 +949,16 @@ void server::server_impl::set_option(middleware::after_error value)
 }
 
 void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
+{
+    response_generator_.set_option(value);
+}
+
+void server::server_impl::set_option(server::enable_internal_file_cache value)
+{
+    response_generator_.set_option(value);
+}
+
+void server::server_impl::set_option(internal_file_cache_keep_alive value)
 {
     response_generator_.set_option(value);
 }

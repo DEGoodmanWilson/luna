@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2017 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #pragma once
@@ -12,6 +20,8 @@
 #include <shared_mutex>
 #include <mutex>
 #include <thread>
+#include <chrono>
+
 
 // NOTE: Apple prior to macOS 12 doesn't support shared mutexes :(
 // This is a ridiculous hack.
@@ -48,6 +58,8 @@ public:
     void set_option(const server::append_to_server_identifier &value);
     void set_option(const server::mime_type &mime_type);
     void set_option(middleware::after_error value);
+    void set_option(server::enable_internal_file_cache value);
+    void set_option(server::internal_file_cache_keep_alive value);
     //static asset caching
     void set_option(std::pair<cache::read, cache::write> value);
 
@@ -61,17 +73,10 @@ public:
     server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
     void remove_error_handler(server::error_handler_handle item);
 
-//    server::error_handler_handle handle_404(server::error_handler_cb callback);
-//    server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
-//    void remove_error_handler(error_handler_handle item);
-
 
 private:
     std::shared_ptr<cacheable_response> from_file_(const luna::request &request, luna::response &response);
     void finish_rendering_error_response_(const request &request, response &response) const;
-
-//    std::string server_identifier_;
-//    std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
 
     std::unordered_map<status_code, cacheable_response> error_respone_cache_;
 
@@ -87,11 +92,18 @@ private:
     //  We can improve this by adding a new cache handler where concurrency is handled in the callbacks themselves.
     //  Maybe.
     static SHARED_MUTEX cache_mutex_;
-    static std::mutex fd_mutex_;
     std::vector<std::thread> cache_threads_;
 
     cache::read cache_read_;
     cache::write cache_write_;
+
+    static std::mutex fd_mutex_;
+
+    // fd cache
+    bool use_fd_cache_;
+    static SHARED_MUTEX fd_cache_mutex_;
+    std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
+    std::chrono::milliseconds cache_keep_alive_;
 
     // error handling
     server::error_handler_cb error_handler_callback_;

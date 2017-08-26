@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #pragma once
@@ -11,6 +19,7 @@
 #include <functional>
 #include <microhttpd.h>
 #include <memory>
+#include <chrono>
 
 namespace luna
 {
@@ -94,6 +103,10 @@ public:
 
     MAKE_STRING_LIKE(server_identifier);
     MAKE_STRING_LIKE(append_to_server_identifier);
+
+    MAKE_BOOL_LIKE(enable_internal_file_cache);
+
+    using internal_file_cache_keep_alive = std::chrono::milliseconds;
 
 
     server()
@@ -268,8 +281,11 @@ private:
     void set_option_(middleware::after_request_handler value);
     void set_option_(middleware::after_error value);
 
-    //static asset caching
+    // user-provided static asset caching
     void set_option_(std::pair<cache::read, cache::write> value);
+    // internally-provided static asset caching
+    void set_option_(enable_internal_file_cache value);
+    void set_option_(internal_file_cache_keep_alive value);
 };
 
 //for testing purposes only.

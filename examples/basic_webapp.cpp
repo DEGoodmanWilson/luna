@@ -1,3 +1,17 @@
+//
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
+//
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
+//
+
 /////////////////
 //
 // basic_webapp
@@ -28,7 +42,8 @@ void ex_error_log(log_level level, const std::string &message)
 void ex_access_log(const luna::request &request, const luna::response &response)
 {
     std::cout << request.ip_address << ": " << luna::to_string(request.method) << " [" << response.status_code << "] "
-              << request.path << " " << request.http_version << " " << (request.headers.count("user-agent") ? request.headers.at("user-agent") : "[no user-agent]") << std::endl;
+              << request.path << " " << request.http_version << " " << (request.headers.count("user-agent") ? request.headers.at("user-agent") : "[no user-agent]") << " { "
+              << std::chrono::duration_cast<std::chrono::microseconds>(request.end - request.start).count() << "us } " << std::endl;
 }
 
 ////
@@ -61,7 +76,7 @@ int main(void)
 
 
     // Start the server on port 8443
-    server server{server::port{8443}};
+    server server{server::port{8443},server::enable_internal_file_cache{true}};
 
 
     // Example 1: Let's serve some content on /hello_world using a function pointer.

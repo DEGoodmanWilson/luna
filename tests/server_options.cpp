@@ -1,7 +1,15 @@
 //
-// luna
+//      _
+//  ___/__)
+// (, /      __   _
+//   /   (_(_/ (_(_(_
+//  (________________
+//                   )
 //
-// Copyright © 2016 D.E. Goodman-Wilson
+// Luna
+// a web framework in modern C++
+//
+// Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 
@@ -195,7 +203,7 @@ TEST(server_options, set_connection_limit)
                                   if (count > max_count) max_count = count;
                                   mutex.unlock();
 
-                                  std::this_thread::sleep_for(100ms);
+                                  std::this_thread::sleep_for(500ms);
 
                                   mutex.lock();
                                   --count;

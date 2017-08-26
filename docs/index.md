@@ -9,7 +9,7 @@ title: Luna
 
 # Luna
 
-An embedded HTTP(S) server and web framework in modern C++, Luna is designed to produce low latency, high throughput we applications with an easy to use interface. You can integrate Luna with any C++ project that needs to serve HTTP endpoints, or build entire webapps from scratch. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be highly performant and robust as well.
+A web framework in modern C++, Luna is designed to produce low latency, high throughput we applications with an easy to use interface. You can integrate Luna with any C++ project that needs to serve HTTP endpoints, or build entire webapps from scratch. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be highly performant and robust as well.
 
 ## Use cases
 

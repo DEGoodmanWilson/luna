@@ -1,8 +1,24 @@
+# coding: utf-8
+#
+#       _
+#   ___/__)
+#  (, /      __   _
+#    /   (_(_/ (_(_(_
+#   (________________
+#                    )
+#
+#  Luna
+#  a web framework in modern C++
+#
+#  Copyright © 2016-2017 D.E. Goodman-Wilson
+#
+
+
 from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "3.2.1"
+    version = "3.3.0"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
