@@ -19,20 +19,28 @@
 
 TEST(put, default_404)
 {
-    luna::server server{luna::server::port{8080}};
+
+    luna::server server;
+    server.start_async();
+
     auto res = cpr::Put(cpr::Url{"http://localhost:8080/"});
     ASSERT_EQ(404, res.status_code);
 }
 
 TEST(put, default_200)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::PUT,
+    luna::router router;
+    router.handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response
-                              {
-                                  return {"hello"};
-                              });
+                          {
+                              return {"hello"};
+                          });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
     auto res = cpr::Put(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -40,18 +48,25 @@ TEST(put, default_200)
 
 TEST(put, default_200_check_params)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::PUT,
+    luna::router router;
+    router.handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response
-                              {
-                                  EXPECT_EQ(1, req.params.count("key"));
-                                  EXPECT_EQ("value", req.params.at("key"));
-                                  EXPECT_EQ(1, req.params.count("key2"));
-                                  EXPECT_EQ("", req.params.at("key2"));
-                                  return {"hello"};
-                              });
-    auto res = cpr::Put(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key2", ""}, {"key", "value"}});
+                          {
+                              EXPECT_EQ(1, req.params.count("key"));
+                              EXPECT_EQ("value", req.params.at("key"));
+                              EXPECT_EQ(1, req.params.count("key2"));
+                              EXPECT_EQ("", req.params.at("key2"));
+                              return {"hello"};
+                          });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
+    auto res = cpr::Put(cpr::Url{"http://localhost:8080/test"},
+                        cpr::Payload{{"key2", ""},
+                                     {"key",  "value"}});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }

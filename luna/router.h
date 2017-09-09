@@ -19,8 +19,6 @@
 #include <luna/optional.hpp>
 #include <regex>
 
-#include <iostream>
-
 namespace luna
 {
 
@@ -59,7 +57,6 @@ public:
         {
             route_base_.pop_back();
         }
-        std::cout << route_base_ << std::endl;
     }
 
     router(const router &r) : route_base_{r.route_base_}, request_handlers_{r.request_handlers_}, headers_{r.headers_}
@@ -80,26 +77,29 @@ public:
     template<typename P>
     void handle_request(request_method method,
                         P &&path,
-                        endpoint_handler_cb callback)
+                        endpoint_handler_cb callback,
+                        const parameter::validators &validations = {})
     {
         std::lock_guard<std::mutex> guard{lock_};
         request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                         std::make_tuple(std::regex{std::forward<P>(path)},
-                                                         callback,
-                                                         luna::parameter::validators{}));
+                                         std::make_tuple(
+                                                 std::regex{std::forward<P>(path)},
+                                                 callback,
+                                                 validations));
     }
 
-    template<typename P, typename V>
+    template<typename P>
     void handle_request(request_method method,
                         P &&path,
                         endpoint_handler_cb callback,
-                        V &&validations)
+                        parameter::validators &&validations)
     {
         std::lock_guard<std::mutex> guard{lock_};
         request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                         std::make_tuple(std::regex{std::forward<P>(path)},
-                                                         callback,
-                                                         std::forward<V>(validations)));
+                                         std::make_tuple(
+                                                 std::regex{std::forward<P>(path)},
+                                                 callback,
+                                                 std::move(validations)));
     }
 
     template<typename M, typename P>

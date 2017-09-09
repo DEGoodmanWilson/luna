@@ -19,20 +19,28 @@
 
 TEST(patch, default_404)
 {
-    luna::server server{luna::server::port{8080}};
+
+    luna::server server;
+    server.start_async();
+
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/"});
     ASSERT_EQ(404, res.status_code);
 }
 
 TEST(patch, default_200)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::PATCH,
+    luna::router router;
+    router.handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -40,8 +48,8 @@ TEST(patch, default_200)
 
 TEST(patch, default_200_check_params)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::PATCH,
+    luna::router router;
+    router.handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -51,6 +59,11 @@ TEST(patch, default_200_check_params)
                                   EXPECT_EQ("", req.params.at("key2"));
                                   return {"hello"};
                               });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key2", ""}, {"key", "value"}});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);

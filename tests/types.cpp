@@ -16,12 +16,6 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 
-TEST(types, test_port)
-{
-    luna::server::port l{0};
-    ASSERT_EQ(0, static_cast<uint16_t>(l));
-}
-
 TEST(types, test_mime_type)
 {
     luna::server::mime_type l{"hello"};

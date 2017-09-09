@@ -36,6 +36,7 @@ TEST(config, logging)
 
     //spool up a server, which should generate an INFO log with the port
     luna::server server;
+    server.start_async();
 
     ASSERT_EQ("foobar", log);
 

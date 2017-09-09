@@ -500,7 +500,6 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
     //TODO unsure how to differentiate between binary (multi-part) post data, and query params, so I am going to wing it
     //  ANnoyingly, when query params are sent here, content_type is nil. As is transfer_encoding. So.
 
-//    std::cout << "***" << key << ":" << (data ? data : "[null]") << std::endl;
 
     if (key) //TODO this is a hack, I don't even know if this is a reliable way to detect query params
     {
@@ -508,10 +507,6 @@ int server::server_impl::iterate_postdata_shim_(void *cls,
         parse_kv_(&con_info->post_params, kind, key, data);
         return MHD_YES;
     }
-//    else
-//    {
-//        std::cout << "OHNO" << std::endl;
-//    }
 
     return MHD_YES;
 }
