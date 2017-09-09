@@ -116,11 +116,10 @@ public:
 
     uint16_t get_port();
 
-//    template <typename H, typename V>
-//    void add_global_header(H &&header, V &&value)
-//    {
-//        impl_->add_global_header(std::forward<std::string>(header), std::forward<std::string>(value));
-//    }
+    void add_global_header(const std::string &header, const std::string &value);
+    void add_global_header(std::string &&header, const std::string &value);
+    void add_global_header(const std::string &header, std::string &&value);
+    void add_global_header(std::string &&header, std::string &&value);
 
     void add_router(const router& router);
 

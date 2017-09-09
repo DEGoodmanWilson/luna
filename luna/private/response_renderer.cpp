@@ -147,7 +147,7 @@ response_renderer::from_file_(const request &request, response &response)
 {
     std::shared_ptr<cacheable_response> response_mhd;
 
-    if (!response_mhd)
+    if (!response_mhd) // TODO always false! What was this here for?
     {
         // look for the file in our local fd cache
         if (use_fd_cache_ && fd_cache_.count(response.file))
@@ -240,6 +240,7 @@ response_renderer::from_file_(const request &request, response &response)
         response.content_type = get_mime_type_(filename);
     }
 
+    response.status_code = default_success_code_(request.method);
 
     auto file = fopen(filename.c_str(), "r");
 

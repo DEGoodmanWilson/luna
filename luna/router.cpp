@@ -40,15 +40,6 @@ namespace luna
     error_log(log_level::DEBUG, mesg); \
 }
 
-void router::remove_request_handler(request_handler_handle item)
-{
-    //TODO this is expensive. Find a better way to store this stuff.
-    //TODO validate we are receiving a valid iterator!!
-
-    std::lock_guard<std::mutex> guard{lock_};
-    request_handlers_[item.first].erase(item.second);
-}
-
 router::error_handler_handle router::handle_404(error_handler_cb callback)
 {
     return handle_error(404, callback);
@@ -61,20 +52,12 @@ router::error_handler_handle router::handle_error(status_code code, error_handle
     // TODO
 }
 
-void router::remove_error_handler(error_handler_handle item)
-{
-    std::lock_guard<std::mutex> guard{lock_};
-//    response_renderer_.remove_error_handler(item);
-    // TODO
-}
-
 std::experimental::optional<response> router::process_request(request &request)
 {
     // TODO this is here to prevent writing to the list of endpoints while we're using it. Not sure we actually need this,
     // if we can find a way to restrict writing to the list of endpoints when the server is running.
+    // we need this because our iterators can get invalidated by a concurrent insert. The insert must wait until after we are done.
     std::unique_lock<std::mutex> ulock{lock_};
-
-    std::cout << route_base_ << " : " << request.path << std::endl;
 
     // first lets validate that the path begins with our base_route_, and if it does, strip it from the request to simplify the logic below
     if (!std::regex_search(request.path, std::regex{"^" + route_base_}))

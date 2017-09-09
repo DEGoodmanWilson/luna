@@ -48,6 +48,9 @@ class router
 {
 public:
 
+    router() // use default empty string for route_base_, same as specifying "/"
+    {}
+
     template<typename R>
     router(R &&route_base) : route_base_{std::forward<std::string>(route_base)}
     {
@@ -79,13 +82,11 @@ public:
                                           endpoint_handler_cb callback)
     {
         std::lock_guard<std::mutex> guard{lock_};
-        auto retval = std::make_pair(method,
+        return std::make_pair(method,
                               request_handlers_[method].insert(std::end(request_handlers_[method]),
                                                                std::make_tuple(std::regex{std::forward<P>(path)},
                                                                                callback,
                                                                                luna::parameter::validators{})));
-        std::cout << request_handlers_[method].size() << std::endl;
-        return retval;
     }
 
     template<typename P, typename V>
@@ -118,15 +119,11 @@ public:
         });
     }
 
-    void remove_request_handler(request_handler_handle item);
-
 
     // a shortcut for writing 404 handlers.
     error_handler_handle handle_404(error_handler_cb callback);
 
     error_handler_handle handle_error(status_code code, error_handler_cb callback);
-
-    void remove_error_handler(error_handler_handle item);
 
     template<typename H, typename V>
     void add_global_header(H &&header, V &&value)

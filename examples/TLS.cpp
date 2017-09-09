@@ -83,10 +83,11 @@ void ex_error_log(log_level level, const std::string &message)
     std::cout << "[" << to_string(level) << "] " << message << std::endl;
 }
 
-void ex_access_log(const luna::request &request)
+void ex_access_log(const luna::request &request, const luna::response &response)
 {
-    std::cout << request.ip_address << ": " << luna::to_string(request.method) << " " << request.path << " "
-              << request.http_version << " " << request.headers.at("user-agent") << std::endl;
+    std::cout << request.ip_address << ": " << luna::to_string(request.method) << " [" << response.status_code << "] "
+              << request.path << " " << request.http_version << " " << (request.headers.count("user-agent") ? request.headers.at("user-agent") : "[no user-agent]") << " { "
+              << std::chrono::duration_cast<std::chrono::microseconds>(request.end - request.start).count() << "us } " << std::endl;
 }
 
 
@@ -99,23 +100,25 @@ int main(void)
     // Here we add debugging output, and we pass in the private key and the public certificate to luna
     // Notice that setting up TLS precludes the possibility of serving non-https webpages, unfortunately. This is a bug.
     server server{
-            server::port{8443},
             server::debug_output{true},
             server::https_mem_key{key_pem},
-            server::https_mem_cert{cert_pem}};
+            server::https_mem_cert{cert_pem}
+    };
 
 
     // from here, everything is the same!
     // try reaching:
     // https://localhost:8442/hello_world
-    server.handle_request(request_method::GET,
+    router router{"/"};
+    router.handle_request(request_method::GET,
                           "/hello_world",
                           [](auto req) -> response
                               {
                                   return {"<h1>Hello, World!</h1>"};
                               });
 
+    server.add_router(router);
 
     // Block until the server shuts down, which is never. We could also do other things with this thread as well.
-    server.await();
+    server.start(8443);
 }

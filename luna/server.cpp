@@ -224,6 +224,24 @@ void server::set_option_(internal_file_cache_keep_alive value)
     impl_->set_option(value);
 }
 
+void server::add_global_header(const std::string &header, const std::string &value)
+{
+    impl_->add_global_header(header, value);
+}
+void server::add_global_header(std::string &&header, const std::string &value)
+{
+    impl_->add_global_header(std::move(header), value);
+}
+void server::add_global_header(const std::string &header, std::string &&value)
+{
+    impl_->add_global_header(header, std::move(value));
+}
+void server::add_global_header(std::string &&header, std::string &&value)
+{
+    impl_->add_global_header(std::move(header), std::move(value));
+}
+
+
 void server::add_router(const router &router)
 {
     impl_->add_router(router);
