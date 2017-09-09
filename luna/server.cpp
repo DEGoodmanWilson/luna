@@ -34,9 +34,14 @@ server::~server()
 
 }
 
-void server::start()
+bool server::start(uint16_t port)
 {
-    impl_->start();
+    return impl_->start(port);
+}
+
+bool server::start_async(uint16_t port)
+{
+    return impl_->start_async(port);
 }
 
 void server::stop()
@@ -49,8 +54,7 @@ void server::await()
     impl_->await();
 }
 
-
-server::port server::get_port()
+uint16_t server::get_port()
 {
     return impl_->get_port();
 }
@@ -58,10 +62,7 @@ server::port server::get_port()
 void server::server_impl_deleter::operator()(server::server_impl *ptr) const
 { delete ptr; }
 
-void server::set_option_(start_on_construction value)
-{
-    start_on_construct_ = static_cast<bool>(value);
-}
+
 void server::set_option_(debug_output value)
 {
     impl_->set_option(value);
@@ -80,16 +81,6 @@ void server::set_option_(use_epoll_if_available value)
 void server::set_option_(mime_type mime_type)
 {
     impl_->set_option(mime_type);
-}
-
-void server::set_option_(error_handler_cb handler)
-{
-    impl_->set_option(handler);
-}
-
-void server::set_option_(port port)
-{
-    impl_->set_option(port);
 }
 
 void server::set_option_(accept_policy_cb handler)
@@ -222,26 +213,7 @@ void server::set_option_(const append_to_server_identifier &value)
     impl_->set_option(value);
 }
 
-// middleware
-void server::set_option_(middleware::before_request_handler value)
-{
-    impl_->set_option(value);
-}
-void server::set_option_(middleware::after_request_handler value)
-{
-    impl_->set_option(value);
-}
-void server::set_option_(middleware::after_error value)
-{
-    impl_->set_option(value);
-}
-
 // caching
-void server::set_option_(std::pair<cache::read, cache::write> value)
-{
-    impl_->set_option(value);
-}
-
 void server::set_option_(server::enable_internal_file_cache value)
 {
     impl_->set_option(value);
@@ -252,74 +224,9 @@ void server::set_option_(internal_file_cache_keep_alive value)
     impl_->set_option(value);
 }
 
-server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations)
+void server::add_router(const router &router)
 {
-    return impl_->handle_request(method, std::regex{std::move(path)}, callback, std::move(validations));
-}
-
-server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validations)
-{
-    return impl_->handle_request(method, std::regex{path}, callback, std::move(validations));
-}
-
-server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validations)
-{
-    return impl_->handle_request(method, std::regex{std::move(path)}, callback, validations);
-}
-
-server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations)
-{
-    return impl_->handle_request(method, std::regex{path}, callback, validations);
-}
-
-server::request_handler_handle server::serve_files(const std::string &mount_point, const std::string &path_to_files)
-{
-    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
-}
-
-server::request_handler_handle server::serve_files(std::string &&mount_point, std::string &&path_to_files)
-{
-    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
-}
-
-server::error_handler_handle server::handle_404(error_handler_cb callback)
-{
-    return impl_->handle_404(callback);
-}
-
-server::error_handler_handle server::handle_error(status_code code, error_handler_cb callback)
-{
-    return impl_->handle_error(code, callback);
-}
-
-void server::remove_request_handler(server::request_handler_handle item)
-{
-    impl_->remove_request_handler(item);
-}
-
-void server::remove_error_handler(server::error_handler_handle item)
-{
-    impl_->remove_error_handler(item);
-}
-
-void server::add_global_header(std::string &&header, std::string &&value)
-{
-    impl_->add_global_header(std::move(header), std::move(value));
-}
-
-void server::add_global_header(const std::string &header, std::string &&value)
-{
-    impl_->add_global_header(header, std::move(value));
-}
-
-void server::add_global_header(std::string &&header, const std::string &value)
-{
-    impl_->add_global_header(std::move(header), value);
-}
-
-void server::add_global_header(const std::string &header, const std::string &value)
-{
-    impl_->add_global_header(header, value);
+    impl_->add_router(router);
 }
 
 

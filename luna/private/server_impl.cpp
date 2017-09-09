@@ -21,6 +21,10 @@
 #include "luna/private/server_impl.h"
 #include "luna/config.h"
 
+// Because std::optional is in C++17.
+#include "luna/optional.hpp"
+
+
 // TODO
 // * multiple headers with same name
 // * catch exceptions in user logger and middleware functions, throw 500 when they happen.
@@ -75,27 +79,8 @@ struct connection_info_struct
     }
 };
 
-
-const server::error_handler_cb default_error_handler_callback_ = [](const request &request,
-                                                                           response &response)
-{
-    if (response.content.empty())
-    {
-        response.content_type = "text/html; charset=UTF-8";
-        //we'd best render it ourselves.
-        switch (response.status_code)
-        {
-            case 404:
-                response.content = "<h1>Not found</h1>";
-                break;
-            default:
-                response.content = "<h1>So sorry, generic server error</h1>";
-        }
-    }
-};
-
 const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
-                                                                           socklen_t len) -> bool
+                                                                    socklen_t len) -> bool
 {
     return true;
 };
@@ -143,17 +128,23 @@ request_method method_str_to_enum_(const std::string &method_str)
 
 std::string addr_to_str_(const struct sockaddr *addr)
 {
-    if(addr)
+    if (addr)
     {
         char str[INET_ADDRSTRLEN];
 
-        switch(addr->sa_family)
+        switch (addr->sa_family)
         {
             case AF_INET:
-                inet_ntop(addr->sa_family, &(reinterpret_cast<const sockaddr_in *>(addr)->sin_addr), str, INET_ADDRSTRLEN);
+                inet_ntop(addr->sa_family,
+                          &(reinterpret_cast<const sockaddr_in *>(addr)->sin_addr),
+                          str,
+                          INET_ADDRSTRLEN);
                 break;
             case AF_INET6:
-                inet_ntop(addr->sa_family, &(reinterpret_cast<const sockaddr_in6 *>(addr)->sin6_addr), str, INET_ADDRSTRLEN);
+                inet_ntop(addr->sa_family,
+                          &(reinterpret_cast<const sockaddr_in6 *>(addr)->sin6_addr),
+                          str,
+                          INET_ADDRSTRLEN);
                 break;
             default:
                 return "";
@@ -186,8 +177,22 @@ server::server_impl::server_impl() :
 {}
 
 
-void server::server_impl::start()
+bool server::server_impl::start(uint16_t port)
 {
+    auto result = start_async(port);
+
+    if(!result) return result;
+
+    // TODO would be better to find a way to run MHD in _this_ thread...
+    await();
+
+    return true;
+}
+
+bool server::server_impl::start_async(uint16_t port)
+{
+    port_ = port;
+
     MHD_OptionItem options[options_.size() + 1];
     uint16_t idx = 0;
     for (const auto &opt : options_)
@@ -212,7 +217,7 @@ void server::server_impl::start()
     else if (ssl_mem_cert_set_ || ssl_mem_key_set_)
     {
         LOG_FATAL("Please provide both server::https_mem_key AND server::https_mem_cert");
-        return;
+        return false;
     }
 
     if (use_thread_per_connection_)
@@ -250,14 +255,15 @@ void server::server_impl::start()
     {
         LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(port_) +
                   "?)"); //TODO set some real error flags perhaps?
-        return;
+        return false;
     }
     running_cv_.notify_all(); //daemon_ has changed value
 
-
-
     LOG_INFO("Luna server created on port " + std::to_string(port_));
+
+    return true;
 }
+
 
 bool server::server_impl::is_running()
 {
@@ -279,13 +285,13 @@ void server::server_impl::await()
 {
     std::mutex m;
     {
-        std::unique_lock <std::mutex> lk(m);
+        std::unique_lock<std::mutex> lk(m);
         running_cv_.wait(lk, [this] { return daemon_ == nullptr; });
     }
 }
 
 
-server::port server::server_impl::get_port()
+uint16_t server::server_impl::get_port()
 {
     return port_;
 }
@@ -296,107 +302,112 @@ server::server_impl::~server_impl()
 }
 
 
-server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                                                   std::regex &&path,
-                                                                   server::endpoint_handler_cb callback,
-                                                                   parameter::validators &&validators)
+//server::request_handler_handle server::server_impl::handle_request(request_method method,
+//                                                                   std::regex &&path,
+//                                                                   server::endpoint_handler_cb callback,
+//                                                                   parameter::validators &&validators)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    return std::make_pair(method,
+//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+//                                                           std::make_tuple(std::move(path),
+//                                                                           callback,
+//                                                                           std::move(validators))));
+//}
+//
+//server::request_handler_handle server::server_impl::handle_request(request_method method,
+//                                                                   const std::regex &path,
+//                                                                   server::endpoint_handler_cb callback,
+//                                                                   parameter::validators &&validators)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    return std::make_pair(method,
+//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+//                                                           std::make_tuple(path, callback, std::move(validators))));
+//}
+//
+//server::request_handler_handle server::server_impl::handle_request(request_method method,
+//                                                                   std::regex &&path,
+//                                                                   server::endpoint_handler_cb callback,
+//                                                                   const parameter::validators &validators)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    return std::make_pair(method,
+//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+//                                                           std::make_tuple(std::move(path), callback, validators)));
+//}
+//
+//server::request_handler_handle server::server_impl::handle_request(request_method method,
+//                                                                   const std::regex &path,
+//                                                                   server::endpoint_handler_cb callback,
+//                                                                   const parameter::validators &validators)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    return std::make_pair(method,
+//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
+//                                                           std::make_tuple(path, callback, validators)));
+//}
+//
+//server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
+//                                                                const std::string &path_to_files)
+//{
+//    std::regex regex{mount_point + "(.*)"};
+//    std::string local_path{path_to_files + "/"};
+//    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+//    {
+//        std::string path = local_path + req.matches[1];
+//
+//        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
+//        LOG_DEBUG(std::string{"Serve from    :  "} + path);
+//
+//        return response::from_file(path);
+//    });
+//}
+//
+//server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
+//                                                                std::string &&path_to_files)
+//{
+//    std::regex regex{std::move(mount_point) + "(.*)"};
+//    std::string local_path{std::move(path_to_files) + "/"};
+//    return handle_request(request_method::GET, regex, [=](const request &req) -> response
+//    {
+//        std::string path = local_path + req.matches[1];
+//
+//        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
+//        LOG_DEBUG(std::string{"Serve from    :  "} + path);
+//
+//        return response::from_file(path);
+//    });
+//}
+//
+//void server::server_impl::remove_request_handler(request_handler_handle item)
+//{
+//    //TODO this is expensive. Find a better way to store this stuff.
+//    //TODO validate we are receiving a valid iterator!!
+//    std::lock_guard <std::mutex> guard{lock_};
+//    request_handlers_[item.first].erase(item.second);
+//}
+//
+//server::error_handler_handle server::server_impl::handle_404(server::error_handler_cb callback)
+//{
+//    return handle_error(404, callback);
+//}
+//
+//server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    return response_renderer_.handle_error(code, callback);
+//}
+//
+//void server::server_impl::remove_error_handler(error_handler_handle item)
+//{
+//    std::lock_guard <std::mutex> guard{lock_};
+//    response_renderer_.remove_error_handler(item);
+//}
+
+void server::server_impl::add_router(const router &router)
 {
-    std::lock_guard <std::mutex> guard{lock_};
-    return std::make_pair(method,
-                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                           std::make_tuple(std::move(path),
-                                                                           callback,
-                                                                           std::move(validators))));
-}
-
-server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                                                   const std::regex &path,
-                                                                   server::endpoint_handler_cb callback,
-                                                                   parameter::validators &&validators)
-{
-    std::lock_guard <std::mutex> guard{lock_};
-    return std::make_pair(method,
-                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                           std::make_tuple(path, callback, std::move(validators))));
-}
-
-server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                                                   std::regex &&path,
-                                                                   server::endpoint_handler_cb callback,
-                                                                   const parameter::validators &validators)
-{
-    std::lock_guard <std::mutex> guard{lock_};
-    return std::make_pair(method,
-                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                           std::make_tuple(std::move(path), callback, validators)));
-}
-
-server::request_handler_handle server::server_impl::handle_request(request_method method,
-                                                                   const std::regex &path,
-                                                                   server::endpoint_handler_cb callback,
-                                                                   const parameter::validators &validators)
-{
-    std::lock_guard <std::mutex> guard{lock_};
-    return std::make_pair(method,
-                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                           std::make_tuple(path, callback, validators)));
-}
-
-server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
-                                                                const std::string &path_to_files)
-{
-    std::regex regex{mount_point + "(.*)"};
-    std::string local_path{path_to_files + "/"};
-    return handle_request(request_method::GET, regex, [=](const request &req) -> response
-    {
-        std::string path = local_path + req.matches[1];
-
-        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
-        LOG_DEBUG(std::string{"Serve from    :  "} + path);
-
-        return response::from_file(path);
-    });
-}
-
-server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
-                                                                std::string &&path_to_files)
-{
-    std::regex regex{std::move(mount_point) + "(.*)"};
-    std::string local_path{std::move(path_to_files) + "/"};
-    return handle_request(request_method::GET, regex, [=](const request &req) -> response
-    {
-        std::string path = local_path + req.matches[1];
-
-        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
-        LOG_DEBUG(std::string{"Serve from    :  "} + path);
-
-        return response::from_file(path);
-    });
-}
-
-void server::server_impl::remove_request_handler(request_handler_handle item)
-{
-    //TODO this is expensive. Find a better way to store this stuff.
-    //TODO validate we are receiving a valid iterator!!
-    std::lock_guard <std::mutex> guard{lock_};
-    request_handlers_[item.first].erase(item.second);
-}
-
-server::error_handler_handle server::server_impl::handle_404(server::error_handler_cb callback)
-{
-    return handle_error(404, callback);
-}
-
-server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
-{
-    std::lock_guard <std::mutex> guard{lock_};
-    return response_generator_.handle_error(code, callback);
-}
-
-void server::server_impl::remove_error_handler(error_handler_handle item)
-{
-    std::lock_guard <std::mutex> guard{lock_};
-    response_generator_.remove_error_handler(item);
+    routers_.emplace_back(router);
 }
 
 int parse_kv_(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
@@ -474,7 +485,8 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
         *upload_data_size = 0; //flags that we processed everything. This is a funny place to put it.
         return MHD_YES;
     }
-    else if (!con_info->post_params.empty())//we're done getting postdata, and we have some query params to handle, do something with it
+
+    if (!con_info->post_params.empty())//we're done getting postdata, and we have some query params to handle, do something with it
     {
         //if we have post_params, then MHD has ignored the query params. So just overwrite it.
         std::swap(query_params, con_info->post_params);
@@ -484,123 +496,34 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     auto ip_address = addr_to_str_(MHD_get_connection_info(connection,
                                                            MHD_CONNECTION_INFO_CLIENT_ADDRESS)->client_addr);
 
-    luna::request request{start, start, ip_address, method, url_str, http_version, {}, query_params, header, con_info->body};
+    luna::request request{start, start, ip_address, method, url_str, http_version, {}, query_params, header,
+                          con_info->body};
 
     LOG_DEBUG(std::string{"Received request for "} + method_str + " " + url_str);
 
 
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
-    response response;
-    bool handled{false};
+    std::experimental::optional<response> response;
 
-    std::unique_lock <std::mutex> ulock{lock_};
-    for (const auto &handler_tuple : request_handlers_[method])
+    std::unique_lock<std::mutex> ulock{lock_};
+    for (auto &router : routers_)
     {
-        std::smatch pieces_match;
-        auto path_regex = std::get<std::regex>(handler_tuple);
-
-        if (std::regex_match(url_str, pieces_match, path_regex))
+        response = router.process_request(request);
+        if(response)
         {
-            ulock.unlock(); // found a match, can unlock as iterator will not continue
-
-            std::vector<std::string> matches;
-            LOG_DEBUG(std::string{"    match: "} + url);
-            for (size_t i = 0; i < pieces_match.size(); ++i)
-            {
-                std::ssub_match sub_match = pieces_match[i];
-                std::string piece = sub_match.str();
-                LOG_DEBUG(std::string{"      submatch "} + std::to_string(i) + ": " + piece);
-                matches.emplace_back(sub_match.str());
-            }
-
-            request.matches = matches;
-
-            auto callback = std::get<endpoint_handler_cb>(handler_tuple);
-            try
-            {
-                // Validate the parameters passed in
-                // TODO this can probably be optimized
-                // TODO refactor this out!
-                bool valid_params = true;
-                auto validators = std::get<parameter::validators>(handler_tuple);
-                for (const auto &validator : validators)
-                {
-                    bool present = (query_params.count(validator.key) == 0) ? false : true;
-                    if (present)
-                    {
-                        //run the validator
-                        if (!validator.validation_func(query_params[validator.key]))
-                        {
-                            std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" +
-                                              validator.key};
-                            LOG_ERROR(error);
-                            response = {400, "text/plain", error};
-                            valid_params = false;
-                            break; //stop examining params
-                        }
-                    }
-                    else if (validator.required) //not present, but required
-                    {
-                        std::string error{"Request handler for \"" + url_str + " is missing required parameter \"" +
-                                          validator.key};
-                        LOG_ERROR(error);
-                        response = {400, "text/plain", error};
-                        valid_params = false;
-                        break; //stop examining params
-                    }
-
-                }
-
-                if (valid_params)
-                {
-                    //made it this far! try the callback
-
-                    //first, the before middlewares
-                    for (const auto &mw : middleware_before_request_handler_.funcs)
-                    {
-                        mw(request);
-                    }
-
-                    response = callback(request);
-
-                    //now, the after middlewares
-                    for (const auto &mw : middleware_after_request_handler_.funcs)
-                    {
-                        mw(response);
-                    }
-                }
-            }
-
-            // TODO there is surely a more robust way to do this;
-            catch (const std::exception &e)
-            {
-                LOG_ERROR(std::string{"Request handler for \"" + url_str + "\" threw an exception: "} + e.what());
-                response = {500, "text/plain", "Internal error"};
-                //TODO render the stack trace, etc.
-            }
-            catch (...)
-            {
-                LOG_ERROR("Unknown internal error");
-                //TODO use the same error message as above, and just log things differently and test for that.
-                response = {500, "text/plain", "Unknown internal error"};
-                //TODO render the stack trace, etc.
-            }
-
-            // we have our response, let's go
-            handled = true;
-            break; //exit the for loop iterating over all the request handlers
+            break;
         }
     }
+    ulock.unlock();
 
-
-    if(!handled)
+    if (!response)
     {
         // if there was no response generated by a request handler, make us a 404.
         response = {404};
     }
 
-    auto response_mhd = response_generator_.generate_response(request, response);
+    auto response_mhd = response_renderer_.render(request, *response);
     auto retval = MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);
 
     request.end = std::chrono::system_clock::now();
@@ -608,7 +531,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     // log it
     auto end_c = std::chrono::system_clock::to_time_t(request.end);
     auto tm = luna::gmtime(end_c);
-    access_log(request, response);
+    access_log(request, *response);
 
     return retval;
 }
@@ -761,17 +684,7 @@ void server::server_impl::set_option(use_epoll_if_available value)
 
 void server::server_impl::set_option(const server::mime_type &mime_type)
 {
-    response_generator_.set_option(mime_type);
-}
-
-void server::server_impl::set_option(server::error_handler_cb handler)
-{
-    response_generator_.set_option(handler);
-}
-
-void server::server_impl::set_option(server::port port)
-{
-    port_ = port;
+    response_renderer_.set_option(mime_type);
 }
 
 void server::server_impl::set_option(server::accept_policy_cb value)
@@ -925,42 +838,22 @@ void server::server_impl::set_option(const server::https_key_password &value)
 
 void server::server_impl::set_option(const server::server_identifier &value)
 {
-    response_generator_.set_option(value);
+    response_renderer_.set_option(value);
 }
 
 void server::server_impl::set_option(const server::append_to_server_identifier &value)
 {
-    response_generator_.set_option(value);
-}
-
-void server::server_impl::set_option(middleware::before_request_handler value)
-{
-    middleware_before_request_handler_ = value;
-}
-
-void server::server_impl::set_option(middleware::after_request_handler value)
-{
-    middleware_after_request_handler_ = value;
-}
-
-void server::server_impl::set_option(middleware::after_error value)
-{
-    response_generator_.set_option(value);
-}
-
-void server::server_impl::set_option(std::pair<cache::read, cache::write> value)
-{
-    response_generator_.set_option(value);
+    response_renderer_.set_option(value);
 }
 
 void server::server_impl::set_option(server::enable_internal_file_cache value)
 {
-    response_generator_.set_option(value);
+    response_renderer_.set_option(value);
 }
 
 void server::server_impl::set_option(internal_file_cache_keep_alive value)
 {
-    response_generator_.set_option(value);
+    response_renderer_.set_option(value);
 }
 
 } //namespace luna

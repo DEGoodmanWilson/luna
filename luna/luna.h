@@ -16,4 +16,5 @@
 
 #include <luna/types.h>
 #include <luna/config.h>
+#include <luna/router.h>
 #include <luna/server.h>

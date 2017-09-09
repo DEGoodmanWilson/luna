@@ -1,2 +1,11 @@
 .idea
 cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+bin/
+*.cmake
+*.pyc
+conaninfo.txt
+lib/
+luna.cbp
