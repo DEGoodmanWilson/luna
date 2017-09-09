@@ -247,5 +247,4 @@ void server::add_router(const router &router)
     impl_->add_router(router);
 }
 
-
 }

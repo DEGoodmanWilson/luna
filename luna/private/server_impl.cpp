@@ -163,6 +163,7 @@ MHD_ValueKind method_to_value_kind_enum_(request_method method)
 
     return MHD_POSTDATA_KIND;
 }
+
 ///////////////////////////
 
 server::server_impl::server_impl() :
@@ -301,110 +302,6 @@ server::server_impl::~server_impl()
     stop();
 }
 
-
-//server::request_handler_handle server::server_impl::handle_request(request_method method,
-//                                                                   std::regex &&path,
-//                                                                   server::endpoint_handler_cb callback,
-//                                                                   parameter::validators &&validators)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    return std::make_pair(method,
-//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-//                                                           std::make_tuple(std::move(path),
-//                                                                           callback,
-//                                                                           std::move(validators))));
-//}
-//
-//server::request_handler_handle server::server_impl::handle_request(request_method method,
-//                                                                   const std::regex &path,
-//                                                                   server::endpoint_handler_cb callback,
-//                                                                   parameter::validators &&validators)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    return std::make_pair(method,
-//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-//                                                           std::make_tuple(path, callback, std::move(validators))));
-//}
-//
-//server::request_handler_handle server::server_impl::handle_request(request_method method,
-//                                                                   std::regex &&path,
-//                                                                   server::endpoint_handler_cb callback,
-//                                                                   const parameter::validators &validators)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    return std::make_pair(method,
-//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-//                                                           std::make_tuple(std::move(path), callback, validators)));
-//}
-//
-//server::request_handler_handle server::server_impl::handle_request(request_method method,
-//                                                                   const std::regex &path,
-//                                                                   server::endpoint_handler_cb callback,
-//                                                                   const parameter::validators &validators)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    return std::make_pair(method,
-//                          request_handlers_[method].insert(std::end(request_handlers_[method]),
-//                                                           std::make_tuple(path, callback, validators)));
-//}
-//
-//server::request_handler_handle server::server_impl::serve_files(const std::string &mount_point,
-//                                                                const std::string &path_to_files)
-//{
-//    std::regex regex{mount_point + "(.*)"};
-//    std::string local_path{path_to_files + "/"};
-//    return handle_request(request_method::GET, regex, [=](const request &req) -> response
-//    {
-//        std::string path = local_path + req.matches[1];
-//
-//        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
-//        LOG_DEBUG(std::string{"Serve from    :  "} + path);
-//
-//        return response::from_file(path);
-//    });
-//}
-//
-//server::request_handler_handle server::server_impl::serve_files(std::string &&mount_point,
-//                                                                std::string &&path_to_files)
-//{
-//    std::regex regex{std::move(mount_point) + "(.*)"};
-//    std::string local_path{std::move(path_to_files) + "/"};
-//    return handle_request(request_method::GET, regex, [=](const request &req) -> response
-//    {
-//        std::string path = local_path + req.matches[1];
-//
-//        LOG_DEBUG(std::string{"File requested:  "} + req.matches[1]);
-//        LOG_DEBUG(std::string{"Serve from    :  "} + path);
-//
-//        return response::from_file(path);
-//    });
-//}
-//
-//void server::server_impl::remove_request_handler(request_handler_handle item)
-//{
-//    //TODO this is expensive. Find a better way to store this stuff.
-//    //TODO validate we are receiving a valid iterator!!
-//    std::lock_guard <std::mutex> guard{lock_};
-//    request_handlers_[item.first].erase(item.second);
-//}
-//
-//server::error_handler_handle server::server_impl::handle_404(server::error_handler_cb callback)
-//{
-//    return handle_error(404, callback);
-//}
-//
-//server::error_handler_handle server::server_impl::handle_error(status_code code, server::error_handler_cb callback)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    return response_renderer_.handle_error(code, callback);
-//}
-//
-//void server::server_impl::remove_error_handler(error_handler_handle item)
-//{
-//    std::lock_guard <std::mutex> guard{lock_};
-//    response_renderer_.remove_error_handler(item);
-//}
-
 void server::server_impl::add_router(const router &router)
 {
     routers_.emplace_back(router);
@@ -520,8 +417,10 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     if (!response)
     {
         // if there was no response generated by a request handler, make us a 404.
-        response = {404};
+        response = luna::response{404, "Not found"};
     }
+
+    // TODO this is the point where we will want to include middlewares in the future.
 
     auto response_mhd = response_renderer_.render(request, *response);
     auto retval = MHD_queue_response(connection, response_mhd->status_code, response_mhd->mhd_response);

@@ -40,18 +40,6 @@ namespace luna
     error_log(log_level::DEBUG, mesg); \
 }
 
-router::error_handler_handle router::handle_404(error_handler_cb callback)
-{
-    return handle_error(404, callback);
-}
-
-router::error_handler_handle router::handle_error(status_code code, error_handler_cb callback)
-{
-    std::lock_guard<std::mutex> guard{lock_};
-//    return response_renderer_.handle_error(code, callback);
-    // TODO
-}
-
 std::experimental::optional<response> router::process_request(request &request)
 {
     // TODO this is here to prevent writing to the list of endpoints while we're using it. Not sure we actually need this,

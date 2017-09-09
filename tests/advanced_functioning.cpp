@@ -169,14 +169,24 @@ TEST(advanced_functioning, get_and_post)
     ASSERT_EQ("hello", res.text);
 }
 
-TEST(advanced_functioning, default_server_errors)
+TEST(advanced_functioning, default_server_errors_404)
+{
+    luna::server server;
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ(404, res.status_code);
+    ASSERT_EQ("Not found", res.text);
+}
+
+TEST(advanced_functioning, default_server_errors_500)
 {
     luna::router router;
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {500};
+                              return {500, "Foobar"};
                           });
 
     luna::server server;
@@ -185,7 +195,7 @@ TEST(advanced_functioning, default_server_errors)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(500, res.status_code);
-    ASSERT_EQ("<h1>So sorry, generic server error</h1>", res.text);
+    ASSERT_EQ("Foobar", res.text);
 }
 
 TEST(advanced_functioning, actual_server_errors)
@@ -227,6 +237,8 @@ TEST(advanced_functioning, actual_server_errors2)
     ASSERT_EQ(500, res.status_code);
     ASSERT_EQ("Unknown internal error", res.text);
 }
+
+//TODO custom error handlers
 
 TEST(advanced_functioning, check_arbitrary_headers)
 {

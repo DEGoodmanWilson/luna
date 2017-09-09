@@ -55,60 +55,59 @@ public:
     router(R &&route_base) : route_base_{std::forward<std::string>(route_base)}
     {
         //remove trailing slashes
-        if(route_base_.back() == '/')
+        if (route_base_.back() == '/')
         {
             route_base_.pop_back();
         }
         std::cout << route_base_ << std::endl;
     }
 
-    router(const router &r) : route_base_{r.route_base_}, request_handlers_{r.request_handlers_}, error_handlers_{r.error_handlers_}, headers_{r.headers_}
+    router(const router &r) : route_base_{r.route_base_}, request_handlers_{r.request_handlers_}, headers_{r.headers_}
     {}
 
-    router(router &&r) : route_base_{std::move(r.route_base_)}, request_handlers_{std::move(r.request_handlers_)}, error_handlers_{std::move(r.error_handlers_)}, headers_{std::move(r.headers_)}
+    router(router &&r) :
+            route_base_{std::move(r.route_base_)},
+            request_handlers_{std::move(r.request_handlers_)},
+            headers_{std::move(r.headers_)}
     {}
 
-    using endpoint_handler_cb = std::function<response(const request &req)>;
+    using endpoint_handler_cb = std::function<
 
-    using error_handler_cb = std::function<void( const request &request, response
-    &response)>;
-    using request_handlers = std::vector<std::tuple<std::regex, endpoint_handler_cb, parameter::validators>>;
-    using request_handler_handle = std::pair<request_method, request_handlers::const_iterator>;
-    using error_handler_handle = status_code;
+    response(const request &req)
+
+    >;
 
     template<typename P>
-    request_handler_handle handle_request(request_method method,
-                                          P &&path,
-                                          endpoint_handler_cb callback)
+    void handle_request(request_method method,
+                        P &&path,
+                        endpoint_handler_cb callback)
     {
         std::lock_guard<std::mutex> guard{lock_};
-        return std::make_pair(method,
-                              request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                               std::make_tuple(std::regex{std::forward<P>(path)},
-                                                                               callback,
-                                                                               luna::parameter::validators{})));
+        request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                         std::make_tuple(std::regex{std::forward<P>(path)},
+                                                         callback,
+                                                         luna::parameter::validators{}));
     }
 
     template<typename P, typename V>
-    request_handler_handle handle_request(request_method method,
-                                          P &&path,
-                                          endpoint_handler_cb callback,
-                                          V &&validations)
+    void handle_request(request_method method,
+                        P &&path,
+                        endpoint_handler_cb callback,
+                        V &&validations)
     {
         std::lock_guard<std::mutex> guard{lock_};
-        return std::make_pair(method,
-                              request_handlers_[method].insert(std::end(request_handlers_[method]),
-                                                               std::make_tuple(std::regex{std::forward<P>(path)},
-                                                                               callback,
-                                                                               std::forward<V>(validations))));
+        request_handlers_[method].insert(std::end(request_handlers_[method]),
+                                         std::make_tuple(std::regex{std::forward<P>(path)},
+                                                         callback,
+                                                         std::forward<V>(validations)));
     }
 
     template<typename M, typename P>
-    request_handler_handle serve_files(M &&mount_point, P &&path_to_files)
+    void serve_files(M &&mount_point, P &&path_to_files)
     {
         std::regex regex{std::forward<std::string>(mount_point) + "(.*)"};
         std::string local_path{std::forward<std::string>(path_to_files) + "/"};
-        return handle_request(request_method::GET, regex, [=](const request &req) -> response
+        handle_request(request_method::GET, regex, [=](const request &req) -> response
         {
             std::string path = local_path + req.matches[1];
 
@@ -118,12 +117,6 @@ public:
             return response::from_file(path);
         });
     }
-
-
-    // a shortcut for writing 404 handlers.
-    error_handler_handle handle_404(error_handler_cb callback);
-
-    error_handler_handle handle_error(status_code code, error_handler_cb callback);
 
     template<typename H, typename V>
     void add_global_header(H &&header, V &&value)
@@ -138,8 +131,8 @@ public:
 private:
     std::string route_base_;
     std::mutex lock_;
+    using request_handlers = std::vector<std::tuple<std::regex, endpoint_handler_cb, parameter::validators>>;
     std::map<request_method, request_handlers> request_handlers_;
-    std::map<status_code, error_handler_cb> error_handlers_;
     headers headers_;
 };
 
