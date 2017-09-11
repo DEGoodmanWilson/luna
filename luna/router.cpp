@@ -13,52 +13,89 @@
 //
 
 #include "router.h"
+#include "luna/private/router_impl.h"
 #include "luna/config.h"
 
 namespace luna
 {
 
-//TODO do this better. Make this an ostream with a custom function. It's not like we haven't done that before.
-
-#define LOG_FATAL(mesg) \
-{ \
-    error_log(log_level::FATAL, mesg); \
+router::router(std::string route_base) : impl_{}
+{
+    //remove trailing slashes
+    if (route_base.back() == '/')
+    {
+        route_base.pop_back();
+    }
+    impl_ = std::make_shared<router_impl>(route_base);
 }
 
-#define LOG_ERROR(mesg) \
-{ \
-    error_log(log_level::ERROR, mesg); \
+router::router(const router &r) : impl_{r.impl_}
+{}
+
+router::router(router &&r) : impl_{r.impl_}
+{}
+
+
+void router::handle_request(request_method method,
+                            std::regex route,
+                            router::endpoint_handler_cb callback,
+                            parameter::validators validations)
+{
+    std::lock_guard<std::mutex> guard{impl_->lock_};
+    impl_->request_handlers_[method].insert(std::end(impl_->request_handlers_[method]),
+                                            std::make_tuple(
+                                                    route,
+                                                    callback,
+                                                    validations));
 }
 
-#define LOG_INFO(mesg) \
-{ \
-    error_log(log_level::INFO, mesg); \
+void router::handle_request(request_method method,
+                            std::string route,
+                            router::endpoint_handler_cb callback,
+                            parameter::validators validations)
+{
+    std::lock_guard<std::mutex> guard{impl_->lock_};
+    impl_->request_handlers_[method].insert(std::end(impl_->request_handlers_[method]),
+                                            std::make_tuple(
+                                                    std::regex{route},
+                                                    callback,
+                                                    validations));
 }
 
-#define LOG_DEBUG(mesg) \
-{ \
-    error_log(log_level::DEBUG, mesg); \
+void router::serve_files(std::string mount_point, std::string path_to_files)
+{
+    std::regex route{mount_point + "(.*)"};
+    std::string local_path{path_to_files + "/"};
+    handle_request(request_method::GET, route, [=](const request &req) -> response
+    {
+        std::string path = local_path + req.matches[1];
+
+        error_log(log_level::DEBUG, std::string{"File requested:  "} + req.matches[1]);
+        error_log(log_level::DEBUG, std::string{"Serve from    :  "} + path);
+
+        return response::from_file(path);
+    });
 }
 
-std::experimental::optional<response> router::process_request(request &request)
+std::experimental::optional<luna::response> router::process_request(request &request)
 {
     // TODO this is here to prevent writing to the list of endpoints while we're using it. Not sure we actually need this,
     // if we can find a way to restrict writing to the list of endpoints when the server is running.
     // we need this because our iterators can get invalidated by a concurrent insert. The insert must wait until after we are done.
-    std::unique_lock<std::mutex> ulock{lock_};
+    std::unique_lock<std::mutex> ulock{impl_->lock_};
 
     // first lets validate that the path begins with our base_route_, and if it does, strip it from the request to simplify the logic below
-    if (!std::regex_search(request.path, std::regex{"^" + route_base_}))
+    if (!std::regex_search(request.path, std::regex{"^" + impl_->route_base_}))
     {
         return {};
     }
 
     //strip the base_path_ off the reqest
-    auto path = request.path.substr(route_base_.length(), std::string::npos);
+    auto path = request.path.substr(impl_->route_base_.length(), std::string::npos);
 
     std::experimental::optional<luna::response> response;
 
-    for (const auto &handler_tuple : request_handlers_[request.method])
+    for (const auto &handler_tuple : impl_->request_handlers_[request.method])
     {
         std::smatch pieces_match;
         auto path_regex = std::get<std::regex>(handler_tuple);
@@ -68,12 +105,12 @@ std::experimental::optional<response> router::process_request(request &request)
             ulock.unlock(); // found a match, can unlock as we won't continue down the list of endpoints.
 
             std::vector<std::string> matches;
-            LOG_DEBUG(std::string{"    match: "} + path);
+            error_log(luna::log_level::DEBUG, std::string{"    match: "} + path);
             for (size_t i = 0; i < pieces_match.size(); ++i)
             {
                 std::ssub_match sub_match = pieces_match[i];
                 std::string piece = sub_match.str();
-                LOG_DEBUG(std::string{"      submatch "} + std::to_string(i) + ": " + piece);
+                error_log(luna::log_level::DEBUG, std::string{"      submatch "} + std::to_string(i) + ": " + piece);
                 matches.emplace_back(sub_match.str());
             }
 
@@ -98,7 +135,7 @@ std::experimental::optional<response> router::process_request(request &request)
                             std::string error{
                                     "Request handler for \"" + path + " is missing required parameter \"" +
                                     validator.key};
-                            LOG_ERROR(error);
+                            error_log(luna::log_level::ERROR, error);
                             response = luna::response{400, "text/plain", error};
                             valid_params = false;
                             break; //stop examining params
@@ -109,7 +146,7 @@ std::experimental::optional<response> router::process_request(request &request)
                         std::string error{
                                 "Request handler for \"" + path + " is missing required parameter \"" +
                                 validator.key};
-                        LOG_ERROR(error);
+                        error_log(luna::log_level::ERROR, error);
                         response = luna::response{400, "text/plain", error};
                         valid_params = false;
                         break; //stop examining params
@@ -126,13 +163,13 @@ std::experimental::optional<response> router::process_request(request &request)
                 // TODO there is surely a more robust way to do this;
             catch (const std::exception &e)
             {
-                LOG_ERROR(std::string{"Request handler for \"" + path + "\" threw an exception: "} + e.what());
+                error_log(luna::log_level::ERROR, std::string{"Request handler for \"" + path + "\" threw an exception: "} + e.what());
                 response = luna::response{500, "text/plain", "Internal error"};
                 //TODO render the stack trace, etc.
             }
             catch (...)
             {
-                LOG_ERROR("Unknown internal error");
+                error_log(luna::log_level::ERROR, "Unknown internal error");
                 //TODO use the same error message as above, and just log things differently and test for that.
                 response = luna::response{500, "text/plain", "Unknown internal error"};
                 //TODO render the stack trace, etc.

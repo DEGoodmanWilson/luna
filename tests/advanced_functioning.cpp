@@ -573,128 +573,128 @@ TEST(file_service, check_paths_3)
     ASSERT_EQ("first", res.text);
 }
 
-TEST(global_headers, set_global_header)
-{
-
-    luna::router router;
-    router.handle_request(luna::request_method::GET,
-                          "/hello",
-                          [](auto req) -> luna::response
-                          {
-                              return {"hello"};
-                          });
-
-    luna::server server;
-    server.add_global_header("header", "value");
-    server.add_router(router);
-    server.start_async();
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
-    ASSERT_EQ(1, res.header.count("header"));
-    ASSERT_EQ("value", res.header.at("header"));
-}
-
-TEST(global_headers, set_global_header_lvalue_1)
-{
-
-    luna::router router;
-    router.handle_request(luna::request_method::GET,
-                          "/hello",
-                          [](auto req) -> luna::response
-                          {
-                              return {"hello"};
-                          });
-
-    luna::server server;
-    const std::string value{"value"};
-    server.add_global_header("header", value);
-    server.add_router(router);
-    server.start_async();
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
-    ASSERT_EQ(1, res.header.count("header"));
-    ASSERT_EQ("value", res.header.at("header"));
-}
-
-TEST(global_headers, set_global_header_lvalue_2)
-{
-
-    luna::router router;
-    router.handle_request(luna::request_method::GET,
-                          "/hello",
-                          [](auto req) -> luna::response
-                          {
-                              return {"hello"};
-                          });
-
-    const std::string header{"header"};
-    luna::server server;
-    server.add_global_header(header, "value");
-    server.add_router(router);
-    server.start_async();
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
-    ASSERT_EQ(1, res.header.count("header"));
-    ASSERT_EQ("value", res.header.at("header"));
-}
-
-TEST(global_headers, set_global_header_lvalue_3)
-{
-
-    luna::router router;
-    router.handle_request(luna::request_method::GET,
-                          "/hello",
-                          [](auto req) -> luna::response
-                          {
-                              return {"hello"};
-                          });
-
-    const std::string header{"header"};
-    const std::string value{"value"};
-    luna::server server;
-    server.add_global_header(header, value);
-    server.add_router(router);
-    server.start_async();
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
-    ASSERT_EQ(1, res.header.count("header"));
-    ASSERT_EQ("value", res.header.at("header"));
-}
-
-TEST(global_headers, set_global_header_override)
-{
-
-    luna::router router;
-    router.handle_request(luna::request_method::GET,
-                          "/hello",
-                          [](auto req) -> luna::response
-                          {
-                              return
-                                      {
-                                              {
-                                                      {"header", "override"}
-                                              },
-                                              "hello"
-                                      };
-                          });
-
-
-    luna::server server;
-    server.add_global_header("header", "value");
-    server.add_router(router);
-    server.start_async();
-
-    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
-    ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
-    ASSERT_EQ(1, res.header.count("header"));
-    ASSERT_EQ("override", res.header.at("header"));
-}
+//TEST(global_headers, set_global_header)
+//{
+//
+//    luna::router router;
+//    router.handle_request(luna::request_method::GET,
+//                          "/hello",
+//                          [](auto req) -> luna::response
+//                          {
+//                              return {"hello"};
+//                          });
+//
+//    luna::server server;
+//    server.add_global_header("header", "value");
+//    server.add_router(router);
+//    server.start_async();
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//    ASSERT_EQ(1, res.header.count("header"));
+//    ASSERT_EQ("value", res.header.at("header"));
+//}
+//
+//TEST(global_headers, set_global_header_lvalue_1)
+//{
+//
+//    luna::router router;
+//    router.handle_request(luna::request_method::GET,
+//                          "/hello",
+//                          [](auto req) -> luna::response
+//                          {
+//                              return {"hello"};
+//                          });
+//
+//    luna::server server;
+//    const std::string value{"value"};
+//    server.add_global_header("header", value);
+//    server.add_router(router);
+//    server.start_async();
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//    ASSERT_EQ(1, res.header.count("header"));
+//    ASSERT_EQ("value", res.header.at("header"));
+//}
+//
+//TEST(global_headers, set_global_header_lvalue_2)
+//{
+//
+//    luna::router router;
+//    router.handle_request(luna::request_method::GET,
+//                          "/hello",
+//                          [](auto req) -> luna::response
+//                          {
+//                              return {"hello"};
+//                          });
+//
+//    const std::string header{"header"};
+//    luna::server server;
+//    server.add_global_header(header, "value");
+//    server.add_router(router);
+//    server.start_async();
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//    ASSERT_EQ(1, res.header.count("header"));
+//    ASSERT_EQ("value", res.header.at("header"));
+//}
+//
+//TEST(global_headers, set_global_header_lvalue_3)
+//{
+//
+//    luna::router router;
+//    router.handle_request(luna::request_method::GET,
+//                          "/hello",
+//                          [](auto req) -> luna::response
+//                          {
+//                              return {"hello"};
+//                          });
+//
+//    const std::string header{"header"};
+//    const std::string value{"value"};
+//    luna::server server;
+//    server.add_global_header(header, value);
+//    server.add_router(router);
+//    server.start_async();
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//    ASSERT_EQ(1, res.header.count("header"));
+//    ASSERT_EQ("value", res.header.at("header"));
+//}
+//
+//TEST(global_headers, set_global_header_override)
+//{
+//
+//    luna::router router;
+//    router.handle_request(luna::request_method::GET,
+//                          "/hello",
+//                          [](auto req) -> luna::response
+//                          {
+//                              return
+//                                      {
+//                                              {
+//                                                      {"header", "override"}
+//                                              },
+//                                              "hello"
+//                                      };
+//                          });
+//
+//
+//    luna::server server;
+//    server.add_global_header("header", "value");
+//    server.add_router(router);
+//    server.start_async();
+//
+//    auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
+//    ASSERT_EQ(200, res.status_code);
+//    ASSERT_EQ("hello", res.text);
+//    ASSERT_EQ(1, res.header.count("header"));
+//    ASSERT_EQ("override", res.header.at("header"));
+//}

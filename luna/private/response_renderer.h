@@ -58,18 +58,11 @@ public:
     void set_option(server::enable_internal_file_cache value);
     void set_option(server::internal_file_cache_keep_alive value);
 
-    // set headers
-    void add_global_header(std::string &&header, std::string &&value);
-    void add_global_header(const std::string &header, std::string &&value);
-    void add_global_header(std::string &&header, const std::string &value);
-    void add_global_header(const std::string &header, const std::string &value);
-
 private:
     std::shared_ptr<cacheable_response> from_file_(const luna::request &request, luna::response &response);
 
     std::string default_mime_type_;
     std::string server_identifier_;
-    luna::headers global_headers_;
 
     // fd cache
     bool use_fd_cache_;

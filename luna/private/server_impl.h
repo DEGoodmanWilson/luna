@@ -55,12 +55,6 @@ public:
 
     uint16_t get_port();
 
-    template<class H, class V>
-    void add_global_header(H &&header, V &&value)
-    {
-        response_renderer_.add_global_header(std::forward<H>(header), std::forward<V>(value));
-    };
-
     void add_router(const router &router);
 
     void set_option(debug_output value);

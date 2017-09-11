@@ -128,10 +128,6 @@ response_renderer::render(const request &request, response &response)
         {
             MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
         }
-        for (const auto &header : global_headers_)
-        {
-            MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
-        }
         MHD_add_response_header(response_mhd->mhd_response,
                                 MHD_HTTP_HEADER_CONTENT_TYPE,
                                 response.content_type.c_str());
@@ -296,26 +292,5 @@ void response_renderer::set_option(server::internal_file_cache_keep_alive value)
 {
     cache_keep_alive_ = value;
 }
-
-void response_renderer::add_global_header(std::string &&header, std::string &&value)
-{
-    global_headers_.emplace(std::move(header), std::move(value));
-}
-
-void response_renderer::add_global_header(const std::string &header, std::string &&value)
-{
-    global_headers_.emplace(header, std::move(value));
-}
-
-void response_renderer::add_global_header(std::string &&header, const std::string &value)
-{
-    global_headers_.emplace(std::move(header), value);
-}
-
-void response_renderer::add_global_header(const std::string &header, const std::string &value)
-{
-    global_headers_.emplace(header, value);
-}
-
 
 } //namespace luna
