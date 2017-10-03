@@ -55,7 +55,7 @@ public:
 
     MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
 
-    using sockaddr_ptr = ::sockaddr*;
+    using sockaddr_ptr = ::sockaddr *;
     // struct sockaddr * is a configuration option here! Just letting you know.
 
     MAKE_STRING_LIKE(https_mem_key);
@@ -89,6 +89,7 @@ public:
     MAKE_STRING_LIKE(https_key_password);
 
     MAKE_STRING_LIKE(server_identifier);
+
     MAKE_STRING_LIKE(append_to_server_identifier);
 
     MAKE_BOOL_LIKE(enable_internal_file_cache);
@@ -109,14 +110,19 @@ public:
 
     ~server();
 
-    bool start(uint16_t port=8080);
-    bool start_async(uint16_t port=8080);
+    bool start(uint16_t port = 8080);
+
+    bool start_async(uint16_t port = 8080);
+
+    bool is_running();
+
     void stop();
+
     void await();
 
     uint16_t get_port();
 
-    void add_router(const router& router);
+    void add_router(const router &router);
 
     explicit operator bool();
 
@@ -168,13 +174,13 @@ private:
 
     void set_option_(const sockaddr_ptr value);
 
-    void set_option_(https_mem_key value);
+    void set_option_(const https_mem_key &value);
 
-    void set_option_(https_mem_cert value);
+    void set_option_(const https_mem_cert &value);
 
-//    void set_option_(https_cred_type value); //TODO later
+//    void set_option_(const https_cred_type &value); //TODO later
 
-    void set_option_(https_priorities value);
+    void set_option_(const https_priorities &value);
 
     void set_option_(listen_socket value);
 
@@ -205,10 +211,12 @@ private:
 //    void set_option_(notify_connection value); //TODO later
 
     void set_option_(const server_identifier &value);
+
     void set_option_(const append_to_server_identifier &value);
 
     // internally-provided static asset caching
     void set_option_(enable_internal_file_cache value);
+
     void set_option_(internal_file_cache_keep_alive value);
 };
 

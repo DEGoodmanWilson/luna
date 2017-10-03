@@ -28,105 +28,13 @@
 namespace luna
 {
 
-const auto GET = "GET";
-const auto POST = "POST";
-const auto PUT = "PUT";
-const auto PATCH = "PATCH";
-const auto DELETE = "DELETE";
-const auto OPTIONS = "OPTIONS";
 
 
 class server::server_impl
 {
 public:
-
     server_impl();
 
-    ~server_impl();
-
-    bool start(uint16_t port);
-    bool start_async(uint16_t port);
-
-    bool is_running();
-
-    void stop();
-
-    void await();
-
-    uint16_t get_port();
-
-    void add_router(const router &router);
-
-    void set_option(debug_output value);
-
-    void set_option(use_thread_per_connection value);
-
-    void set_option(use_epoll_if_available value);
-
-    void set_option(const mime_type &mime_type);
-
-    void set_option(accept_policy_cb handler);
-
-    // MHD specific options
-
-    void set_option(connection_memory_limit value);
-
-    void set_option(connection_limit value);
-
-    void set_option(connection_timeout value);
-
-//    void set_option(notify_completed value);
-
-    void set_option(per_ip_connection_limit value);
-
-    void set_option(const sockaddr *value);
-
-    void set_option(const https_mem_key &value);
-
-    void set_option(const https_mem_cert &value);
-
-//    void set_option(https_cred_type value);
-
-    void set_option(const https_priorities &value);
-
-    void set_option(listen_socket value);
-
-    void set_option(thread_pool_size value);
-
-    void set_option(unescaper_cb value);
-
-//    void set_option(digest_auth_random value);
-
-    void set_option(nonce_nc_size value);
-
-    void set_option(thread_stack_size value);
-
-    void set_option(const https_mem_trust &value);
-
-    void set_option(connection_memory_increment value);
-
-//    void set_option(https_cert_callback value);
-
-//    void set_option(tcp_fastopen_queue_size value);
-
-    void set_option(const https_mem_dhparams &value);
-
-//    void set_option(listening_address_reuse value);
-
-    void set_option(const https_key_password &value);
-
-//    void set_option(notify_connection value);
-
-    void set_option(const server_identifier &value);
-    void set_option(const append_to_server_identifier &value);
-
-    //static asset cacheing
-    void set_option(server::enable_internal_file_cache value);
-    void set_option(internal_file_cache_keep_alive value);
-
-
-
-private:
     std::mutex lock_;
 
     bool debug_output_;
