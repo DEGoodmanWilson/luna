@@ -37,6 +37,7 @@ add_executable(luna_tests
         server_impl.cpp
         caching.cpp
         server_options.cpp
+        headers.cpp
         )
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")

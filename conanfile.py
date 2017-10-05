@@ -57,6 +57,7 @@ class LunaConan(ConanFile):
 
     def package(self):
         self.copy("*.h", dst="include/luna", src="luna")
+        self.copy("*.hpp", dst="include/luna", src="luna")
         self.copy("*.lib", dst="lib", src="lib")
         self.copy("*.a", dst="lib", src="lib")
 

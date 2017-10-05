@@ -15,6 +15,7 @@
 #include "router.h"
 #include "luna/private/router_impl.h"
 #include "luna/config.h"
+#include <mutex>
 
 namespace luna
 {
@@ -30,10 +31,12 @@ router::router(std::string route_base) : impl_{}
 }
 
 router::router(const router &r) : impl_{r.impl_}
-{}
+{
+}
 
 router::router(router &&r) : impl_{r.impl_}
-{}
+{
+}
 
 
 void router::handle_request(request_method method,
@@ -75,6 +78,26 @@ void router::serve_files(std::string mount_point, std::string path_to_files)
 
         return response::from_file(path);
     });
+}
+
+void router::add_header(std::string &&key, std::string &&value)
+{
+    impl_->headers_[key] = std::move(value);
+}
+
+
+// Helper function to tack on headers
+luna::response make_response_(luna::response &&response, luna::headers &headers_)
+{
+    for(const auto header : headers_)
+    {
+        // don't override anything already here
+        if(response.headers.count(header.first) == 0)
+        {
+            response.headers[header.first] = header.second;
+        }
+    }
+    return response;
 }
 
 std::experimental::optional<luna::response> router::process_request(request &request)
@@ -136,7 +159,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
                                     "Request handler for \"" + path + " is missing required parameter \"" +
                                     validator.key};
                             error_log(luna::log_level::ERROR, error);
-                            response = luna::response{400, "text/plain", error};
+                            response = make_response_({400, "text/plain", error}, impl_->headers_);
                             valid_params = false;
                             break; //stop examining params
                         }
@@ -147,7 +170,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
                                 "Request handler for \"" + path + " is missing required parameter \"" +
                                 validator.key};
                         error_log(luna::log_level::ERROR, error);
-                        response = luna::response{400, "text/plain", error};
+                        response = make_response_({400, "text/plain", error}, impl_->headers_);
                         valid_params = false;
                         break; //stop examining params
                     }
@@ -156,7 +179,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
                 if (valid_params)
                 {
                     //made it this far! try the callback
-                    response = callback(request);
+                    response = make_response_(callback(request), impl_->headers_);
                 }
             }
 
@@ -164,14 +187,14 @@ std::experimental::optional<luna::response> router::process_request(request &req
             catch (const std::exception &e)
             {
                 error_log(luna::log_level::ERROR, std::string{"Request handler for \"" + path + "\" threw an exception: "} + e.what());
-                response = luna::response{500, "text/plain", "Internal error"};
+                response = make_response_({500, "text/plain", "Internal error"}, impl_->headers_);
                 //TODO render the stack trace, etc.
             }
             catch (...)
             {
                 error_log(luna::log_level::ERROR, "Unknown internal error");
                 //TODO use the same error message as above, and just log things differently and test for that.
-                response = luna::response{500, "text/plain", "Unknown internal error"};
+                response = make_response_({500, "text/plain", "Unknown internal error"}, impl_->headers_);
                 //TODO render the stack trace, etc.
             }
 

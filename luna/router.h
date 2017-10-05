@@ -46,6 +46,7 @@ public:
 
     void serve_files(std::string mount_point, std::string path_to_files);
 
+    void add_header(std::string &&key, std::string &&value);
 
     // for use by the Server object
     std::experimental::optional<luna::response> process_request(request &request);
