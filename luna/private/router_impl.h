@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include <tuple>
+#include <mutex>
 
 namespace luna
 {
