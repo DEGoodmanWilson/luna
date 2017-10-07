@@ -18,7 +18,7 @@ title: *product_name
 version: 4.0.0
 email: degoodmanwilson@gmail.com
 description: >
-  A web framework in modern C++
+  A static webserver and API framework in modern C++
 # Build settings
 markdown: kramdown
 gems:
