@@ -76,7 +76,6 @@ std::mutex response_renderer::fd_mutex_;
 
 
 response_renderer::response_renderer() :
-        default_mime_type_{"text/html; charset=UTF-8"},
         server_identifier_{std::string{LUNA_NAME} + "/" + LUNA_VERSION},
         use_fd_cache_{false},
         cache_keep_alive_{std::chrono::minutes{30}}
@@ -105,12 +104,6 @@ response_renderer::render(const request &request, response &response)
     {
         // if we got an error, we need to fill it out with some content, etc.
 //        finish_rendering_error_response_(request, response);
-
-        // add mime type if needed
-        if (response.content_type.empty()) //no content type assigned, use the default
-        {
-            response.content_type = default_mime_type_;
-        }
 
         // Now, create the MHD_Response object
         // TODO it would be nice if we could cache this!
@@ -276,11 +269,6 @@ void response_renderer::set_option(const server::server_identifier &value)
 void response_renderer::set_option(const server::append_to_server_identifier &value)
 {
     server_identifier_ += " " + value;
-}
-
-void response_renderer::set_option(const server::mime_type &mime_type)
-{
-    default_mime_type_ = mime_type;
 }
 
 void response_renderer::set_option(server::enable_internal_file_cache value)

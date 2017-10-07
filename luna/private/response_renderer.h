@@ -54,14 +54,12 @@ public:
     // option setters
     void set_option(const server::server_identifier &value);
     void set_option(const server::append_to_server_identifier &value); //TODO I am not fond of having this here.
-    void set_option(const server::mime_type &mime_type);
     void set_option(server::enable_internal_file_cache value);
     void set_option(server::internal_file_cache_keep_alive value);
 
 private:
     std::shared_ptr<cacheable_response> from_file_(const luna::request &request, luna::response &response);
 
-    std::string default_mime_type_;
     std::string server_identifier_;
 
     // fd cache

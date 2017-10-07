@@ -26,7 +26,8 @@ using namespace std::chrono_literals;
 
 TEST(server_options, set_mime_type)
 {
-    luna::router router;
+    luna::router router{luna::router::mime_type{"howdyho"}};
+
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -34,7 +35,7 @@ TEST(server_options, set_mime_type)
                               return {"hello"};
                           });
 
-    luna::server server{luna::server::mime_type{"howdyho"}};
+    luna::server server{};
     server.add_router(router);
     server.start_async();
 
@@ -43,10 +44,6 @@ TEST(server_options, set_mime_type)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
     ASSERT_EQ("howdyho", res.header["Content-Type"]);
-
-    //reset the default mime type
-    // TODO find a better way to do this…
-    luna::server s2{luna::server::mime_type{"text/html; charset=UTF-8"}};
 }
 
 TEST(server_options, set_accept_policy_cb)

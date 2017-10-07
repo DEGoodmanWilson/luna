@@ -25,8 +25,26 @@ namespace luna
 class router
 {
 public:
+    MAKE_STRING_LIKE(mime_type);
 
-    router(std::string route_base = "");
+    router(std::string route_base = "")
+    {
+        initialize_(route_base);
+    }
+
+    template<typename ...Os>
+    router(Os &&...os)
+    {
+        initialize_("");
+        set_options_(LUNA_FWD(os)...);
+    }
+
+    template<typename ...Os>
+    router(std::string route_base, Os &&...os)
+    {
+        initialize_(route_base);
+        set_options_(LUNA_FWD(os)...);
+    }
 
     router(const router &r);
 
@@ -51,9 +69,27 @@ public:
     // for use by the Server object
     std::experimental::optional<luna::response> process_request(request &request);
 
+    // options setters
+    template<typename T>
+    void set_options_(T &&t)
+    {
+        set_option_(LUNA_FWD(t));
+    }
+
+    template<typename T, typename... Ts>
+    void set_options_(T &&t, Ts &&... ts)
+    {
+        set_options_(LUNA_FWD(t));
+        set_options_(LUNA_FWD(ts)...);
+    }
+
+    void set_option_(mime_type mime_type);
+
 private:
     class router_impl;
     std::shared_ptr<router_impl> impl_;
+
+    void initialize_(std::string route_base);
 };
 
 

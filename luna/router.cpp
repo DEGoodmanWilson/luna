@@ -20,7 +20,7 @@
 namespace luna
 {
 
-router::router(std::string route_base) : impl_{}
+void router::initialize_(std::string route_base)
 {
     //remove trailing slashes
     if (route_base.back() == '/')
@@ -180,6 +180,12 @@ std::experimental::optional<luna::response> router::process_request(request &req
                 {
                     //made it this far! try the callback
                     response = make_response_(callback(request), impl_->headers_);
+
+                    // add mime type if needed
+                    if (response->content_type.empty()) //no content type assigned, use the default
+                    {
+                        response->content_type = impl_->mime_type_;
+                    }
                 }
             }
 
@@ -203,6 +209,11 @@ std::experimental::optional<luna::response> router::process_request(request &req
     }
 
     return response;
+}
+
+void router::set_option_(mime_type mime_type)
+{
+    impl_->mime_type_ = std::move(mime_type);
 }
 
 } //namespace luna

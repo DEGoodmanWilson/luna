@@ -237,11 +237,6 @@ void server::set_option_(use_epoll_if_available value)
     }
 }
 
-void server::set_option_(mime_type mime_type)
-{
-    impl_->response_renderer_.set_option(mime_type);
-}
-
 void server::set_option_(accept_policy_cb value)
 {
     impl_->accept_policy_callback_ = value;

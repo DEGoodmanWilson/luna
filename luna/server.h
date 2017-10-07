@@ -38,8 +38,6 @@ public:
 
     MAKE_BOOL_LIKE(use_epoll_if_available);
 
-    MAKE_STRING_LIKE(mime_type);
-
     using accept_policy_cb = std::function<bool(const struct sockaddr *add, socklen_t len)>;
 
 
@@ -156,8 +154,6 @@ private:
     void set_option_(use_thread_per_connection value);
 
     void set_option_(use_epoll_if_available value);
-
-    void set_option_(mime_type mime_type);
 
     void set_option_(accept_policy_cb handler);
 

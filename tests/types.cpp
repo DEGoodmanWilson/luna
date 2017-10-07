@@ -18,7 +18,7 @@
 
 TEST(types, test_mime_type)
 {
-    luna::server::mime_type l{"hello"};
+    luna::router::mime_type l{"hello"};
     ASSERT_EQ("hello", l);
 }
 
