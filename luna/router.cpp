@@ -181,8 +181,8 @@ std::experimental::optional<luna::response> router::process_request(request &req
                     //made it this far! try the callback
                     response = make_response_(callback(request), impl_->headers_);
 
-                    // add mime type if needed
-                    if (response->content_type.empty()) //no content type assigned, use the default
+                    // add mime type if needed. Don't add a mimetype for file responses
+                    if (response->file.empty() && response->content_type.empty()) //no content type assigned, use the default
                     {
                         response->content_type = impl_->mime_type_;
                     }

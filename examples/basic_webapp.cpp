@@ -130,7 +130,7 @@ int main(void)
     // Let's out this on a different router, just to show how that works too
 
     luna::router file_router{"/static"}; //serve everything relative to the path "/static"
-    file_router.add_global_header("static-files", "hell yes"); //add a header to all responses from this router.
+    file_router.add_header("static-files", "hell yes"); //add a header to all responses from this router.
     file_router.serve_files("/", "../tests/public");
 
 
