@@ -29,7 +29,7 @@ TEST(put, default_404)
 
 TEST(put, default_200)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response
@@ -48,7 +48,7 @@ TEST(put, default_200)
 
 TEST(put, default_200_check_params)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response

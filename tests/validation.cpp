@@ -71,7 +71,7 @@ TEST(validation, basic_validation_pass)
             {"key", luna::parameter::optional, luna::parameter::validate(luna::parameter::match, "value")},
     };
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -97,7 +97,7 @@ TEST(validation, basic_validation_pass_with_lvalues)
 
     std::string endpoint{"/test"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           endpoint,
                           [](auto req) -> luna::response
@@ -117,7 +117,7 @@ TEST(validation, basic_validation_pass_with_lvalues)
 
 TEST(validation, basic_validation_fail)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -140,7 +140,7 @@ TEST(validation, basic_validation_fail)
 
 TEST(validation, required_validation_pass)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -165,7 +165,7 @@ TEST(validation, required_validation_pass_lvalue_1)
 {
     const std::regex host_path{"/test"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           host_path,
                           [](auto req) -> luna::response
@@ -193,7 +193,7 @@ TEST(validation, required_validation_pass_lvalue_2)
             {"key", luna::parameter::required}
     };
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           host_path,
                           [](auto req) -> luna::response
@@ -214,7 +214,7 @@ TEST(validation, required_validation_pass_lvalue_2)
 
 TEST(validation, required_validation_fail)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -237,7 +237,7 @@ TEST(validation, required_validation_fail)
 
 TEST(validation, custom_validation_pass)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -265,7 +265,7 @@ TEST(validation, custom_validation_pass)
 
 TEST(validation, custom_validation_fail)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response

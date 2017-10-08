@@ -53,7 +53,7 @@ TEST(basic_functioning, default_404)
 
 TEST(basic_functioning, default_200_with_get)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -69,9 +69,27 @@ TEST(basic_functioning, default_200_with_get)
     ASSERT_EQ("hello", res.text);
 }
 
+TEST(basic_functioning, default_200_with_get_complex_path)
+{
+    luna::router router{"/first"};
+    router.handle_request(luna::request_method::GET,
+                          "/second",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/first/second"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
 TEST(basic_functioning, default_200_with_get_check_params)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -90,7 +108,7 @@ TEST(basic_functioning, default_200_with_get_check_params)
 
 TEST(basic_functioning, default_201_with_post)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
@@ -108,7 +126,7 @@ TEST(basic_functioning, default_201_with_post)
 
 TEST(basic_functioning, default_201_with_post_check_params)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
@@ -128,7 +146,7 @@ TEST(basic_functioning, default_201_with_post_check_params)
 
 TEST(basic_functioning, default_201_with_post_json_in_body)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
         {
             EXPECT_EQ("{\"key\": \"value\"}", req.body);

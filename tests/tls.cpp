@@ -103,7 +103,7 @@ inEd1GNE/Xh+75LqCFaFjZeY0Pd7RXQ2qYvTe3eG/3cpnTUJoC0aN7K3AU9XqK0L
 
 TEST(tls, set_up_https)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response

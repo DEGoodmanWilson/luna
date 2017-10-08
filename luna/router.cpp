@@ -20,14 +20,14 @@
 namespace luna
 {
 
-void router::initialize_(std::string route_base)
+router::router(std::string route_base, mime_type mime_type)
 {
     //remove trailing slashes
     if (route_base.back() == '/')
     {
         route_base.pop_back();
     }
-    impl_ = std::make_shared<router_impl>(route_base);
+    impl_ = std::make_shared<router_impl>(route_base, mime_type);
 }
 
 void router::handle_request(request_method method,
@@ -101,7 +101,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
     // first lets validate that the path begins with our base_route_, and if it does, strip it from the request to simplify the logic below
     if (!std::regex_search(request.path, std::regex{"^" + impl_->route_base_}))
     {
-        return {};
+        return std::experimental::nullopt;
     }
 
     //strip the base_path_ off the reqest
@@ -200,11 +200,6 @@ std::experimental::optional<luna::response> router::process_request(request &req
     }
 
     return response;
-}
-
-void router::set_option_(mime_type mime_type)
-{
-    impl_->mime_type_ = std::move(mime_type);
 }
 
 } //namespace luna

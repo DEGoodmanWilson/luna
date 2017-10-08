@@ -24,7 +24,7 @@ TEST(crashers, 1_logging)
                                std::cout << mesg << std::endl;
                            });
 
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
@@ -45,7 +45,7 @@ TEST(crashers, 1_logging)
 TEST(crashers, 2_query_params_with_no_values)
 {
 
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
@@ -70,7 +70,7 @@ TEST(crashers, 2_query_params_with_no_values)
 
 TEST(crashers, 2_query_params_with_no_values_post)
 {
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::POST, "/hello", [](auto req) -> luna::response
     {

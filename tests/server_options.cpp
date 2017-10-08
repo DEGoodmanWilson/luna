@@ -48,7 +48,7 @@ TEST(server_options, set_mime_type)
 
 TEST(server_options, set_accept_policy_cb)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
@@ -76,7 +76,7 @@ TEST(server_options, set_accept_policy_cb)
 
 TEST(server_options, set_unescaper_cb)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -107,7 +107,7 @@ TEST(server_options, set_thread_pool_size)
     std::mutex mutex;
     const int thread_pool_size{5};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
@@ -149,7 +149,7 @@ TEST(server_options, use_thread_per_connection)
     std::map<std::thread::id, uint16_t> thread_counter;
     std::mutex mutex;
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
@@ -192,7 +192,7 @@ TEST(server_options, set_connection_limit)
     uint8_t max_count = 0;
     std::mutex mutex;
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [&count, &max_count, &mutex](auto req) -> luna::response

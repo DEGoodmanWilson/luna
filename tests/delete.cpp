@@ -28,7 +28,7 @@ TEST(delete, default_404)
 
 TEST(delete, default_200)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::DELETE,
                           "/test",
                           [](auto req) -> luna::response

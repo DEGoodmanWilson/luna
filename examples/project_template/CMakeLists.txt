@@ -24,6 +24,8 @@ include(conanbuildinfo.cmake)
 CONAN_BASIC_SETUP()
 
 set(SOURCE_FILES
+        logger.h
+        logger.cpp
         main.cpp
 )
 

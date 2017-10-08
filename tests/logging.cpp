@@ -88,7 +88,7 @@ TEST(access_logging, integration_test)
                                error_log_str = message;
                            });
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response

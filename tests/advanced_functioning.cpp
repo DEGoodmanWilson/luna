@@ -19,7 +19,7 @@
 
 TEST(advanced_functioning, get_basic_regexes)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
                           [](auto req) -> luna::response
@@ -39,7 +39,7 @@ TEST(advanced_functioning, get_basic_regexes)
 
 TEST(advanced_functioning, post_basic_regexes)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::POST,
                           "/([a-zA-Z0-9]*)",
                           [](auto req) -> luna::response
@@ -61,7 +61,7 @@ TEST(advanced_functioning, post_basic_regexes)
 TEST(advanced_functioning, putting_it_together)
 {
     std::set<std::string> docs;
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
@@ -97,7 +97,7 @@ TEST(advanced_functioning, putting_it_together)
 
 TEST(advanced_functioning, permanent_redirect)
 {
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::GET, "/redirect",
                           [](auto req) -> luna::response
@@ -122,7 +122,7 @@ TEST(advanced_functioning, permanent_redirect)
 
 TEST(advanced_functioning, temporary_redirect)
 {
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::GET, "/redirect",
                           [](auto req) -> luna::response
@@ -148,7 +148,7 @@ TEST(advanced_functioning, temporary_redirect)
 TEST(advanced_functioning, get_and_post)
 {
     // POST params prevent GET params from being parsed. Weirdly. They just go away.
-    luna::router router;
+    luna::router router{"/"};
 
     router.handle_request(luna::request_method::POST,
                           "/test",
@@ -181,7 +181,7 @@ TEST(advanced_functioning, default_server_errors_404)
 
 TEST(advanced_functioning, default_server_errors_500)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -200,7 +200,7 @@ TEST(advanced_functioning, default_server_errors_500)
 
 TEST(advanced_functioning, actual_server_errors)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -220,7 +220,7 @@ TEST(advanced_functioning, actual_server_errors)
 
 TEST(advanced_functioning, actual_server_errors2)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -242,7 +242,7 @@ TEST(advanced_functioning, actual_server_errors2)
 
 TEST(advanced_functioning, check_arbitrary_headers)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("foo"));
@@ -261,7 +261,7 @@ TEST(advanced_functioning, check_arbitrary_headers)
 
 TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET, "/test", [](const luna::request &req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("heLLo"));
@@ -285,7 +285,7 @@ TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
 
 TEST(advanced_functioning, response_headers)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("foo"));
@@ -305,7 +305,7 @@ TEST(advanced_functioning, response_headers)
 //TODO NOTICE that this test behaves differently on Linux and non-Linux
 TEST(advanced_functioning, use_epoll)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -366,7 +366,7 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
 
 TEST(advanced_functioning, non_null_server_string_version)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -387,7 +387,7 @@ TEST(advanced_functioning, non_null_server_string_version)
 
 TEST(advanced_functioning, default_server_string)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -409,7 +409,7 @@ TEST(advanced_functioning, default_server_string)
 
 TEST(advanced_functioning, custom_server_string)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -428,7 +428,7 @@ TEST(advanced_functioning, custom_server_string)
 
 TEST(advanced_functioning, append_server_string)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -453,7 +453,7 @@ TEST(advanced_functioning, append_server_string)
 TEST(file_service, check_paths_1)
 {
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/.*",
                           [](auto req) -> luna::response
@@ -485,7 +485,7 @@ TEST(file_service, check_paths_1)
 TEST(file_service, check_paths_2)
 {
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/second",
                           [](auto req) -> luna::response
@@ -518,7 +518,7 @@ TEST(file_service, check_paths_2)
 TEST(file_service, check_paths_4)
 {
 
-    luna::router router;
+    luna::router router{"/"};
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     router.serve_files("/", path + "/tests/public");
@@ -548,7 +548,7 @@ TEST(file_service, check_paths_3)
 {
 
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/first",
                           [](auto req) -> luna::response

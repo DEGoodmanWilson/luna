@@ -28,7 +28,7 @@ TEST(options, default_404)
 
 TEST(options, default_200)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::OPTIONS,
                           "/test",
                           [](auto req) -> luna::response

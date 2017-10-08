@@ -1,5 +1,5 @@
 [requires]
-luna/4.0.0@DEGoodmanWilson/experimental
+luna/4.0.0@DEGoodmanWilson/testing
 nl-json/2.1.1@genvidtech/1.4.0
 
 # for testing

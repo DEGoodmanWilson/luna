@@ -74,7 +74,7 @@ TEST(basic_auth, work_with_auth)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
@@ -100,7 +100,7 @@ TEST(basic_auth, fail_with_401_no_auth_header)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
@@ -128,7 +128,7 @@ TEST(basic_auth, fail_with_401_baduser)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
@@ -156,7 +156,7 @@ TEST(basic_auth, fail_with_401_badpass)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response

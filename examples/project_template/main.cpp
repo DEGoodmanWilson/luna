@@ -3,11 +3,13 @@
 #include <json.hpp>
 #include "logger.h"
 
+using namespace luna;
+
 int main()
 {
     // set up the loggers
-    luna::set_access_logger(access_logger);
-    luna::set_error_logger(error_logger);
+    set_access_logger(access_logger);
+    set_error_logger(error_logger);
 
     // determine which port to run on, default to 8080
     auto port = 8080;
@@ -19,12 +21,12 @@ int main()
         }
         catch (const std::invalid_argument &e)
         {
-            error_logger(luna::log_level::FATAL, "Invalid port specified in env $PORT.");
+            error_logger(log_level::FATAL, "Invalid port specified in env $PORT.");
             return 1;
         }
         catch (const std::out_of_range &e)
         {
-            error_logger(luna::log_level::FATAL, "Port specified in env $PORT is too large.");
+            error_logger(log_level::FATAL, "Port specified in env $PORT is too large.");
             return 1;
         }
     }
@@ -32,7 +34,7 @@ int main()
     // add endpoints
 
     // API example, served from /api
-    luna::router api{"/api"};
+    router api{"/api"};
     api.handle_request(request_method::GET, "/endpoint",
                        [](auto request) -> response
                        {
@@ -40,14 +42,14 @@ int main()
                        });
 
     // File serving example; serve files from the assets folder on /
-    luna::router static_assets{"/"};
+    router static_assets{"/"};
     static_assets.serve_files("/", "assets");
 
 
     // create a server
-    luna::server server;
+    server server;
     server.add_router(api);
-    server.add_router(static_assets);
+//    server.add_router(static_assets);
 
     server.start(port);
 

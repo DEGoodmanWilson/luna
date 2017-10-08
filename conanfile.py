@@ -30,6 +30,7 @@ class LunaConan(ConanFile):
     requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmagic/5.29@DEGoodmanWilson/testing", "base64/1.0.2@DEGoodmanWilson/stable"
     generators = "cmake"
     exports = ["*"]
+    description = "A web application and API framework in modern C++"
 
     def configure(self):
         if self.options.build_luna_coverage:
@@ -40,11 +41,11 @@ class LunaConan(ConanFile):
             self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
             self.requires.add("gtest/1.7.0@lasote/stable", private=False)
             self.options["gtest"].shared = False
-        else:
-            if "gtest" in self.requires:
-                del self.requires["gtest"]
-            if "cpr" in self.requires:
-                del self.requires["cpr"]
+
+        if self.options.build_luna_examples:
+            self.requires.add("nl-json/2.1.1@genvidtech/1.4.0", private=False)
+            self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
+            self.requires.add("Catch/1.9.3@uilianries/stable", private=False)
 
     def build(self):
         cmake = CMake(self.settings)

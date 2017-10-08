@@ -25,7 +25,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
 {
     luna::server server{luna::server::enable_internal_file_cache{true}};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router;
+    luna::router router{"/"};
     router.serve_files("/", path + "/tests/public");
 
     server.add_router(router);
@@ -63,7 +63,7 @@ TEST(fd_cacheing, test_cache_timeout)
                         luna::server::internal_file_cache_keep_alive{std::chrono::milliseconds{100}}};
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router;
+    luna::router router{"/"};
     router.serve_files("/", path + "/tests/public");
 
     server.add_router(router);

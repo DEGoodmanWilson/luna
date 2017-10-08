@@ -19,7 +19,7 @@
 
 TEST(headers, add_header)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -40,7 +40,7 @@ TEST(headers, add_header)
 
 TEST(headers, add_header_override)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -63,7 +63,7 @@ TEST(headers, add_header_override)
 
 TEST(headers, add_header_500)
 {
-    luna::router router;
+    luna::router router{"/"};
     router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
