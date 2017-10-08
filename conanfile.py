@@ -8,7 +8,7 @@
 #                    )
 #
 #  Luna
-#  a web framework in modern C++
+#  A web application and API framework in modern C++
 #
 #  Copyright © 2016-2017 D.E. Goodman-Wilson
 #
