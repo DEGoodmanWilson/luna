@@ -7,7 +7,7 @@
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -27,15 +27,14 @@ class router
 public:
     MAKE_STRING_LIKE(mime_type);
 
-    router(const router &r);
-
-    router(router &&r);
-
-
     router(std::string route_base = "")
     {
         initialize_(route_base);
     }
+
+    router(const router &r) : impl_{r.impl_} {}
+
+    router(router &&r) : impl_{std::move(r.impl_)} {}
 
     template<typename ...Os>
     router(Os &&...os)

@@ -7,7 +7,7 @@
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -29,15 +29,6 @@ void router::initialize_(std::string route_base)
     }
     impl_ = std::make_shared<router_impl>(route_base);
 }
-
-router::router(const router &r) : impl_{r.impl_}
-{
-}
-
-router::router(router &&r) : impl_{r.impl_}
-{
-}
-
 
 void router::handle_request(request_method method,
                             std::regex route,
