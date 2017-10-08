@@ -22,7 +22,7 @@ target_link_libraries(intro_1 luna)
 
 # Other examples
 
-set(BASIC_WEBAPP_SOURCE_FILES basic_webapp.cpp)
+set(BASIC_WEBAPP_SOURCE_FILES basic_webapp.cpp project_template/main.cpp project_template/logger.cpp project_template/logger.h)
 add_executable(basic_webapp ${BASIC_WEBAPP_SOURCE_FILES})
 target_link_libraries(basic_webapp luna)
 

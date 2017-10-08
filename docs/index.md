@@ -13,6 +13,10 @@ A static webserver and API framework in modern C++, Luna is designed to serve lo
 
 Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_.
 
+## Why in god's name should I use _Luna_?
+
+An excellent question. The first and most obvious answer is because C++ is _fast_.
+
 ## Use cases
 
 * You have a static website or single-page app that needs serving, and needs a robust, responsive API to back it. C++ is your friend, my friend.
@@ -35,7 +39,7 @@ Adding endpoints to your server is likewise meant to be simple. Nominate an endp
 
 ## Example code
 
-But don't take my word for it. Here is some code for serving a simple JSON snippet from a single endpoint.
+But don't take my word for it. Here is some code for serving a simple JSON snippet from a single endpoint. You can find and run this example in `examples/intro_1.cpp`
 
 ```
 #include <string>

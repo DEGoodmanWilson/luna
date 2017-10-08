@@ -132,6 +132,7 @@ private:
         void operator()(server_impl *) const;
     };
 
+    // using a unique pointer here means we can't have multiple copies of a server
     std::unique_ptr<server_impl, server_impl_deleter> impl_;
 
     void initialize_();

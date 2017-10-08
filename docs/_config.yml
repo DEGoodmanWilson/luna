@@ -3,11 +3,11 @@
 #   ___/_)
 #  (, /      ,_   _
 #    /   (_(_/ (_(_(_
-#   (_____
-#         )
+#  CX________________
+#                    )
 #
 #  Luna
-#  a web framework in modern C++
+#  A web application and API framework in modern C++
 #
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
@@ -18,7 +18,7 @@ title: *product_name
 version: 4.0.0
 email: degoodmanwilson@gmail.com
 description: >
-  A static webserver and API framework in modern C++
+  A web application and API framework in modern C++
 # Build settings
 markdown: kramdown
 gems:

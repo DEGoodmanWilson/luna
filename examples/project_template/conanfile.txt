@@ -1,0 +1,10 @@
+[requires]
+luna/4.0.0@DEGoodmanWilson/experimental
+nl-json/2.1.1@genvidtech/1.4.0
+
+# for testing
+cpr/1.2.0@DEGoodmanWilson/stable
+Catch/1.9.3@uilianries/stable
+
+[generators]
+cmake
