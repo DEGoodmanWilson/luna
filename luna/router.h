@@ -22,6 +22,9 @@
 namespace luna
 {
 
+// Forward declaration for friendship
+class server;
+
 class router
 {
 public:
@@ -32,6 +35,7 @@ public:
         initialize_(route_base);
     }
 
+    // making the copy and move constructors template specializations really chaps my hide. But for older compilers I have to do this.
     template<typename ...Os>
     router(const router &r) : impl_{r.impl_} {}
 
@@ -68,8 +72,16 @@ public:
 
     void add_header(std::string &&key, std::string &&value);
 
+protected:
     // for use by the Server object
+    friend ::luna::server;
     std::experimental::optional<luna::response> process_request(request &request);
+
+private:
+    class router_impl;
+    std::shared_ptr<router_impl> impl_;
+
+    void initialize_(std::string route_base);
 
     // options setters
     template<typename T>
@@ -86,12 +98,6 @@ public:
     }
 
     void set_option_(mime_type mime_type);
-
-private:
-    class router_impl;
-    std::shared_ptr<router_impl> impl_;
-
-    void initialize_(std::string route_base);
 };
 
 
