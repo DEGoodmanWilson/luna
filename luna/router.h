@@ -32,8 +32,10 @@ public:
         initialize_(route_base);
     }
 
+    template<typename ...Os>
     router(const router &r) : impl_{r.impl_} {}
 
+    template<typename ...Os>
     router(router &&r) : impl_{std::move(r.impl_)} {}
 
     template<typename ...Os>
