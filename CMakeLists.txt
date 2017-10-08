@@ -104,6 +104,6 @@ set(LIB_LUNA_SOURCE_FILES
         luna/router.h
         luna/optional.hpp
         luna/private/router_impl.cpp
-        luna/private/router_impl.h)
+        luna/private/router_impl.h examples/project_template/tests/main.cpp examples/project_template/tests/basic.cpp)
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 target_link_libraries(luna ${CONAN_LIBS})

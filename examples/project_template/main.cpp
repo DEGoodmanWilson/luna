@@ -49,7 +49,7 @@ int main()
     // create a server
     server server;
     server.add_router(api);
-//    server.add_router(static_assets);
+    server.add_router(static_assets);
 
     server.start(port);
 
