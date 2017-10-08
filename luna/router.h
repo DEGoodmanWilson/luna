@@ -27,6 +27,11 @@ class router
 public:
     MAKE_STRING_LIKE(mime_type);
 
+    router(const router &r);
+
+    router(router &&r);
+
+
     router(std::string route_base = "")
     {
         initialize_(route_base);
@@ -45,10 +50,6 @@ public:
         initialize_(route_base);
         set_options_(LUNA_FWD(os)...);
     }
-
-    router(const router &r);
-
-    router(router &&r);
 
     using endpoint_handler_cb = std::function<response(const request &req)>;
 
