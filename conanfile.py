@@ -41,11 +41,11 @@ class LunaConan(ConanFile):
             self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
             self.requires.add("gtest/1.7.0@lasote/stable", private=False)
             self.options["gtest"].shared = False
-
-        if self.options.build_luna_examples:
-            self.requires.add("nl-json/2.1.1@genvidtech/1.4.0", private=False)
-            self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
-            self.requires.add("Catch/1.9.3@uilianries/stable", private=False)
+        else:
+            if "gtest" in self.requires:
+                del self.requires["gtest"]
+            if "cpr" in self.requires:
+                del self.requires["cpr"]
 
     def build(self):
         cmake = CMake(self.settings)

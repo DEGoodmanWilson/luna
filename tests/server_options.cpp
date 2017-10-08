@@ -26,7 +26,8 @@ using namespace std::chrono_literals;
 
 TEST(server_options, set_mime_type)
 {
-    luna::router router{luna::router::mime_type{"howdyho"}};
+    luna::router router;
+    router.set_mime_type("howdyho");
 
     router.handle_request(luna::request_method::GET,
                           "/test",

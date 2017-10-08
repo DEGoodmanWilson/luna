@@ -27,9 +27,9 @@ namespace luna
 class router::router_impl
 {
 public:
-    router_impl(std::string route_base, std::string mime_type) :
+    router_impl(std::string route_base) :
             route_base_{std::move(route_base)},
-            mime_type_{std::move(mime_type)}
+            mime_type_{"text/html; charset=UTF-8"}
     {}
 
     std::string route_base_;

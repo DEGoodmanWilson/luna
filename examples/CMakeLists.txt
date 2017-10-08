@@ -29,5 +29,3 @@ target_link_libraries(basic_webapp luna)
 set(TLS_SOURCE_FILES TLS.cpp)
 add_executable(TLS ${TLS_SOURCE_FILES})
 target_link_libraries(TLS luna)
-
-add_subdirectory(project_template)

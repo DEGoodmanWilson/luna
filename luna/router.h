@@ -29,9 +29,9 @@ class server;
 class router
 {
 public:
-    MAKE_STRING_LIKE(mime_type);
+    router(std::string route_base = "/");
 
-    router(std::string route_base, mime_type mime_type="text/html; charset=UTF-8");
+    void set_mime_type(std::string mime_type);
 
     using endpoint_handler_cb = std::function<response (const request &req)>;
 

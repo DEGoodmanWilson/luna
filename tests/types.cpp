@@ -16,12 +16,6 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 
-TEST(types, test_mime_type)
-{
-    luna::router::mime_type l{"hello"};
-    ASSERT_EQ("hello", l);
-}
-
 TEST(types, test_connection_memory_limit)
 {
     luna::server::connection_memory_limit l{0};

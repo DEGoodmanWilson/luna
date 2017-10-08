@@ -20,14 +20,19 @@
 namespace luna
 {
 
-router::router(std::string route_base, mime_type mime_type)
+router::router(std::string route_base)
 {
     //remove trailing slashes
     if (route_base.back() == '/')
     {
         route_base.pop_back();
     }
-    impl_ = std::make_shared<router_impl>(route_base, mime_type);
+    impl_ = std::make_shared<router_impl>(route_base);
+}
+
+void router::set_mime_type(std::string mime_type)
+{
+    impl_->mime_type_ = mime_type;
 }
 
 void router::handle_request(request_method method,
