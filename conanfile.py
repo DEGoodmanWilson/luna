@@ -47,6 +47,13 @@ class LunaConan(ConanFile):
             if "cpr" in self.requires:
                 del self.requires["cpr"]
 
+        if self.options.build_luna_examples:
+            self.requires.add("nl-json/2.1.1@genvidtech/1.4.0", private=False)
+        else:
+            if "nl-json" in self.requires:
+                del self.requires["nl-json"]
+
+
     def build(self):
         cmake = CMake(self.settings)
         build_shared_libs = "-DBUILD_SHARED_LIBS=ON" if self.options.build_shared_libs else "-DBUILD_SHARED_LIBS=OFF"

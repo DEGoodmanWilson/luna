@@ -44,9 +44,9 @@ endmacro()
 message(STATUS "Luna CMake Options")
 message(STATUS "=======================================================")
 luna_option(BUILD_SHARED_LIBS   "Build the library as a dynamic object" OFF)
-luna_option(BUILD_LUNA_TESTS    "Build the test suite"                  ON)
+luna_option(BUILD_LUNA_TESTS    "Build the test suite"                  OFF)
 luna_option(BUILD_LUNA_COVERAGE "Generate test coverage information"    OFF)
-luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              ON)
+luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              OFF)
 message(STATUS "=======================================================")
 
 set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
@@ -104,6 +104,7 @@ set(LIB_LUNA_SOURCE_FILES
         luna/router.h
         luna/optional.hpp
         luna/private/router_impl.cpp
-        luna/private/router_impl.h examples/project_template/tests/main.cpp examples/project_template/tests/basic.cpp)
+        luna/private/router_impl.h
+        )
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 target_link_libraries(luna ${CONAN_LIBS})

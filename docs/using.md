@@ -44,79 +44,63 @@ brew upgrade conan
 
 ## Installing build tools on Linux
 
+You probably know better how to do this than I do. With your chosen package manager, make sure you have the following installed:
+
+* `gcc` >= 4.9 (6 is ideal) _or_ `clang` >= 3.6 (your pick. If you aren't sure, choose gcc)
+* `cmake` >= 2.8
+
+To install Conan, [follow the directions on the Conan site](https://www.conan.io/downloads).
+
+Try it out:
+
+```shell
+conan --version
+```
+
 # Building your first project
+
+OK, great you have the tools installed! Let's build the examples that come with Luna.
+
+I assume you've got a copy of this repo somewhere handy. Open a terminal window, and `cd` into the project root directory.
 
 ## Install dependencies
 
+First, let's install all of Luna's dependencies. The first time you do this, it will take a while. Maybe even a long while. But future runs will go much much faster.
+
+The first step is to add the remote host containing Luna to Conan. You'll only need to do this once, ever.
+ 
+```shell
+conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
+```
+
+Then install and build the dependencies like this.
+
+```shell
+conan install -o build_luna_examples=True --build=missing
+```
+
+Grab a book, or go to lunch 😉
+
+Rest assured that there are pre-built Docker images that you can use in the future to avoid this long step when it comes time to deploy. We'll come to that in the next section.
+
 ## Build the project
+
+Once conan has done its thing, we can use conan to also build the project. From the the project directory run:
+
+```shell
+conan build
+```
 
 ## Trying it out
 
-Luna is available from (and makes use of the) the [Conan](https://www.conan.io) dependency manager. And so should you. It's pretty good.
+When conan is done building your project, you'll find all kinds of goodies in the folder `bin`. Try running `bin/basic_webapp`:
 
-To incorporate Luna into your project using Conan, first execute the following command to add the luna repository to a place that Conan can find it:
-                                                         
-```
-$ conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
+```shell
+./bin/basic_webapp
 ```
 
-Then create a file called `conanfile.txt`, and add the following:
+Then visit (http://localhost:8443/static/test.html)[http://localhost:8443/static/test.html], and you should see some basic HTML in your browser.
 
+# Modifying the example
 
-```
-[requires]
-luna/{{ site.version }}@DEGoodmanWilson/stable
-```
-
-If you are using [more advanced Conan features](http://docs.conan.io/en/latest/conanfile_py.html), you can just add this to your `conanfile.py`
-
-```python
-class MyAwesomeProject(ConanFile)
-    requires = "luna/{{ site.version }}@DEGoodmanWilson/stable"
-    ...
-```
-
-At any rate, _from your build directory_, simply run
-
-```bash
-$ conan install --build=missing path/to/source
-```
-
-(The `--build=missing` is because at the moment Luna only offers source installs&emdash;we'll offer pre-built binaries before too long, just you see.)
-
-(You can read more about using Conan with your project [in the Conan docs](http://docs.conan.io/en/latest/))
-
-### Conan options
-
-You can fiddle with the following options for your build:
- 
-* `build_shared_libs` Build Luna as a dynamic/shared library. Default is to build as a static library. Building shared libraries is basically untested at the moment.
-
-The following options exist, but only really affect development of Luna
-
-* `build_luna_tests` Build the Luna test suite. Default is not to.
-* `build_luna_examples` Build the included Luna example projects. Default is not to.
-* `build_luna_coverage` Build the Luna coverage suite. Implies `build_luna_tests=True`. Default is not to.
-
-## CMake
-
-If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. You can specify the `cmake` generator in the `conanfile.txt` before running `conan install`:
-
-```
-[generators]
-cmake
-```
-
-Then add the following lines somewhere near the top of your `CMakeLists.txt`:
-
-```cmake
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-```
-
-Then you can run CMake as usual
-
-```bash
-cmake path/to/source
-cmake --build .
-```
+`basic_webapp` TODO

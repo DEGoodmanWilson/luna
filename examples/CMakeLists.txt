@@ -16,9 +16,9 @@ cmake_minimum_required(VERSION 2.8)
 
 # Examples from the documentation
 
-set(INTRO_1_SOURCE_FILES intro_1.cpp)
-add_executable(intro_1 ${INTRO_1_SOURCE_FILES})
-target_link_libraries(intro_1 luna)
+set(INTRO_SOURCE_FILES intro.cpp)
+add_executable(intro ${INTRO_SOURCE_FILES})
+target_link_libraries(intro luna)
 
 # Other examples
 
