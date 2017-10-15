@@ -7,7 +7,7 @@ title: Defining a simple API endpoint
 
 ## Serving static HTML to a simple endpoint
 
-(The code discussed here is available in `examples/example1.cpp`.)
+(The code discussed here is available in `examples/basic_webapp.cpp`.)
 
 Suppose we want to handle a request to `/hello_world` by responding with a simple HTML snippet:
     

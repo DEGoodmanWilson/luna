@@ -99,8 +99,6 @@ When conan is done building your project, you'll find all kinds of goodies in th
 ./bin/basic_webapp
 ```
 
-Then visit (http://localhost:8443/static/test.html)[http://localhost:8443/static/test.html], and you should see some basic HTML in your browser.
+Then visit [localhost:8443/parameters?foo=bar&baz=qux](localhost:8443/parameters?foo=bar&baz=qux), and you should see some basic HTML in your browser.
 
-# Modifying the example
-
-`basic_webapp` TODO
+In the next section, we'll look at how the code that drives this page works, so you can start to add your own functionality.

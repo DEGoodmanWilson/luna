@@ -150,6 +150,9 @@ int main(void)
     // Block until the server shuts down, which is never. We could also do other things with this thread as well.
     server.start(8443);
 
-    // If we didn't want to block, we could call start_async, which returns immediately.
+    // If we didn't want to block, we could call start_async, which returns immediately. We could then use this thread for other purposes.
     // server.start_async(8443);
+    // ...do other stuff!
+    // server.stop();
+    // server.await(); // wait for the server to shutdown
 }
