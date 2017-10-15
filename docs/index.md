@@ -39,10 +39,11 @@ Adding endpoints to your server is likewise meant to be simple. Nominate an endp
 
 ## Example code
 
-But don't take my word for it. Here is some code for serving a simple JSON snippet from a single endpoint. You can find and run this example in `examples/intro_1.cpp`
+But don't take my word for it. Here is some code for serving a simple JSON snippet from a single endpoint. You can find and run this example in `examples/intro.cpp`
 
 ```
 #include <string>
+#include <iostream>
 #include <luna/luna.h>
 
 using namespace luna;
@@ -50,21 +51,25 @@ using namespace luna;
 int main(void)
 {
     // set up an endpoint that serves some JSON on /endpoint
-    router api{router::mime_type{"application/json"}}, //the default is "text/html; charset=UTF-8"
-    
+    router api{"/"};
+
+    api.set_mime_type("application/json"); //the default is "text/html; charset=UTF-8"
+
     // Handle GET requests to "localhost:8080/endpoint"
     // Respond with a tiny bit of fun JSON
     api.handle_request(request_method::GET, "/endpoint",
-        [](auto request) -> response
-        {
-            return {"{\"made_it\": true}"};
-        });
+                       [](auto request) -> response
+                       {
+                           return {"{\"made_it\": true}"};
+                       });
 
     //start a server on port 8080;
     server server;
-    
+
     server.add_router(api);
-    
+
+    std::cout << "curl -v http://localhost:8080/endpoint" << std::endl;
+
     server.start(8080);
 }
 ```
