@@ -60,7 +60,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
 TEST(fd_cacheing, test_cache_timeout)
 {
     luna::server server{luna::server::enable_internal_file_cache{true},
-                        luna::server::internal_file_cache_keep_alive{std::chrono::milliseconds{100}}};
+                        luna::server::internal_file_cache_keep_alive{std::chrono::milliseconds{500}}};
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
     luna::router router{"/"};
@@ -89,7 +89,7 @@ TEST(fd_cacheing, test_cache_timeout)
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
     std::cout << "With cacheing:   " << cache_duration << std::endl;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds{110});
+    std::this_thread::sleep_for(std::chrono::milliseconds{510});
 
     {
         // cache should be invalidated now.
