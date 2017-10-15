@@ -7,7 +7,7 @@ title: Defining a simple API endpoint
 
 ## Serving static HTML to a simple endpoint
 
-(The code discussed here is available in `examples/basic_webapp.cpp`.)
+(The code discussed here is all based on code in `examples/basic_webapp.cpp`.)
 
 Suppose we want to handle a request to `/hello_world` by responding with a simple HTML snippet:
     
@@ -15,32 +15,36 @@ Suppose we want to handle a request to `/hello_world` by responding with a simpl
 
 Let's begin by writing a simple function to act as a request handler (nevermind what the request _is_).
     
+    #include <luna/luna.h>
+    
     using namespace luna;
     response hello_world(const request &req)
     {
         return {"<h1>Hello, World!</h1>"};
     }
 
-Don't worry about the parameters to the function for now, since we are returning the HTML snippet unconditionally. The important bit is the return statement, which constructs a new `luna::response` object. This object actually has three components to it: An HTTP status code, a MIME type, and a string that contains the response body itself. The status code defaults to the appropriate success code for the HTTP method (201 for POST, 200 for everything else). The MIME type defaults to `"text/html"`. So we need only provide the HTML itself.
+Don't worry about the parameters to the function for now, since we are returning the HTML snippet unconditionally. The important bit is the return statement, which constructs a new `luna::response` object. This object actually has four components to it: An HTTP status code, a MIME type, a set of response headers, and a string that contains the response body itself. For now we only care about the response body. The status code defaults to the appropriate success code for the HTTP method (201 for POST, 200 for everything else). The MIME type defaults to `"text/html"`. The headers are by default an empty set. So we need only provide the HTML itself.
 
-Now, let's create a `luna::server` to host this request handler, and attach the request handler to the server. We want our server to run on port 8443, and our request handler to trigger on a GET to `/hello_world`.
+Now, let's create a `luna::router` to route this request handler, and attach the request handler to the router. We want our server to run on port 8443, and our request handler to trigger on a GET to `/hello_world`.
 
     int main(void)
     {
-        server server{server::port{8443}};
-
-        server.handle_request(request_method::GET,
+        router router;
+        
+        router.handle_request(request_method::GET,
                               "/hello_world",
                               &hello_world);
 
-        server.await(); //run forever, basically, or until the server decides to kill itself.
+        server server;
+        server.add_router(router);
+        server.start(8443); //run forever, basically, or until the server decides to kill itself.
     }
 
-The first line simply instantiates an HTTP server object on port 8443. The final line just loops forever. It is the second line that is of interest. This line instructs our server to listen for GET requests on `/hello_world`, and to call our request handler when it hears such a request.
+The first line simply instantiates an `router` object, which contains the logic for deciding how to route an HTTP request. You can have as many of these as you need. The next line assigns our `hello_word` function to handle `GET` requests made to `/hello_world`.
+ 
+Following that, we have to instantiate a `server`, which handles incoming requests, and makes sure that responses go to the right place. We add our router to our server on the next line. The final line just instructs the server to bind to port 8443, and run forever. 
 
 ## Using query parameters
-
-(The code discussed here is available in `examples/example2.cpp`.)
 
 Of course, we could have loaded this HTML from a file, rather than specifying it with a string constant. Or we can generate it dynamically based on the HTTP query parameters. Indeed, let's modify our example to echo back the query parameters received.
 
