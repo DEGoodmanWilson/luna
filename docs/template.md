@@ -51,4 +51,4 @@ Now visit [http://localhost:8080](http://localhost:8080) to see the app in actio
 
 ----
 
-### < [Prev—TLS/HTTPS](tls.html)
+### < [Prev—Configuration reference](configuration.html)
