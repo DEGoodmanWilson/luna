@@ -1,8 +1,3 @@
----
-layout: default
-title: Using the project template
----
-
 # Using the project template
 
 Included with the Luna source code is a fully functional project template you can use to start your own Luna-built API. Look in `examples/project_template` for the code.
@@ -48,7 +43,3 @@ docker run -p 8080:80 awesomesauce
 ```
 
 Now visit [http://localhost:8080](http://localhost:8080) to see the app in action!
-
-----
-
-### < [Prev—TLS/HTTPS](tls.html)

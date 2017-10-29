@@ -15,13 +15,13 @@ Luna’s core philosophy is that it should be _easy to use correctly_ and _diffi
 
 ## Why in god's name should I use _Luna_?
 
-An excellent question. The first and most obvious answer is because C++ is _fast_.
+An excellent question. The first and most obvious answer is because C++ is _fast_. Also, compiled, statically-typed languages will catch many classes of errors before they make it into deployment, making your web applications and APIs more robust. Lastly, to be completely honest, C++ is _fun_. Or so I think anyway.
 
 ## Use cases
 
-* You have a static website or single-page app that needs serving, and needs a robust, responsive API to back it. C++ is your friend, my friend.
+* You have a static website or single-page app that needs a robust, responsive API to back it. C++ is your friend, my friend.
 
-* You are writing a web application, and you want it as close to the bare metal as possible to keep response latency to the absolute minimum. You're using modern C++ for  its memory safety, and you'd like a web framework that does the same.
+* You are writing a web application, and you want it as close to the bare metal as possible to keep response latency to the absolute minimum. You're using modern C++ for its memory safety, and you'd like a web framework that does the same.
 
 * You are writing a server or daemon in C++ (because C++ is _awesome_), and your services needs to provide a lightweight HTTP server to communicate with other web clients. You'd use `libmicrohttpd`, which is also super-awesome except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
 

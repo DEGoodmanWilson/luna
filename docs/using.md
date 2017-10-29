@@ -102,3 +102,7 @@ When conan is done building your project, you'll find all kinds of goodies in th
 Then visit [localhost:8443/parameters?foo=bar&baz=qux](localhost:8443/parameters?foo=bar&baz=qux), and you should see some basic HTML in your browser.
 
 In the next section, we'll look at how the code that drives this page works, so you can start to add your own functionality.
+
+----
+
+### < [Prev—Home](index.html) | [Next—Simple API endpoints](simple_api_endpoint.html) >
