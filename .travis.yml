@@ -1,13 +1,13 @@
 #
 #       _
-#   ___/__)
-#  (, /      __   _
+#   ___/_)
+#  (, /      ,_   _
 #    /   (_(_/ (_(_(_
-#   (________________
+#  CX________________
 #                    )
 #
 #  Luna
-#  a web framework in modern C++
+#  A web application and API framework in modern C++
 #
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
@@ -66,7 +66,7 @@ install:
   - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build > /dev/null; else conan install -o build_luna_tests=True --build > /dev/null; fi
 
 script:
-  - conan build
+  - conan build .
   - ./bin/luna_tests
 
 after_success:

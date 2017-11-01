@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -20,43 +20,77 @@
 TEST(basic_functioning, just_work)
 {
     luna::server server;
+    server.start_async();
     ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
     ASSERT_NE(0, static_cast<uint16_t>(server.get_port())); //assert that we have _some_ port, although none specified
 }
 
 TEST(basic_functioning, just_work_with_port)
 {
-    luna::server server{luna::server::port{8080}};
+    luna::server server;
+    server.start_async();
     ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
     ASSERT_EQ(8080, static_cast<uint16_t>(server.get_port()));
 
 }
 
+TEST(basic_functioning, just_work_with_specific_port)
+{
+    luna::server server;
+    server.start_async(8081);
+    ASSERT_TRUE(static_cast<bool>(server)); //assert that the server is running
+    ASSERT_EQ(8081, static_cast<uint16_t>(server.get_port()));
+
+}
+
 TEST(basic_functioning, default_404)
 {
-    luna::server server{luna::server::port{8080}};
+    luna::server server;
+    server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/"});
     ASSERT_EQ(404, res.status_code);
 }
 
 TEST(basic_functioning, default_200_with_get)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ("hello", res.text);
+}
+
+TEST(basic_functioning, default_200_with_get_complex_path)
+{
+    luna::router router{"/first"};
+    router.handle_request(luna::request_method::GET,
+                          "/second",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/first/second"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }
 
 TEST(basic_functioning, default_200_with_get_check_params)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -64,6 +98,9 @@ TEST(basic_functioning, default_200_with_get_check_params)
                                   EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -71,13 +108,16 @@ TEST(basic_functioning, default_200_with_get_check_params)
 
 TEST(basic_functioning, default_201_with_post)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::POST,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}});
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -86,8 +126,8 @@ TEST(basic_functioning, default_201_with_post)
 
 TEST(basic_functioning, default_201_with_post_check_params)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::POST,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -95,6 +135,9 @@ TEST(basic_functioning, default_201_with_post_check_params)
                                   EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}});
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -103,12 +146,15 @@ TEST(basic_functioning, default_201_with_post_check_params)
 
 TEST(basic_functioning, default_201_with_post_json_in_body)
 {
-    luna::server server{luna::server::port{8080}};
-    server.handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
         {
             EXPECT_EQ("{\"key\": \"value\"}", req.body);
             return {"hello"};
         });
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"{\"key\": \"value\"}"}, cpr::Header{{"Content-Type", "application/json"}});
     ASSERT_EQ(201, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -117,7 +163,6 @@ TEST(basic_functioning, default_201_with_post_json_in_body)
 TEST(basic_functioning, debug_logging)
 {
     bool got_log{false};
-
     luna::set_error_logger([&](luna::log_level level, const std::string &message)
                          {
                              const std::string m{"Failed to bind to port 8080: Address already in use\n"};
@@ -127,9 +172,10 @@ TEST(basic_functioning, debug_logging)
                              }
                          });
 
-    luna::server s1{};
-
+    luna::server s1;
+    s1.start_async();
     luna::server s2{luna::server::debug_output{true}};
+    s2.start_async();
 
     ASSERT_TRUE(got_log);
 
@@ -138,9 +184,9 @@ TEST(basic_functioning, debug_logging)
 
 TEST(basic_functioning, async_start)
 {
-    luna::server server{luna::server::start_on_construction{false}};
+    luna::server server;
     ASSERT_FALSE(static_cast<bool>(server));
-    server.start();
+    server.start_async();
     ASSERT_TRUE(static_cast<bool>(server));
     server.stop();
     ASSERT_FALSE(static_cast<bool>(server));

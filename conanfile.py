@@ -1,14 +1,14 @@
 # coding: utf-8
 #
 #       _
-#   ___/__)
-#  (, /      __   _
+#   ___/_)
+#  (, /      ,_   _
 #    /   (_(_/ (_(_(_
-#   (________________
+#  CX________________
 #                    )
 #
 #  Luna
-#  a web framework in modern C++
+#  A web application and API framework in modern C++
 #
 #  Copyright © 2016-2017 D.E. Goodman-Wilson
 #
@@ -18,7 +18,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "3.3.0"
+    version = "4.0.0"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
@@ -30,6 +30,7 @@ class LunaConan(ConanFile):
     requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmagic/5.29@DEGoodmanWilson/testing", "base64/1.0.2@DEGoodmanWilson/stable"
     generators = "cmake"
     exports = ["*"]
+    description = "A web application and API framework in modern C++"
 
     def configure(self):
         if self.options.build_luna_coverage:
@@ -46,6 +47,13 @@ class LunaConan(ConanFile):
             if "cpr" in self.requires:
                 del self.requires["cpr"]
 
+        if self.options.build_luna_examples:
+            self.requires.add("nl-json/2.1.1@genvidtech/1.4.0", private=False)
+        else:
+            if "nl-json" in self.requires:
+                del self.requires["nl-json"]
+
+
     def build(self):
         cmake = CMake(self.settings)
         build_shared_libs = "-DBUILD_SHARED_LIBS=ON" if self.options.build_shared_libs else "-DBUILD_SHARED_LIBS=OFF"
@@ -57,6 +65,7 @@ class LunaConan(ConanFile):
 
     def package(self):
         self.copy("*.h", dst="include/luna", src="luna")
+        self.copy("*.hpp", dst="include/luna", src="luna")
         self.copy("*.lib", dst="lib", src="lib")
         self.copy("*.a", dst="lib", src="lib")
 

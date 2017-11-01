@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -59,7 +59,9 @@ TEST(server_impl, method_str_to_enum)
 // check that await actually works, and that we can shut down a server.
 TEST(server_impl, await)
 {
-    luna::server server{luna::server::port{8080}};
+    luna::server server;
+
+    server.start_async();
 
     auto future = std::async(
             std::launch::async, [&server]() {
@@ -67,7 +69,10 @@ TEST(server_impl, await)
                 server.await();
                 EXPECT_FALSE(static_cast<bool>(server));
             });
+
     EXPECT_TRUE(future.wait_for(std::chrono::milliseconds(1000)) == std::future_status::timeout);
     server.stop();
     EXPECT_FALSE(future.wait_for(std::chrono::milliseconds(1000)) == std::future_status::timeout);
 }
+
+// TODO check that sync start works

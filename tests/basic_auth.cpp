@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -74,8 +74,8 @@ TEST(basic_auth, work_with_auth)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::server server{};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
                               {
@@ -87,6 +87,10 @@ TEST(basic_auth, work_with_auth)
                                   return {"hello"};
                               });
 
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Authentication{username, password});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -96,8 +100,8 @@ TEST(basic_auth, fail_with_401_no_auth_header)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::server server{};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
                               {
@@ -111,6 +115,10 @@ TEST(basic_auth, fail_with_401_no_auth_header)
                                   return {"hello"};
                               });
 
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(401, res.status_code);
     ASSERT_EQ("Basic realm=\"auth\"", res.header["WWW-Authenticate"]);
@@ -120,8 +128,8 @@ TEST(basic_auth, fail_with_401_baduser)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::server server{};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
                               {
@@ -134,6 +142,10 @@ TEST(basic_auth, fail_with_401_baduser)
 
                                   return {"hello"};
                               });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Authentication{"NOPE", password});
     ASSERT_EQ(401, res.status_code);
@@ -144,8 +156,8 @@ TEST(basic_auth, fail_with_401_badpass)
 {
     std::string username{"foo"}, password{"bar"};
 
-    luna::server server{};
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [=](auto req) -> luna::response
                               {
@@ -158,6 +170,10 @@ TEST(basic_auth, fail_with_401_badpass)
 
                                   return {"hello"};
                               });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Authentication{username, "NOPE"});
     ASSERT_EQ(401, res.status_code);

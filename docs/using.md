@@ -1,81 +1,108 @@
 ---
 layout: default
-title: Using Luna with your project
+title: Getting started with Luna
 ---
 
-# Using Luna with your project
+# Getting started with Luna
 
-Luna has been built and tested on macOS and Linux. (I'd like some help getting it working on Windows, if you have the time and inclination!)
+Let's build the example app `basic_webapp`, found in `examples/basic_webapp.cpp`. This is a simple example app that demonstrates many of Luna's features. We'll learn how to build the app, and add a new endpoint to it. All the code in that app is production ready, so feel free to borrow any of it for your own projects. We'll cover scaffolding your own project in the [next tutorial](scaffolding.html).
 
-Luna also depends upon the CMake build system, and the Conan dependency manager.
+Luna requires a few tools to build; if you're new to C++ you might not have some or all of them on your syste. First, of course, you need a C++ compiler. You'll also need the CMake build system, and the Conan dependency manager.
 
-## Installing dependencies with Conan
+## Installing build tools on Mac
 
-Luna is available from (and makes use of the) the [Conan](https://www.conan.io) dependency manager. And so should you. It's pretty good.
+Clang (a C++ compiler) and CMake are both bundled with Xcode. You don't need to install all of Xcode, we only need the command line tools. In the future, if you're looking for a powerful IDE, you can choose to install Xcode, although I personally recommend JetBrains CLion.
 
-To incorporate Luna into your project using Conan, first execute the following command to add the luna repository to a place that Conan can find it:
-                                                         
-```
-$ conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
-```
+Just run this command in your terminal to install the tools
 
-Then create a file called `conanfile.txt`, and add the following:
-
-
-```
-[requires]
-luna/{{ site.version }}@DEGoodmanWilson/stable
+```shell
+xcode-select --install
 ```
 
-If you are using [more advanced Conan features](http://docs.conan.io/en/latest/conanfile_py.html), you can just add this to your `conanfile.py`
+You can test it out by running this command:
 
-```python
-class MyAwesomeProject(ConanFile)
-    requires = "luna/{{ site.version }}@DEGoodmanWilson/stable"
-    ...
+```shell
+clang --version
 ```
 
-At any rate, _from your build directory_, simply run
+Conan is a relative newcomer to the C++ world. It works a lot like dependency managers you may have used before, like NPM, PyPI, or RubyGems. The best way to install Conan is with [homebrew](https://brew.sh).
 
-```bash
-$ conan install --build=missing path/to/source
+```shell
+brew install conan
 ```
 
-(The `--build=missing` is because at the moment Luna only offers source installs&emdash;we'll offer pre-built binaries before too long, just you see.)
+Easy peasy. Try it out:
 
-(You can read more about using Conan with your project [in the Conan docs](http://docs.conan.io/en/latest/))
+```shell
+conan --version
+```
 
-### Conan options
+Conan is update very frequently, and I strongly recommend you keep it up to date.
+```shell
+brew upgrade conan
+```
 
-You can fiddle with the following options for your build:
+## Installing build tools on Linux
+
+You probably know better how to do this than I do. With your chosen package manager, make sure you have the following installed:
+
+* `gcc` >= 4.9 (6 is ideal) _or_ `clang` >= 3.6 (your pick. If you aren't sure, choose gcc)
+* `cmake` >= 2.8
+
+To install Conan, [follow the directions on the Conan site](https://www.conan.io/downloads).
+
+Try it out:
+
+```shell
+conan --version
+```
+
+# Building your first project
+
+OK, great you have the tools installed! Let's build the examples that come with Luna.
+
+I assume you've got a copy of this repo somewhere handy. Open a terminal window, and `cd` into the project root directory.
+
+## Install dependencies
+
+First, let's install all of Luna's dependencies. The first time you do this, it will take a while. Maybe even a long while. But future runs will go much much faster.
+
+The first step is to add the remote host containing Luna to Conan. You'll only need to do this once, ever.
  
-* `build_shared_libs` Build Luna as a dynamic/shared library. Default is to build as a static library. Building shared libraries is basically untested at the moment.
-
-The following options exist, but only really affect development of Luna
-
-* `build_luna_tests` Build the Luna test suite. Default is not to.
-* `build_luna_examples` Build the included Luna example projects. Default is not to.
-* `build_luna_coverage` Build the Luna coverage suite. Implies `build_luna_tests=True`. Default is not to.
-
-## CMake
-
-If you've never used Conan before, it works with a wide range of project toolchains, but Conan works best with CMake. You can specify the `cmake` generator in the `conanfile.txt` before running `conan install`:
-
-```
-[generators]
-cmake
+```shell
+conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
 ```
 
-Then add the following lines somewhere near the top of your `CMakeLists.txt`:
+Then install and build the dependencies like this.
 
-```cmake
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+```shell
+conan install -o build_luna_examples=True --build=missing
 ```
 
-Then you can run CMake as usual
+Grab a book, or go to lunch 😉
 
-```bash
-cmake path/to/source
-cmake --build .
+Rest assured that there are pre-built Docker images that you can use in the future to avoid this long step when it comes time to deploy. We'll come to that in the next section.
+
+## Build the project
+
+Once conan has done its thing, we can use conan to also build the project. From the the project directory run:
+
+```shell
+conan build
 ```
+
+## Trying it out
+
+When conan is done building your project, you'll find all kinds of goodies in the folder `bin`. Try running `bin/basic_webapp`:
+
+```shell
+./bin/basic_webapp
+```
+
+Then visit [localhost:8443/parameters?foo=bar&baz=qux](localhost:8443/parameters?foo=bar&baz=qux), and you should see some basic HTML in your browser.
+
+In the next section, we'll look at how the code that drives this page works, so you can start to add your own functionality.
+
+----
+
+### < [Prev—Home](index.html) | [Next—Simple API endpoints](simple_api_endpoint.html) >

@@ -1,27 +1,67 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #include "server.h"
 #include "server_impl.h"
+#include <algorithm>
+#include <iomanip>
+#include <fstream>
+#include <magic.h>
+#include <sys/stat.h>
+#include <arpa/inet.h>
+#include "luna/private/server_impl.h"
+#include "luna/config.h"
+#include "luna/optional.hpp"
+
+#define LOG_FATAL(mesg) \
+{ \
+    error_log(log_level::FATAL, mesg); \
+}
+
+#define LOG_ERROR(mesg) \
+{ \
+    error_log(log_level::ERROR, mesg); \
+}
+
+#define LOG_INFO(mesg) \
+{ \
+    error_log(log_level::INFO, mesg); \
+}
+
+#define LOG_DEBUG(mesg) \
+{ \
+    error_log(log_level::DEBUG, mesg); \
+}
+
+
+static const auto GET = "GET";
+static const auto POST = "POST";
+static const auto PUT = "PUT";
+static const auto PATCH = "PATCH";
+static const auto DELETE = "DELETE";
+static const auto OPTIONS = "OPTIONS";
 
 namespace luna
 {
 
+void server::server_impl_deleter::operator()(server::server_impl *ptr) const
+{ delete ptr; }
+
 
 server::operator bool()
 {
-    return impl_->is_running();
+    return (impl_->daemon_ != nullptr);
 }
 
 void server::initialize_()
@@ -31,296 +71,343 @@ void server::initialize_()
 
 server::~server()
 {
-
+    stop();
 }
 
-void server::start()
+// TODO
+// * multiple headers with same name
+// * catch exceptions in user logger and middleware functions, throw 500 when they happen.
+
+///////////////////////////
+
+
+
+
+bool server::start(uint16_t port)
 {
-    impl_->start();
+    auto result = start_async(port);
+
+    if (!result) return result;
+
+    // TODO would be better to find a way to run MHD in _this_ thread...
+    await();
+
+    return true;
+}
+
+bool server::start_async(uint16_t port)
+{
+    impl_->port_ = port;
+
+    MHD_OptionItem options[impl_->options_.size() + 1];
+    uint16_t idx = 0;
+    for (const auto &opt : impl_->options_)
+    {
+        options[idx++] = opt; //copy it in, whee.
+    }
+    options[idx] = {MHD_OPTION_END, 0, nullptr};
+
+    unsigned int flags = MHD_NO_FLAG;
+
+    if (impl_->debug_output_)
+    {
+        LOG_DEBUG("Enabling debug output");
+        flags |= MHD_USE_DEBUG;
+    }
+
+    if (impl_->ssl_mem_cert_set_ && impl_->ssl_mem_key_set_)
+    {
+        LOG_DEBUG("Enabling SSL");
+        flags |= MHD_USE_SSL;
+    }
+    else if (impl_->ssl_mem_cert_set_ || impl_->ssl_mem_key_set_)
+    {
+        LOG_FATAL("Please provide both server::https_mem_key AND server::https_mem_cert");
+        return false;
+    }
+
+    if (impl_->use_thread_per_connection_)
+    {
+        LOG_DEBUG("Will use one thread per connection")
+        flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
+    }
+    else if (impl_->use_epoll_if_available_)
+    {
+#if defined(__linux__)
+        LOG_DEBUG("Will use epoll");
+        flags |= MHD_USE_EPOLL_INTERNALLY;
+#else
+        LOG_DEBUG("Will use poll");
+        flags |= MHD_USE_POLL_INTERNALLY;
+#endif
+    }
+    else
+    {
+        LOG_DEBUG("No threading options set, will use select");
+        flags |= MHD_USE_SELECT_INTERNALLY;
+    }
+
+    impl_->daemon_ = MHD_start_daemon(flags,
+                                      impl_->port_,
+                                      impl_->access_policy_callback_shim_, impl_.get(),
+                                      impl_->access_handler_callback_shim_, impl_.get(),
+                                      MHD_OPTION_NOTIFY_COMPLETED, impl_->request_completed_callback_shim_, impl_.get(),
+                                      MHD_OPTION_EXTERNAL_LOGGER, impl_->logger_callback_shim_, nullptr,
+                                      MHD_OPTION_URI_LOG_CALLBACK, impl_->uri_logger_callback_shim_, nullptr,
+                                      MHD_OPTION_ARRAY, options,
+                                      MHD_OPTION_END);
+
+    if (!impl_->daemon_)
+    {
+        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(impl_->port_) +
+                  "?)"); //TODO set some real error flags perhaps?
+        return false;
+    }
+    impl_->running_cv_.notify_all(); //impl_->daemon_ has changed value
+
+    LOG_INFO("Luna server created on port " + std::to_string(impl_->port_));
+
+    return true;
+}
+
+
+bool server::is_running()
+{
+    return (impl_->daemon_ != nullptr);
 }
 
 void server::stop()
 {
-    impl_->stop();
+    if (impl_->daemon_)
+    {
+        MHD_stop_daemon(impl_->daemon_);
+        LOG_INFO("Luna server stopped");
+        impl_->daemon_ = nullptr;
+        impl_->running_cv_.notify_all(); //impl_->daemon_ has changed value
+    }
 }
 
 void server::await()
 {
-    impl_->await();
+    std::mutex m;
+    {
+        std::unique_lock<std::mutex> lk(m);
+        impl_->running_cv_.wait(lk, [this]
+        { return impl_->daemon_ == nullptr; });
+    }
 }
 
 
-server::port server::get_port()
+uint16_t server::get_port()
 {
-    return impl_->get_port();
+    return impl_->port_;
 }
 
-void server::server_impl_deleter::operator()(server::server_impl *ptr) const
-{ delete ptr; }
-
-void server::set_option_(start_on_construction value)
+void server::add_router(const router &router)
 {
-    start_on_construct_ = static_cast<bool>(value);
+    impl_->routers_.emplace_back(router);
 }
+
+///// options setting
+
 void server::set_option_(debug_output value)
 {
-    impl_->set_option(value);
+    impl_->debug_output_ = static_cast<bool>(value);
 }
 
 void server::set_option_(use_thread_per_connection value)
 {
-    impl_->set_option(value);
+    impl_->use_thread_per_connection_ = static_cast<bool>(value);
+    if (impl_->use_epoll_if_available_)
+    {
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available");
+        impl_->use_epoll_if_available_ = false; //not compatible!
+    }
 }
 
 void server::set_option_(use_epoll_if_available value)
 {
-    impl_->set_option(value);
+    impl_->use_epoll_if_available_ = static_cast<bool>(value);
+    if (impl_->use_thread_per_connection_)
+    {
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection");
+        impl_->use_thread_per_connection_ = false; //not compatible!
+    }
 }
 
-void server::set_option_(mime_type mime_type)
+void server::set_option_(accept_policy_cb value)
 {
-    impl_->set_option(mime_type);
-}
-
-void server::set_option_(error_handler_cb handler)
-{
-    impl_->set_option(handler);
-}
-
-void server::set_option_(port port)
-{
-    impl_->set_option(port);
-}
-
-void server::set_option_(accept_policy_cb handler)
-{
-    impl_->set_option(handler);
+    impl_->accept_policy_callback_ = value;
 }
 
 void server::set_option_(connection_memory_limit value)
 {
-    impl_->set_option(value);
+    //this is a narrowing cast, so ugly! What to do, though?
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_LIMIT, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(connection_limit value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_LIMIT, value, NULL});
 }
 
 void server::set_option_(connection_timeout value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, value, NULL});
 }
+
+//void server::set_option_(notify_completed value)
+//{
+//    //TODO
+//}
 
 void server::set_option_(per_ip_connection_limit value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, value, NULL});
 }
 
 void server::set_option_(const sockaddr_ptr value)
 {
-    impl_->set_option(value);
+    //why are we casting away the constness? Because MHD isn'T going to modify this, and I want the caller
+    // to be assured of this fact.
+    impl_->options_.push_back({MHD_OPTION_SOCK_ADDR, 0, const_cast<sockaddr *>(value)});
 }
 
-void server::set_option_(https_mem_key value)
+//void server::set_option_(uri_log_callback value)
+//{
+//    impl_->options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, value, NULL});
+//}
+
+void server::set_option_(const server::https_mem_key &value)
 {
-    impl_->set_option(value);
+    // we must make a durable copy of these strings before tossing around char pointers to their internals
+    impl_->https_mem_key_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0,
+                               const_cast<char *>(impl_->https_mem_key_[impl_->https_mem_key_.size() - 1].c_str())});
+    impl_->ssl_mem_key_set_ = true;
 }
 
-void server::set_option_(https_mem_cert value)
+void server::set_option_(const server::https_mem_cert &value)
 {
-    impl_->set_option(value);
+    impl_->https_mem_cert_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0,
+                               const_cast<char *>(impl_->https_mem_cert_[impl_->https_mem_cert_.size() - 1].c_str())});
+    impl_->ssl_mem_cert_set_ = true;
 }
 
 //void server::set_option_(https_cred_type value)
 //{
-//    impl_->set_option(value);
+//    //TODO
 //}
 
-void server::set_option_(https_priorities value)
+void server::set_option_(const server::https_priorities &value)
 {
-    impl_->set_option(value);
+    impl_->https_priorities_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0,
+                               const_cast<char *>(impl_->https_priorities_[impl_->https_priorities_.size() -
+                                                                           1].c_str())});
 }
 
 void server::set_option_(listen_socket value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_LISTEN_SOCKET, value, NULL});
 }
 
 void server::set_option_(thread_pool_size value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, value, NULL});
 }
 
 void server::set_option_(unescaper_cb value)
 {
-    impl_->set_option(value);
+    impl_->unescaper_callback_ = value;
+    impl_->options_.push_back({MHD_OPTION_UNESCAPE_CALLBACK, (intptr_t) &(impl_->unescaper_callback_shim_), impl_.get()});
 }
 
 //void server::set_option_(digest_auth_random value)
 //{
-//    impl_->set_option(value);
+//    //TODO
 //}
 
 void server::set_option_(nonce_nc_size value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_NONCE_NC_SIZE, value, NULL});
 }
 
 void server::set_option_(thread_stack_size value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_THREAD_STACK_SIZE, static_cast<intptr_t>(value), NULL});
 }
 
-void server::set_option_(const https_mem_trust &value)
+void server::set_option_(const server::https_mem_trust &value)
 {
-    impl_->set_option(value);
+    impl_->https_mem_trust_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0,
+                               const_cast<char *>(impl_->https_mem_trust_[impl_->https_mem_trust_.size() -
+                                                                          1].c_str())});
 }
 
 void server::set_option_(connection_memory_increment value)
 {
-    impl_->set_option(value);
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_INCREMENT, static_cast<intptr_t>(value), NULL});
 }
 
 //void server::set_option_(https_cert_callback value)
 //{
-//    impl_->set_option(value);
+//    //TODO
 //}
 
 //void server::set_option_(tcp_fastopen_queue_size value)
 //{
-//    impl_->set_option(value);
+//    impl_->options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
 //}
 
-void server::set_option_(const https_mem_dhparams &value)
+void server::set_option_(const server::https_mem_dhparams &value)
 {
-    impl_->set_option(value);
+    impl_->https_mem_dhparams_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0,
+                               const_cast<char *>(impl_->https_mem_dhparams_[impl_->https_mem_dhparams_.size() -
+                                                                             1].c_str())});
 }
 
 //void server::set_option_(listening_address_reuse value)
 //{
-//    impl_->set_option(value);
+//    impl_->options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
 //}
 
-void server::set_option_(const https_key_password &value)
+void server::set_option_(const server::https_key_password &value)
 {
-    impl_->set_option(value);
+    impl_->https_key_password_.emplace_back(value);
+    impl_->options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0,
+                               const_cast<char *>(impl_->https_key_password_[impl_->https_key_password_.size() -
+                                                                             1].c_str())});
 }
 
 //void server::set_option_(notify_connection value)
 //{
-//    impl_->set_option(value);
+//    //TODO
 //}
 
-void server::set_option_(const server_identifier &value)
+void server::set_option_(const server::server_identifier &value)
 {
-    impl_->set_option(value);
+    impl_->response_renderer_.set_option(value);
 }
 
-void server::set_option_(const append_to_server_identifier &value)
+void server::set_option_(const server::append_to_server_identifier &value)
 {
-    impl_->set_option(value);
+    impl_->response_renderer_.set_option(value);
 }
 
-// middleware
-void server::set_option_(middleware::before_request_handler value)
+void server::set_option_(enable_internal_file_cache value)
 {
-    impl_->set_option(value);
-}
-void server::set_option_(middleware::after_request_handler value)
-{
-    impl_->set_option(value);
-}
-void server::set_option_(middleware::after_error value)
-{
-    impl_->set_option(value);
-}
-
-// caching
-void server::set_option_(std::pair<cache::read, cache::write> value)
-{
-    impl_->set_option(value);
-}
-
-void server::set_option_(server::enable_internal_file_cache value)
-{
-    impl_->set_option(value);
+    impl_->response_renderer_.set_option(value);
 }
 
 void server::set_option_(internal_file_cache_keep_alive value)
 {
-    impl_->set_option(value);
+    impl_->response_renderer_.set_option(value);
 }
-
-server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations)
-{
-    return impl_->handle_request(method, std::regex{std::move(path)}, callback, std::move(validations));
-}
-
-server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validations)
-{
-    return impl_->handle_request(method, std::regex{path}, callback, std::move(validations));
-}
-
-server::request_handler_handle server::handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validations)
-{
-    return impl_->handle_request(method, std::regex{std::move(path)}, callback, validations);
-}
-
-server::request_handler_handle server::handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations)
-{
-    return impl_->handle_request(method, std::regex{path}, callback, validations);
-}
-
-server::request_handler_handle server::serve_files(const std::string &mount_point, const std::string &path_to_files)
-{
-    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
-}
-
-server::request_handler_handle server::serve_files(std::string &&mount_point, std::string &&path_to_files)
-{
-    return impl_->serve_files(std::move(mount_point), std::move(path_to_files));
-}
-
-server::error_handler_handle server::handle_404(error_handler_cb callback)
-{
-    return impl_->handle_404(callback);
-}
-
-server::error_handler_handle server::handle_error(status_code code, error_handler_cb callback)
-{
-    return impl_->handle_error(code, callback);
-}
-
-void server::remove_request_handler(server::request_handler_handle item)
-{
-    impl_->remove_request_handler(item);
-}
-
-void server::remove_error_handler(server::error_handler_handle item)
-{
-    impl_->remove_error_handler(item);
-}
-
-void server::add_global_header(std::string &&header, std::string &&value)
-{
-    impl_->add_global_header(std::move(header), std::move(value));
-}
-
-void server::add_global_header(const std::string &header, std::string &&value)
-{
-    impl_->add_global_header(header, std::move(value));
-}
-
-void server::add_global_header(std::string &&header, const std::string &value)
-{
-    impl_->add_global_header(std::move(header), value);
-}
-
-void server::add_global_header(const std::string &header, const std::string &value)
-{
-    impl_->add_global_header(header, value);
-}
-
 
 }

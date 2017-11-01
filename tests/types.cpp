@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -15,18 +15,6 @@
 
 #include <gtest/gtest.h>
 #include <luna/luna.h>
-
-TEST(types, test_port)
-{
-    luna::server::port l{0};
-    ASSERT_EQ(0, static_cast<uint16_t>(l));
-}
-
-TEST(types, test_mime_type)
-{
-    luna::server::mime_type l{"hello"};
-    ASSERT_EQ("hello", l);
-}
 
 TEST(types, test_connection_memory_limit)
 {

@@ -1,22 +1,23 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
 
 #pragma once
 
+#include "luna/router.h"
 #include "luna/private/safer_times.h"
-#include "luna/private/response_generator.h"
-#include "server.h"
+#include "luna/private/response_renderer.h"
+#include "luna/server.h"
 #include <microhttpd.h>
 #include <cstring>
 #include <chrono>
@@ -27,140 +28,14 @@
 namespace luna
 {
 
-const auto GET = "GET";
-const auto POST = "POST";
-const auto PUT = "PUT";
-const auto PATCH = "PATCH";
-const auto DELETE = "DELETE";
-const auto OPTIONS = "OPTIONS";
 
 
 class server::server_impl
 {
 public:
-
     server_impl();
 
-    ~server_impl();
-
-    void start();
-
-    bool is_running();
-
-    void stop();
-
-    void await();
-
-    server::port get_port();
-
-    using request_handler = std::map<request_method, std::vector<std::pair<std::regex, endpoint_handler_cb>>>;
-
-    server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validators={});
-    server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validators={});
-    server::request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validators);
-    server::request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validators);
-
-    server::request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
-    server::request_handler_handle serve_files(std::string &&mount_point, std::string &&path_to_files);
-
-    void remove_request_handler(request_handler_handle item);
-
-    server::error_handler_handle handle_404(server::error_handler_cb callback);
-    server::error_handler_handle handle_error(status_code code, server::error_handler_cb callback);
-
-    void remove_error_handler(error_handler_handle item);
-
-    template<class H, class V>
-    void add_global_header(H &&header, V &&value)
-    {
-        response_generator_.add_global_header(std::forward<H>(header), std::forward<V>(value));
-    };
-
-    void set_option(debug_output value);
-
-    void set_option(use_thread_per_connection value);
-
-    void set_option(use_epoll_if_available value);
-
-    void set_option(const mime_type &mime_type);
-
-    void set_option(error_handler_cb handler);
-
-    void set_option(class port port);
-
-    void set_option(accept_policy_cb handler);
-
-    // MHD specific options
-
-    void set_option(connection_memory_limit value);
-
-    void set_option(connection_limit value);
-
-    void set_option(connection_timeout value);
-
-//    void set_option(notify_completed value);
-
-    void set_option(per_ip_connection_limit value);
-
-    void set_option(const sockaddr *value);
-
-    void set_option(const https_mem_key &value);
-
-    void set_option(const https_mem_cert &value);
-
-//    void set_option(https_cred_type value);
-
-    void set_option(const https_priorities &value);
-
-    void set_option(listen_socket value);
-
-    void set_option(thread_pool_size value);
-
-    void set_option(unescaper_cb value);
-
-//    void set_option(digest_auth_random value);
-
-    void set_option(nonce_nc_size value);
-
-    void set_option(thread_stack_size value);
-
-    void set_option(const https_mem_trust &value);
-
-    void set_option(connection_memory_increment value);
-
-//    void set_option(https_cert_callback value);
-
-//    void set_option(tcp_fastopen_queue_size value);
-
-    void set_option(const https_mem_dhparams &value);
-
-//    void set_option(listening_address_reuse value);
-
-    void set_option(const https_key_password &value);
-
-//    void set_option(notify_connection value);
-
-    void set_option(const server_identifier &value);
-    void set_option(const append_to_server_identifier &value);
-
-    //middleware
-    void set_option(middleware::before_request_handler value);
-    void set_option(middleware::after_request_handler value);
-    void set_option(middleware::after_error value);
-
-    //static asset cacheing
-    void set_option(std::pair<cache::read, cache::write> value);
-    void set_option(server::enable_internal_file_cache value);
-    void set_option(internal_file_cache_keep_alive value);
-
-
-
-private:
     std::mutex lock_;
-
-    std::map<request_method, server::request_handlers> request_handlers_;
-
-    luna::headers global_headers_;
 
     bool debug_output_;
 
@@ -180,10 +55,6 @@ private:
     std::vector<std::string> https_mem_trust_;
     std::vector<std::string> https_mem_dhparams_;
     std::vector<std::string> https_key_password_;
-
-    // middlewares
-    middleware::before_request_handler middleware_before_request_handler_;
-    middleware::after_request_handler middleware_after_request_handler_;
 
     //options
     std::vector<MHD_OptionItem> options_;
@@ -253,8 +124,9 @@ private:
 //                                                 enum MHD_ConnectionNotificationCode toe);
 
 
-    ///// helpers
-    response_generator response_generator_;
+    // request handling and response generation
+    std::vector<router> routers_;
+    response_renderer response_renderer_;
 };
 
 } //namespace luna

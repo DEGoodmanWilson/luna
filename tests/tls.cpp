@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -103,15 +103,20 @@ inEd1GNE/Xh+75LqCFaFjZeY0Pd7RXQ2qYvTe3eG/3cpnTUJoC0aN7K3AU9XqK0L
 
 TEST(tls, set_up_https)
 {
-    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
-    ASSERT_TRUE(static_cast<bool>(server));
-
-    server.handle_request(luna::request_method::GET,
+    luna::router router{"/"};
+    router.handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
+
+    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
+    server.add_router(router);
+    server.start_async();
+
+    ASSERT_TRUE(static_cast<bool>(server));
+
     auto res = cpr::Get(cpr::Url{"https://localhost:8080/test"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
@@ -120,23 +125,31 @@ TEST(tls, set_up_https)
 TEST(tls, set_up_https_with_password)
 {
     luna::server server{luna::server::https_mem_key{key_password_pem}, luna::server::https_mem_cert{cert_password_pem}, luna::server::https_key_password{"foobar"}};
+    server.start_async();
+
     ASSERT_TRUE(static_cast<bool>(server));
 }
 
 TEST(tls, set_up_https_with_password_fail)
 {
     luna::server server{luna::server::https_mem_key{key_password_pem}, luna::server::https_mem_cert{cert_password_pem}, luna::server::https_key_password{"notapassword"}};
+    server.start_async();
+
     ASSERT_FALSE(static_cast<bool>(server));
 }
 
 TEST(tls, set_up_https_fail_1)
 {
     luna::server server{luna::server::https_mem_key{key_pem}};
+    server.start_async();
+
     ASSERT_FALSE(static_cast<bool>(server));
 }
 
 TEST(tls, set_up_https_fail_2)
 {
     luna::server server{luna::server::https_mem_cert{cert_pem}};
+    server.start_async();
+
     ASSERT_FALSE(static_cast<bool>(server));
 }

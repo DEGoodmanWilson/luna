@@ -1,13 +1,13 @@
 #
 #       _
-#   ___/__)
-#  (, /      __   _
+#   ___/_)
+#  (, /      ,_   _
 #    /   (_(_/ (_(_(_
-#   (________________
+#  CX________________
 #                    )
 #
 #  Luna
-#  a web framework in modern C++
+#  A web application and API framework in modern C++
 #
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
@@ -24,7 +24,6 @@ add_executable(luna_tests
         put.cpp
         patch.cpp
         delete.cpp
-        server_options.cpp
         config.cpp
         types.cpp
         basic_auth.cpp
@@ -35,9 +34,11 @@ add_executable(luna_tests
         middleware.cpp
         logging.cpp
         options.cpp
-        customization.cpp
         server_impl.cpp
-        caching.cpp)
+        caching.cpp
+        server_options.cpp
+        headers.cpp
+        )
 
 message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 

@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -15,6 +15,7 @@
 #pragma once
 
 #include <luna/types.h>
+#include <luna/router.h>
 #include <sys/socket.h>
 #include <functional>
 #include <microhttpd.h>
@@ -29,8 +30,6 @@ class server
 public:
 
     // configuration parameters
-    MAKE_BOOL_LIKE(start_on_construction);
-
     MAKE_BOOL_LIKE(debug_output);
 
     MAKE_BOOL_LIKE(use_ssl);
@@ -39,26 +38,12 @@ public:
 
     MAKE_BOOL_LIKE(use_epoll_if_available);
 
-    MAKE_INT_LIKE(int, port);
-
-    MAKE_STRING_LIKE(mime_type);
-
     using accept_policy_cb = std::function<bool(const struct sockaddr *add, socklen_t len)>;
 
 
-    using endpoint_handler_cb = std::function<response(const request &req)>;
-
-    using error_handler_cb = std::function<void(const request &request,
-                                                response &response //a hook for modifying in place to insert default content
-                                                )>;
     // MHD config options
 
     using unescaper_cb = std::function<std::string(const std::string &text)>;
-
-    //TODO just not going to try to support these two for now
-    //TODO MHD_OPTION_HTTPS_CERT_CALLBACK cbshim_
-    //    using notify_connection_cb = std::function<void(struct MHD_Connection *connection, void **socket_context, enum MHD_ConnectionNotificationCode toe)>;
-
 
     MAKE_INT_LIKE(size_t, connection_memory_limit);
 
@@ -68,7 +53,7 @@ public:
 
     MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
 
-    using sockaddr_ptr = ::sockaddr*;
+    using sockaddr_ptr = ::sockaddr *;
     // struct sockaddr * is a configuration option here! Just letting you know.
 
     MAKE_STRING_LIKE(https_mem_key);
@@ -102,82 +87,40 @@ public:
     MAKE_STRING_LIKE(https_key_password);
 
     MAKE_STRING_LIKE(server_identifier);
+
     MAKE_STRING_LIKE(append_to_server_identifier);
 
     MAKE_BOOL_LIKE(enable_internal_file_cache);
 
     using internal_file_cache_keep_alive = std::chrono::milliseconds;
 
-
     server()
     {
         initialize_();
-        start();
     }
 
     template<typename ...Os>
-    server(Os &&...os) : start_on_construct_{true}
+    server(Os &&...os)
     {
         initialize_();
         set_options_(LUNA_FWD(os)...);
-        if(start_on_construct_)
-        {
-            start();
-        }
     }
 
     ~server();
 
-    void start();
+    bool start(uint16_t port = 8080);
+
+    bool start_async(uint16_t port = 8080);
+
+    bool is_running();
+
     void stop();
+
     void await();
 
-    server::port get_port();
+    uint16_t get_port();
 
-    using request_handlers = std::vector<std::tuple<std::regex, endpoint_handler_cb, parameter::validators>>;
-    using request_handler_handle = std::pair<request_method, request_handlers::const_iterator>;
-
-    using error_handler_handle = status_code;
-
-    template<typename T>
-    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback)
-    {
-        return handle_request(method, std::regex{std::forward<T>(path)}, callback, {});
-    }
-    template<typename T>
-    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback, parameter::validators &&validations)
-    {
-        return handle_request(method, std::regex{std::forward<T>(path)}, callback, std::forward<parameter::validators>(validations));
-    }
-    template<typename T>
-    request_handler_handle handle_request(request_method method, T&& path, endpoint_handler_cb callback, const parameter::validators &validations)
-    {
-        return handle_request(method, std::regex{std::forward<T>(path)}, callback, validations);
-    }
-    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, parameter::validators &&validations);
-    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, parameter::validators &&validations);
-    request_handler_handle handle_request(request_method method, std::regex &&path, endpoint_handler_cb callback, const parameter::validators &validations);
-    request_handler_handle handle_request(request_method method, const std::regex &path, endpoint_handler_cb callback, const parameter::validators &validations);
-
-    request_handler_handle serve_files(const std::string &mount_point, const std::string &path_to_files);
-    request_handler_handle serve_files(std::string &&mount_point, std::string &&path_to_files);
-
-    void remove_request_handler(request_handler_handle item);
-
-    error_handler_handle handle_404(error_handler_cb callback);
-    error_handler_handle handle_error(status_code code, error_handler_cb callback);
-
-    void remove_error_handler(error_handler_handle item);
-
-    // TODO is this really necessary? It seems overmuch.
-    void add_global_header(std::string &&header, std::string &&value);
-
-    void add_global_header(const std::string &header, std::string &&value);
-
-    void add_global_header(std::string &&header, const std::string &value);
-
-    void add_global_header(const std::string &header, const std::string &value);
-
+    void add_router(const router &router);
 
     explicit operator bool();
 
@@ -189,9 +132,8 @@ private:
         void operator()(server_impl *) const;
     };
 
+    // using a unique pointer here means we can't have multiple copies of a server
     std::unique_ptr<server_impl, server_impl_deleter> impl_;
-
-    bool start_on_construct_;
 
     void initialize_();
 
@@ -208,19 +150,11 @@ private:
         set_options_(LUNA_FWD(ts)...);
     }
 
-    void set_option_(start_on_construction value);
-
     void set_option_(debug_output value);
 
     void set_option_(use_thread_per_connection value);
 
     void set_option_(use_epoll_if_available value);
-
-    void set_option_(mime_type mime_type);
-
-    void set_option_(error_handler_cb handler);
-
-    void set_option_(server::port port);
 
     void set_option_(accept_policy_cb handler);
 
@@ -237,13 +171,13 @@ private:
 
     void set_option_(const sockaddr_ptr value);
 
-    void set_option_(https_mem_key value);
+    void set_option_(const https_mem_key &value);
 
-    void set_option_(https_mem_cert value);
+    void set_option_(const https_mem_cert &value);
 
-//    void set_option_(https_cred_type value); //TODO later
+//    void set_option_(const https_cred_type &value); //TODO later
 
-    void set_option_(https_priorities value);
+    void set_option_(const https_priorities &value);
 
     void set_option_(listen_socket value);
 
@@ -274,21 +208,13 @@ private:
 //    void set_option_(notify_connection value); //TODO later
 
     void set_option_(const server_identifier &value);
+
     void set_option_(const append_to_server_identifier &value);
 
-    // middleware
-    void set_option_(middleware::before_request_handler value);
-    void set_option_(middleware::after_request_handler value);
-    void set_option_(middleware::after_error value);
-
-    // user-provided static asset caching
-    void set_option_(std::pair<cache::read, cache::write> value);
     // internally-provided static asset caching
     void set_option_(enable_internal_file_cache value);
+
     void set_option_(internal_file_cache_keep_alive value);
 };
-
-//for testing purposes only.
-std::string string_format(const std::string fmt_str, ...);
 
 } //namespace luna

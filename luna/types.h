@@ -1,13 +1,13 @@
 //
 //      _
-//  ___/__)
-// (, /      __   _
+//  ___/_)
+// (, /      ,_   _
 //   /   (_(_/ (_(_(_
-//  (________________
+// CX________________
 //                   )
 //
 // Luna
-// a web framework in modern C++
+// A web application and API framework in modern C++
 //
 // Copyright © 2016–2017 D.E. Goodman-Wilson
 //
@@ -168,7 +168,7 @@ struct response
     };
 
 
-    response() : status_code{0}, headers{}, content_type{}, content{}, file{}
+    response() : status_code{404}, headers{}, content_type{}, content{}, file{}
     { }
 
     static response from_file(std::string filename)
