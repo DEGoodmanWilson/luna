@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <luna/luna.h>
 #include <cpr/cpr.h>
-#include <base64.h>
+#include <base64/base64.h>
 
 TEST(basic_auth, helper_just_work)
 {

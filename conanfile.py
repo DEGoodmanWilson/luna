@@ -39,7 +39,7 @@ class LunaConan(ConanFile):
     def requirements(self):
         if self.options.build_luna_tests:
             self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
-            self.requires.add("gtest/1.7.0@lasote/stable", private=False)
+            self.requires.add("gtest/1.8.0@bincrafters/stable", private=False)
             self.options["gtest"].shared = False
         else:
             if "gtest" in self.requires:
@@ -55,12 +55,12 @@ class LunaConan(ConanFile):
 
 
     def build(self):
-        cmake = CMake(self.settings)
+        cmake = CMake(self)
         build_shared_libs = "-DBUILD_SHARED_LIBS=ON" if self.options.build_shared_libs else "-DBUILD_SHARED_LIBS=OFF"
         build_luna_tests = "-DBUILD_LUNA_TESTS=ON" if self.options.build_luna_tests else "-DBUILD_LUNA_TESTS=OFF"
         build_luna_coverage = "-DBUILD_LUNA_COVERAGE=ON" if self.options.build_luna_coverage else "-DBUILD_LUNA_COVERAGE=OFF"
         build_luna_examples = "-DBUILD_LUNA_EXAMPLES=ON" if self.options.build_luna_examples else "-DBUILD_LUNA_EXAMPLES=OFF"
-        self.run('cmake %s %s %s %s "%s" %s' % (build_shared_libs, build_luna_tests, build_luna_coverage, build_luna_examples, self.conanfile_directory, cmake.command_line))
+        self.run('cmake %s %s %s %s "%s" %s' % (build_shared_libs, build_luna_tests, build_luna_coverage, build_luna_examples, self.source_folder, cmake.command_line))
         self.run('cmake --build . %s' % cmake.build_config)
 
     def package(self):

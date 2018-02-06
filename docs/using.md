@@ -42,6 +42,14 @@ Conan is update very frequently, and I strongly recommend you keep it up to date
 brew upgrade conan
 ```
 
+### Other tools you'll need
+
+Building luna requires building libmagic. Building libmagic requires some tools not installed with Xcode by default:
+
+```shell
+brew install autoconf automake libtool
+```
+
 ## Installing build tools on Linux
 
 You probably know better how to do this than I do. With your chosen package manager, make sure you have the following installed:
@@ -70,7 +78,9 @@ First, let's install all of Luna's dependencies. The first time you do this, it 
 The first step is to add the remote host containing Luna to Conan. You'll only need to do this once, ever.
  
 ```shell
-conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
+conan remote add bincrafters -i 0 https://api.bintray.com/conan/bincrafters/public-conan
+conan remote add DEGoodmanWilson -i 0 https://api.bintray.com/conan/degoodmanwilson/opensource
+
 ```
 
 Then install and build the dependencies like this.
