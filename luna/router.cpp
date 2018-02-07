@@ -151,9 +151,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
                         //run the validator
                         if (!validator.validation_func(request.params[validator.key]))
                         {
-                            std::string error{
-                                    "Request handler for \"" + path + " is missing required parameter \"" +
-                                    validator.key};
+                            std::string error{"Request handler for \"" + path + "\" is missing required parameter \"" + validator.key + "\""};
                             error_log(luna::log_level::ERROR, error);
                             response = make_response_({400, "text/plain", error}, impl_->headers_);
                             valid_params = false;
@@ -162,9 +160,7 @@ std::experimental::optional<luna::response> router::process_request(request &req
                     }
                     else if (validator.required) //not present, but required
                     {
-                        std::string error{
-                                "Request handler for \"" + path + " is missing required parameter \"" +
-                                validator.key};
+                        std::string error{"Request handler for \"" + path + "\" is missing required parameter \"" + validator.key + "\""};
                         error_log(luna::log_level::ERROR, error);
                         response = make_response_({400, "text/plain", error}, impl_->headers_);
                         valid_params = false;
