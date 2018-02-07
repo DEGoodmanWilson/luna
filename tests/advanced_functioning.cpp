@@ -37,6 +37,26 @@ TEST(advanced_functioning, get_basic_regexes)
     ASSERT_EQ(path, res.text);
 }
 
+TEST(advanced_functioning, get_basic_regexes_2)
+{
+    luna::router router{"/api/v1"};
+    router.handle_request(luna::request_method::GET,
+                          "/([a-zA-Z0-9]*)",
+                          [](auto req) -> luna::response
+                          {
+                              return {req.matches[1]};
+                          });
+
+    luna::server server;
+    server.add_router(router);
+    server.start_async();
+
+    std::string path = "test";
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/api/v1/" + path});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_EQ(path, res.text);
+}
+
 TEST(advanced_functioning, post_basic_regexes)
 {
     luna::router router{"/"};
