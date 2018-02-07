@@ -135,7 +135,7 @@ enum class request_method
     //HEAD,
 };
 
-std::string to_string(luna::request_method method);
+std::string to_string(const luna::request_method method);
 
 struct request
 {
