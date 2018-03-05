@@ -56,11 +56,8 @@ install:
   - cmake --version
   - conan --version
 
-  - conan remote remove conan-center
-  - conan remote remove conan-transit
-  - conan remote add DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
-  - conan remote add conan-center https://conan.bintray.com
-  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  - conan remote add -i 0 DEGoodmanWilson https://api.bintray.com/conan/degoodmanwilson/opensource
+  - conan remote add -i 1 bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
   # Automatic detection of your arch, compiler, etc
   - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install . -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug; else conan install . -o build_luna_tests=True; fi
