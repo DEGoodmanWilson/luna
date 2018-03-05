@@ -26,10 +26,9 @@ addons: &addons
   apt:
     packages: &packages
       - g++-4.9
-      - pkg-config
       - clang-format-3.7
       - python-pip
-      - libssl-dev
+      - libmagic-dev
       - curl
       - cmake
       - cmake-data
@@ -77,7 +76,7 @@ matrix:
         apt:
           packages:
             - g++-4.9
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
@@ -89,7 +88,7 @@ matrix:
         apt:
           packages:
             - g++-5
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
@@ -101,7 +100,7 @@ matrix:
         apt:
           packages:
             - g++-6
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
@@ -113,7 +112,7 @@ matrix:
         apt:
           packages:
             - clang-3.6
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
@@ -125,7 +124,7 @@ matrix:
         apt:
           packages:
             - clang-3.7
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
@@ -137,7 +136,7 @@ matrix:
         apt:
           packages:
             - clang-3.8
-            - libssl-dev
+            - libmagic-dev
             - curl
             - cmake
             - cmake-data
