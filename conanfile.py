@@ -14,7 +14,8 @@
 #
 
 
-from conans import ConanFile, CMake
+from conans import ConanFile, CMake, tools
+import os
 
 class LunaConan(ConanFile):
     name = "luna"
@@ -71,4 +72,4 @@ class LunaConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
-        seld.cpp_info.libs.append("magic") # sigh
+        self.cpp_info.libs.append("magic") # sigh
