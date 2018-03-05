@@ -92,6 +92,7 @@ TEST(file_service, serve_binary_file)
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/luna.jpg"});
+
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("image/jpeg; charset=binary", res.header["Content-Type"]);
     ASSERT_EQ(5196, res.text.size());

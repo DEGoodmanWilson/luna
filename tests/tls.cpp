@@ -117,7 +117,8 @@ TEST(tls, set_up_https)
 
     ASSERT_TRUE(static_cast<bool>(server));
 
-    auto res = cpr::Get(cpr::Url{"https://localhost:8080/test"});
+    auto res = cpr::Get(cpr::Url{"https://localhost:8080/test"}, cpr::VerifySsl{false});
+
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("hello", res.text);
 }

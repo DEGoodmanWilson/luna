@@ -63,7 +63,7 @@ install:
   - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
   # Automatic detection of your arch, compiler, etc
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install . -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug --build > /dev/null ; else conan install . -o build_luna_tests=True --build > /dev/null ; fi
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then conan install . -o build_luna_tests=True -o build_luna_coverage=True -s build_type=Debug; else conan install . -o build_luna_tests=True; fi
 
 script:
   - conan build .

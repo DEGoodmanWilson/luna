@@ -285,7 +285,7 @@ void server::set_option_(const server::https_mem_key &value)
     // we must make a durable copy of these strings before tossing around char pointers to their internals
     impl_->https_mem_key_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0,
-                               const_cast<char *>(impl_->https_mem_key_[impl_->https_mem_key_.size() - 1].c_str())});
+                               const_cast<char *>(impl_->https_mem_key_.back().c_str())});
     impl_->ssl_mem_key_set_ = true;
 }
 
@@ -293,7 +293,7 @@ void server::set_option_(const server::https_mem_cert &value)
 {
     impl_->https_mem_cert_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0,
-                               const_cast<char *>(impl_->https_mem_cert_[impl_->https_mem_cert_.size() - 1].c_str())});
+                               const_cast<char *>(impl_->https_mem_cert_.back().c_str())});
     impl_->ssl_mem_cert_set_ = true;
 }
 
@@ -306,8 +306,7 @@ void server::set_option_(const server::https_priorities &value)
 {
     impl_->https_priorities_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0,
-                               const_cast<char *>(impl_->https_priorities_[impl_->https_priorities_.size() -
-                                                                           1].c_str())});
+                               const_cast<char *>(impl_->https_priorities_.back().c_str())});
 }
 
 void server::set_option_(listen_socket value)
@@ -345,8 +344,7 @@ void server::set_option_(const server::https_mem_trust &value)
 {
     impl_->https_mem_trust_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0,
-                               const_cast<char *>(impl_->https_mem_trust_[impl_->https_mem_trust_.size() -
-                                                                          1].c_str())});
+                               const_cast<char *>(impl_->https_mem_trust_.back().c_str())});
 }
 
 void server::set_option_(connection_memory_increment value)
@@ -368,8 +366,7 @@ void server::set_option_(const server::https_mem_dhparams &value)
 {
     impl_->https_mem_dhparams_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0,
-                               const_cast<char *>(impl_->https_mem_dhparams_[impl_->https_mem_dhparams_.size() -
-                                                                             1].c_str())});
+                               const_cast<char *>(impl_->https_mem_dhparams_.back().c_str())});
 }
 
 //void server::set_option_(listening_address_reuse value)
@@ -381,8 +378,7 @@ void server::set_option_(const server::https_key_password &value)
 {
     impl_->https_key_password_.emplace_back(value);
     impl_->options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0,
-                               const_cast<char *>(impl_->https_key_password_[impl_->https_key_password_.size() -
-                                                                             1].c_str())});
+                               const_cast<char *>(impl_->https_key_password_.back().c_str())});
 }
 
 //void server::set_option_(notify_connection value)

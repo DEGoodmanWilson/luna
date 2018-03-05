@@ -26,8 +26,9 @@ class LunaConan(ConanFile):
                "build_luna_tests":    [True, False],
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
-    default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False", "cpr:use_system_curl=True", "cpr:insecure_curl=True"
-    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmagic/5.29@DEGoodmanWilson/testing", "base64/1.0.2@DEGoodmanWilson/stable"
+    default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False"
+    # requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmagic/5.25@DEGoodmanWilson/stable", "base64/1.0.2@DEGoodmanWilson/stable"
+    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "base64/1.0.2@DEGoodmanWilson/stable"
     generators = "cmake"
     exports = ["*"]
     description = "A web application and API framework in modern C++"
@@ -38,7 +39,7 @@ class LunaConan(ConanFile):
 
     def requirements(self):
         if self.options.build_luna_tests:
-            self.requires.add("cpr/1.2.0@DEGoodmanWilson/stable", private=False)
+            self.requires.add("cpr/1.3.0@DEGoodmanWilson/stable", private=False)
             self.requires.add("gtest/1.8.0@bincrafters/stable", private=False)
             self.options["gtest"].shared = False
         else:
@@ -52,7 +53,6 @@ class LunaConan(ConanFile):
         else:
             if "nl-json" in self.requires:
                 del self.requires["nl-json"]
-
 
     def build(self):
         cmake = CMake(self)
@@ -70,4 +70,5 @@ class LunaConan(ConanFile):
         self.copy("*.a", dst="lib", src="lib")
 
     def package_info(self):
-        self.cpp_info.libs = ["luna"]
+        self.cpp_info.libs = tools.collect_libs(self)
+        seld.cpp_info.libs.append("magic") # sigh
