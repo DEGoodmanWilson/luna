@@ -18,7 +18,7 @@ from conans import ConanFile, CMake
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "4.0.1"
+    version = "4.0.2"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
