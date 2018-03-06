@@ -84,6 +84,8 @@ endif ()
 
 ##### luna
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(LIB_LUNA_SOURCE_FILES
         luna/private/safer_times.cpp
         luna/types.cpp

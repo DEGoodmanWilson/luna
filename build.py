@@ -68,6 +68,7 @@ if __name__ == "__main__":
         remotes=[upload, bincrafters],
         upload_only_when_stable=True,
         docker_entry_script='sudo apt-get -qq update && sudo apt-get -qq install -y libmagic-dev',
+        args='--build=missing',
         stable_branch_pattern="stable/*")
 
     # if os.getenv("RUN_TESTS", False) == 1:
