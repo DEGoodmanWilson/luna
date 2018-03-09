@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <iomanip>
 #include <fstream>
-#include <magic.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include "luna/private/server_impl.h"

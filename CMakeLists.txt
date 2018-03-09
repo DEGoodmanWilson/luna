@@ -109,4 +109,4 @@ set(LIB_LUNA_SOURCE_FILES
         luna/private/router_impl.h
         )
 add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-target_link_libraries(luna ${CONAN_LIBS} magic)
+target_link_libraries(luna ${CONAN_LIBS})
