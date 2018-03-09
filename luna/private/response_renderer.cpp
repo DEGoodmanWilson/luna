@@ -14,9 +14,11 @@
 
 #include <sys/stat.h>
 #include <fstream>
-#include <magic.h>
+#include <mime/mime.h>
 #include "response_renderer.h"
 #include "luna/private/file_helpers.h"
+
+#include <iostream>
 
 namespace luna
 {
@@ -33,40 +35,7 @@ status_code default_success_code_(request_method method)
 
 std::string get_mime_type_(const std::string &file)
 {
-// We are serving a static asset, Calculate the MIME type if not specified
-
-// first, let's examine the file extension, we can learn a lot that way, then we fall back on libmagic
-    std::string mime_type;
-
-//extract the file extension
-    const auto ext_begin = file.find_last_of(".");
-    const auto ext = file.substr(ext_begin + 1);
-    const auto iter = mime_types.find(ext);
-    if (iter != mime_types.end())
-    {
-        mime_type = iter->second;
-    }
-    else // fall back on libmagic
-    {
-        magic_t magic_cookie;
-        magic_cookie = magic_open(MAGIC_MIME);
-        if (magic_cookie == NULL)
-        {
-// These lines should basically never get hit in testing
-// I am dubious that if we had an issue allocating memory above that the following will work, TBH
-            return "";   //LCOV_EXCL_LINE
-        }
-        if (magic_load(magic_cookie, NULL) != 0)
-        {
-            magic_close(magic_cookie);                                                  //LCOV_EXCL_LINE
-            return "";   //LCOV_EXCL_LINE
-        }
-
-        mime_type = magic_file(magic_cookie, file.c_str());
-        magic_close(magic_cookie);
-    }
-
-    return mime_type;
+    return mime::content_type(mime::get_extension_from_path(file));
 }
 
 //////////////////////////////////////////////////////////////////////////////

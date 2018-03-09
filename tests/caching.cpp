@@ -38,7 +38,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
         t1 = std::chrono::high_resolution_clock::now();
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t2 = std::chrono::high_resolution_clock::now();
-        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("image/png", res.header["Content-Type"]);
         ASSERT_EQ("MISS", res.header["X-Luna-Cache"]);
     }
     auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
@@ -48,7 +48,7 @@ TEST(fd_cacheing, hit_the_fd_cache)
         t3 = std::chrono::high_resolution_clock::now();
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t4 = std::chrono::high_resolution_clock::now();
-        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("image/png", res.header["Content-Type"]);
         ASSERT_EQ("HIT", res.header["X-Luna-Cache"]);
     }
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
@@ -83,7 +83,7 @@ TEST(fd_cacheing, test_cache_timeout)
         t1 = std::chrono::high_resolution_clock::now();
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t2 = std::chrono::high_resolution_clock::now();
-        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("image/png", res.header["Content-Type"]);
         ASSERT_EQ("HIT", res.header["X-Luna-Cache"]);
     }
     auto cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
@@ -96,7 +96,7 @@ TEST(fd_cacheing, test_cache_timeout)
         t3 = std::chrono::high_resolution_clock::now();
         auto res = cpr::Get(cpr::Url{"http://localhost:8080/nightmare.png"});
         t4 = std::chrono::high_resolution_clock::now();
-        ASSERT_EQ("image/png; charset=binary", res.header["Content-Type"]);
+        ASSERT_EQ("image/png", res.header["Content-Type"]);
         ASSERT_EQ("MISS", res.header["X-Luna-Cache"]);
     }
     auto no_cache_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();

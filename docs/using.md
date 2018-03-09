@@ -42,14 +42,6 @@ Conan is update very frequently, and I strongly recommend you keep it up to date
 brew upgrade conan
 ```
 
-### Other tools you'll need
-
-Building luna requires building libmagic. Building libmagic requires some tools not installed with Xcode by default:
-
-```shell
-brew install autoconf automake libtool
-```
-
 ## Installing build tools on Linux
 
 You probably know better how to do this than I do. With your chosen package manager, make sure you have the following installed:

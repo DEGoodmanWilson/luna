@@ -59,15 +59,15 @@ if __name__ == "__main__":
     reference = "{0}/{1}".format(name, version)
     upload = "https://api.bintray.com/conan/{0}/opensource".format(username)
     bincrafters = "https://api.bintray.com/conan/bincrafters/public-conan"
+    vthiery = "https://api.bintray.com/conan/vthiery/conan-packages"
 
     builder = ConanMultiPackager(
         username=username,
         channel=channel,
         reference=reference,
         upload=upload,
-        remotes=[upload, bincrafters],
+        remotes=[upload, bincrafters, vthiery],
         upload_only_when_stable=True,
-        docker_entry_script='sudo apt-get -qq update && sudo apt-get -qq install -y libmagic-dev',
         args='--build=missing',
         stable_branch_pattern="stable/*")
 

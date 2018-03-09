@@ -28,10 +28,9 @@ class LunaConan(ConanFile):
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
     default_options = "build_shared_libs=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False"
-    # requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmagic/5.25@DEGoodmanWilson/stable", "base64/1.0.2@DEGoodmanWilson/stable"
-    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "base64/1.0.2@DEGoodmanWilson/stable"
+    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmime/[~= 0.1]@DEGoodmanWilson/stable", "base64/[~= 1.0]@DEGoodmanWilson/stable"
     generators = "cmake"
-    exports = ["*"]
+    exports = ["*"] #TODO this isn't correct, we can improve this.
     description = "A web application and API framework in modern C++"
 
     def configure(self):
@@ -50,7 +49,7 @@ class LunaConan(ConanFile):
                 del self.requires["cpr"]
 
         if self.options.build_luna_examples:
-            self.requires.add("nl-json/2.1.1@genvidtech/1.4.0", private=False)
+            self.requires.add("jsonformoderncpp/[~= 3.1]@vthiery/stable", private=False)
         else:
             if "nl-json" in self.requires:
                 del self.requires["nl-json"]

@@ -78,7 +78,7 @@ TEST(file_service, serve_html_file)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html", res.header["Content-Type"]);
+    ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
 }
 
 TEST(file_service, serve_binary_file)
@@ -94,7 +94,7 @@ TEST(file_service, serve_binary_file)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/luna.jpg"});
 
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("image/jpeg; charset=binary", res.header["Content-Type"]);
+    ASSERT_EQ("image/jpeg", res.header["Content-Type"]);
     ASSERT_EQ(5196, res.text.size());
 }
 
@@ -116,7 +116,7 @@ TEST(file_service, self_serve_html_file)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html", res.header["Content-Type"]);
+    ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
 }
 
 TEST(file_service, self_serve_html_file_override_mime_type)
@@ -153,7 +153,7 @@ TEST(file_service, css_has_its_own_mime_issues)
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.css"});
-    ASSERT_EQ("text/css", res.header["Content-Type"]);
+    ASSERT_EQ("text/css; charset=utf-8", res.header["Content-Type"]);
 }
 
 TEST(file_service, js_has_its_own_mime_issues)
@@ -167,7 +167,7 @@ TEST(file_service, js_has_its_own_mime_issues)
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.js"});
-    ASSERT_EQ("text/javascript", res.header["Content-Type"]);
+    ASSERT_EQ("application/javascript; charset=utf-8", res.header["Content-Type"]);
 }
 
 TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
@@ -182,7 +182,7 @@ TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test/"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html", res.header["Content-Type"]);
+    ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
     ASSERT_EQ("hello html", res.text);
 }
 
@@ -198,7 +198,7 @@ TEST(file_service, directory_is_alias_for_index_html)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("text/html", res.header["Content-Type"]);
+    ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
     ASSERT_EQ("hello html", res.text);
 }
 
