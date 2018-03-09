@@ -19,7 +19,7 @@ import os
 
 class LunaConan(ConanFile):
     name = "luna"
-    version = "4.0.2"
+    version = "5.0.0"
     url = "https://github.com/DEGoodmanWilson/luna.git"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"

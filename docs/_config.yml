@@ -15,7 +15,7 @@
 # Site settings
 product_name: &product_name Luna
 title: *product_name
-version: 4.0.2
+version: 5.0.0
 email: degoodmanwilson@gmail.com
 description: >
   A web application and API framework in modern C++

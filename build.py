@@ -68,7 +68,6 @@ if __name__ == "__main__":
         upload=upload,
         remotes=[upload, bincrafters, vthiery],
         upload_only_when_stable=True,
-        args='--build=missing',
         stable_branch_pattern="stable/*")
 
     # if os.getenv("RUN_TESTS", False) == 1:
