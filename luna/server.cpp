@@ -249,12 +249,12 @@ void server::set_option_(connection_memory_limit value)
 
 void server::set_option_(connection_limit value)
 {
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_LIMIT, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(connection_timeout value)
 {
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, static_cast<intptr_t>(value), NULL});
 }
 
 //void server::set_option_(notify_completed value)
@@ -264,7 +264,7 @@ void server::set_option_(connection_timeout value)
 
 void server::set_option_(per_ip_connection_limit value)
 {
-    impl_->options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(const sockaddr_ptr value)
@@ -310,12 +310,12 @@ void server::set_option_(const server::https_priorities &value)
 
 void server::set_option_(listen_socket value)
 {
-    impl_->options_.push_back({MHD_OPTION_LISTEN_SOCKET, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_LISTEN_SOCKET, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(thread_pool_size value)
 {
-    impl_->options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(unescaper_cb value)
@@ -331,7 +331,7 @@ void server::set_option_(unescaper_cb value)
 
 void server::set_option_(nonce_nc_size value)
 {
-    impl_->options_.push_back({MHD_OPTION_NONCE_NC_SIZE, value, NULL});
+    impl_->options_.push_back({MHD_OPTION_NONCE_NC_SIZE, static_cast<intptr_t>(value), NULL});
 }
 
 void server::set_option_(thread_stack_size value)

@@ -72,6 +72,6 @@ if __name__ == "__main__":
 
     # if os.getenv("RUN_TESTS", False) == 1:
     # else:
-    builder.add_common_builds(shared_option_name=name + ":build_shared_libs")
+    builder.add_common_builds(shared_option_name=name + ":shared")
 
     builder.run()
