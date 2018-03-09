@@ -12,7 +12,7 @@
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 
 project(luna)
 
@@ -43,7 +43,6 @@ endmacro()
 
 message(STATUS "Luna CMake Options")
 message(STATUS "=======================================================")
-luna_option(BUILD_SHARED_LIBS   "Build the library as a dynamic object" OFF)
 luna_option(BUILD_LUNA_TESTS    "Build the test suite"                  OFF)
 luna_option(BUILD_LUNA_COVERAGE "Generate test coverage information"    OFF)
 luna_option(BUILD_LUNA_EXAMPLES "Build the example server"              OFF)
@@ -107,14 +106,6 @@ set(LIB_LUNA_SOURCE_FILES
         luna/private/router_impl.h
         )
 
-if (BUILD_SHARED_LIBS)
-    set(CMAKE_MACOSX_RPATH ON)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    add_library(luna SHARED ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-else (BUILD_SHARED_LIBS)
-    add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
-endif (BUILD_SHARED_LIBS)
+add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 
 target_link_libraries(luna ${CONAN_LIBS})
