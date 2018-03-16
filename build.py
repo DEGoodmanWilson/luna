@@ -67,7 +67,7 @@ if __name__ == "__main__":
         reference=reference,
         upload=upload,
         remotes=[upload, bincrafters, vthiery],
-        upload_only_when_stable=True,
+        # upload_only_when_stable=True,
         stable_branch_pattern="stable/*")
 
     # if os.getenv("RUN_TESTS", False) == 1:
