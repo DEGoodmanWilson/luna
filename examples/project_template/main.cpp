@@ -1,6 +1,6 @@
 #include <iostream>
 #include <luna/luna.h>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include "logger.h"
 
 using namespace luna;

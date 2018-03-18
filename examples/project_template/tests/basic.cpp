@@ -1,6 +1,6 @@
 #include <catch.hpp>
 #include <cpr/cpr.h>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include "env.h"
 
 TEST_CASE("basic API functioning")

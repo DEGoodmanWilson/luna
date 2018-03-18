@@ -28,7 +28,7 @@ class LunaConan(ConanFile):
                "build_luna_coverage": [True, False],
                "build_luna_examples": [True, False]}
     default_options = "shared=False", "build_luna_tests=False", "build_luna_coverage=False", "build_luna_examples=False"
-    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmime/[~= 0.1]@DEGoodmanWilson/stable", "base64/[~= 1.0]@DEGoodmanWilson/stable"
+    requires = "libmicrohttpd/0.9.51@DEGoodmanWilson/stable", "libmime/[~= 0.1]@DEGoodmanWilson/testing", "base64/[~= 1.0]@DEGoodmanWilson/stable"
     generators = "cmake"
     exports = ["*"] #TODO this isn't correct, we can improve this.
     description = "A web application and API framework in modern C++"
