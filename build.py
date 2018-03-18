@@ -24,7 +24,7 @@ def get_version_from_recipe():
 
 def get_default_vars():
     username = os.getenv("CONAN_USERNAME", "DEGoodmanWilson")
-    channel = os.getenv("CONAN_CHANNEL", "testing")
+    channel = os.getenv("CONAN_CHANNEL", "experimental")
     version = get_version_from_recipe()
     return username, channel, version
 

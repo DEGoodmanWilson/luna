@@ -16,8 +16,26 @@ cmake_minimum_required(VERSION 3.2)
 
 project(luna)
 
-##### Use C++14
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+##### Use C++14 or 17 when available
+include(CheckCXXCompilerFlag)
+
+# Check for standard to use
+check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
+if(HAVE_FLAG_STD_CXX17)
+    # Have -std=c++17, use it
+    message(STATUS "Luna using C++17")
+else()
+    check_cxx_compiler_flag(-std=c++14 HAVE_FLAG_STD_CXX14)
+    if(HAVE_FLAG_STD_CXX14)
+        # Have -std=c++14, use it
+        message(STATUS "Luna using C++14")
+        set(CMAKE_CXX_STANDARD 14)
+    else()
+        message(FATAL_ERROR "Luna requires at least C++14")
+    endif()
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -52,8 +70,7 @@ set(LUNA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 include_directories(SYSTEM ${LUNA_INCLUDE_DIRS})
 include_directories(SYSTEM PRIVATE luna)
 include_directories(PRIVATE luna/private)
-message(STATUS "Luna version:")
-message(STATUS ${LUNA_VERSION})
+message(STATUS "Luna version: " ${CONAN_PACKAGE_VERSION})
 add_definitions(-DLUNA_NAME=\"${CONAN_PACKAGE_NAME}\")
 add_definitions(-DLUNA_VERSION=\"${CONAN_PACKAGE_VERSION}\")
 
