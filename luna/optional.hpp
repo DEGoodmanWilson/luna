@@ -12,15 +12,15 @@
 
 # if defined(__has_include)
 
-# if __has_include(<optional>)
-
-# define OPT_NS std
-# include <optional>
-
-# elif __has_include(<experimental/optional>)
+# if __has_include(<experimental/optional>)
 
 # define OPT_NS std::experimental
 # include <experimental/optional>
+
+# elif __has_include(<optional>)
+
+# define OPT_NS std
+# include <optional>
 
 # endif
 
