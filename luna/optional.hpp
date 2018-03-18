@@ -10,17 +10,21 @@
 # ifndef ___OPTIONAL_HPP___
 # define ___OPTIONAL_HPP___
 
-# if defined(__cpp_lib_optional)
+# if defined(__has_include)
+
+# if __has_include(<optional>)
 
 # define OPT_NS std
 # include <optional>
 
-# elif defined(__cpp_lib_experimental_optional)
+# elif __has_include(<experimental/optional>)
 
 # define OPT_NS std::experimental
 # include <experimental/optional>
 
-# else
+# endif
+
+# else // no __has_include
 
 # define OPT_NS luna
 
