@@ -24,6 +24,7 @@ check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
 if(HAVE_FLAG_STD_CXX17)
     # Have -std=c++17, use it
     message(STATUS "Luna using C++17")
+    set(CMAKE_CXX_STANDARD 17)
 else()
     check_cxx_compiler_flag(-std=c++14 HAVE_FLAG_STD_CXX14)
     if(HAVE_FLAG_STD_CXX14)
