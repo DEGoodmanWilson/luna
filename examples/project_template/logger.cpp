@@ -8,7 +8,7 @@ void error_logger(luna::log_level level, const std::string &message)
     switch (level)
     {
         case luna::log_level::DEBUG:
-//            std::cerr << "[  DEBUG] " << message << std::endl;
+            std::cerr << "[  DEBUG] " << message << std::endl;
             break;
         case luna::log_level::INFO:
             std::cerr << "[   INFO] " << message << std::endl;;
