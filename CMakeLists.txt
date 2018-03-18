@@ -12,7 +12,7 @@
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
 
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 
 project(luna)
 
