@@ -235,7 +235,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
 
 
     //iterate through the handlers. Could stand being parallelized, I suppose?
-    std::experimental::optional<response> response;
+    OPT_NS::optional<response> response;
 
     std::unique_lock<std::mutex> ulock{lock_};
     for (auto &router : routers_)

@@ -96,7 +96,7 @@ luna::response make_response_(luna::response &&response, luna::headers &headers_
     return response;
 }
 
-std::experimental::optional<luna::response> router::process_request(request &request)
+OPT_NS::optional<luna::response> router::process_request(request &request)
 {
     // TODO this is here to prevent writing to the list of endpoints while we're using it. Not sure we actually need this,
     // if we can find a way to restrict writing to the list of endpoints when the server is running.
@@ -106,13 +106,13 @@ std::experimental::optional<luna::response> router::process_request(request &req
     // first lets validate that the path begins with our base_route_, and if it does, strip it from the request to simplify the logic below
     if (!std::regex_search(request.path, std::regex{"^" + impl_->route_base_}))
     {
-        return std::experimental::nullopt;
+        return OPT_NS::nullopt;
     }
 
     //strip the base_path_ off the reqest
     auto path = request.path.substr(impl_->route_base_.length(), std::string::npos);
 
-    std::experimental::optional<luna::response> response;
+    OPT_NS::optional<luna::response> response;
 
     for (const auto &handler_tuple : impl_->request_handlers_[request.method])
     {

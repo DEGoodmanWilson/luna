@@ -52,7 +52,7 @@ public:
 protected:
     // for use by the Server object
     friend ::luna::server;
-    std::experimental::optional<luna::response> process_request(request &request);
+    OPT_NS::optional<luna::response> process_request(request &request);
 
 private:
     class router_impl;
