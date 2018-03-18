@@ -1,5 +1,5 @@
 [requires]
-luna/[~=5.0]@DEGoodmanWilson/testing
+luna/[~=5.0]@DEGoodmanWilson/stable
 jsonformoderncpp/[~= 3.1]@vthiery/stable
 
 # for testing
