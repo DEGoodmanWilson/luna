@@ -94,25 +94,25 @@ if (BUILD_LUNA_TESTS)
 endif ()
 
 set(LIB_LUNA_SOURCE_FILES
-        luna/private/safer_times.cpp
-        luna/types.cpp
-        luna/types.h
-        luna/server.cpp
-        luna/server.h
-        luna/private/server_impl.cpp
-        luna/private/server_impl.h
-        luna/config.cpp
-        luna/config.h
-        luna/private/safer_times.h
-        luna/private/file_helpers.h
-        luna/private/cacheable_response.cpp
-        luna/private/cacheable_response.h
-        luna/private/response_renderer.cpp
-        luna/private/response_renderer.h
-        luna/router.cpp
-        luna/router.h
-        luna/optional.hpp
-        luna/private/router_impl.h
+        ${PROJECT_SOURCE_DIR}/luna/private/safer_times.cpp
+        ${PROJECT_SOURCE_DIR}/luna/types.cpp
+        ${PROJECT_SOURCE_DIR}/luna/types.h
+        ${PROJECT_SOURCE_DIR}/luna/server.cpp
+        ${PROJECT_SOURCE_DIR}/luna/server.h
+        ${PROJECT_SOURCE_DIR}/luna/private/server_impl.cpp
+        ${PROJECT_SOURCE_DIR}/luna/private/server_impl.h
+        ${PROJECT_SOURCE_DIR}/luna/config.cpp
+        ${PROJECT_SOURCE_DIR}/luna/config.h
+        ${PROJECT_SOURCE_DIR}/luna/private/safer_times.h
+        ${PROJECT_SOURCE_DIR}/luna/private/file_helpers.h
+        ${PROJECT_SOURCE_DIR}/luna/private/cacheable_response.cpp
+        ${PROJECT_SOURCE_DIR}/luna/private/cacheable_response.h
+        ${PROJECT_SOURCE_DIR}/luna/private/response_renderer.cpp
+        ${PROJECT_SOURCE_DIR}/luna/private/response_renderer.h
+        ${PROJECT_SOURCE_DIR}/luna/router.cpp
+        ${PROJECT_SOURCE_DIR}/luna/router.h
+        ${PROJECT_SOURCE_DIR}/luna/optional.hpp
+        ${PROJECT_SOURCE_DIR}/luna/private/router_impl.h
         )
 
 add_library(${PROJECT_NAME} ${LIB_LUNA_SOURCE_FILES} luna/luna.h)

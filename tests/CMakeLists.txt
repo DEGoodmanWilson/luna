@@ -14,6 +14,7 @@
 
 
 add_executable(${PROJECT_NAME}_tests
+        ${LIB_LUNA_SOURCE_FILES}
         main.cpp
         basic_functioning.cpp
         advanced_functioning.cpp
@@ -37,4 +38,4 @@ add_executable(${PROJECT_NAME}_tests
         headers.cpp
         )
 
-target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME} ${CONAN_LIBS})
+target_link_libraries(${PROJECT_NAME}_tests ${CONAN_LIBS})
