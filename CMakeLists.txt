@@ -87,12 +87,14 @@ if (BUILD_LUNA_COVERAGE)
 endif()
 
 if (BUILD_LUNA_TESTS)
+
     message(STATUS "Building Luna with Tests")
-
-    add_definitions(-DLUNA_TESTING)
     add_definitions(-DLUNA_TESTING)
 
+    enable_testing()
     add_subdirectory(tests)
+    add_test(ALL_TESTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}_tests)
+
 endif ()
 
 

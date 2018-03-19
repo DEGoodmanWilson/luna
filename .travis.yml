@@ -24,29 +24,27 @@ osx: &osx
    language: generic
 matrix:
    include:
-#      - <<: *linux
-#        env: RUN_TESTS=1 CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
+        env: GENERATE_COVERAGE=1 CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
+        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
+        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7
+        env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
-        env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=lasote/conanclang39
+        env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=lasote/conanclang39 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
-        env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=lasote/conanclang40
+        env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=lasote/conanclang40 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *osx
         osx_image: xcode7.3
-        env: CONAN_APPLE_CLANG_VERSIONS=7.3
+        env: CONAN_APPLE_CLANG_VERSIONS=7.3 STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
       - <<: *osx
         osx_image: xcode8.3
-        env: CONAN_APPLE_CLANG_VERSIONS=8.1
+        env: CONAN_APPLE_CLANG_VERSIONS=8.1 STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
       - <<: *osx
         osx_image: xcode9
-        env: CONAN_APPLE_CLANG_VERSIONS=9.0
+        env: CONAN_APPLE_CLANG_VERSIONS=9.0 STATIC_ASSET_PATH=/Users/travis/build/DEGoodmanWilson/luna
 
 install:
   - chmod +x .travis/install.sh
@@ -55,3 +53,7 @@ install:
 script:
   - chmod +x .travis/run.sh
   - ./.travis/run.sh
+
+after_success:
+  - if [ "$GENERATE_COVERAGE" == "ON" ]; then bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9; fi
+

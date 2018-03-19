@@ -67,11 +67,14 @@ if __name__ == "__main__":
         reference=reference,
         upload=upload,
         remotes=[upload, bincrafters, vthiery],
-        # upload_only_when_stable=True,
+        upload_only_when_stable=True,
         stable_branch_pattern="stable/*")
 
-    # if os.getenv("RUN_TESTS", False) == 1:
-    # else:
     builder.add_common_builds(shared_option_name=name + ":shared")
+
+    for build in builder.items:
+        build.options["luna:build_luna_tests"] = True
+        if os.getenv("GENERATE_COVERAGE", False) == 1:
+            build.options["luna:build_luna_coverage"] = True
 
     builder.run()

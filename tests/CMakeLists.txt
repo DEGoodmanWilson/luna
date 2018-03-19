@@ -12,11 +12,8 @@
 #  Copyright © 2016–2017 D.E. Goodman-Wilson
 #
 
-cmake_minimum_required(VERSION 3.2)
 
-enable_testing()
-
-add_executable(luna_tests
+add_executable(${PROJECT_NAME}_tests
         main.cpp
         basic_functioning.cpp
         advanced_functioning.cpp
@@ -40,6 +37,4 @@ add_executable(luna_tests
         headers.cpp
         )
 
-target_link_libraries(luna_tests luna ${CONAN_LIBS})
-
-add_test(luna ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/luna_tests)
+target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME} ${CONAN_LIBS})
