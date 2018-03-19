@@ -38,4 +38,9 @@ add_executable(${PROJECT_NAME}_tests
         headers.cpp
         )
 
+FOREACH(LETTER ${CONAN_LIBS})
+    MESSAGE(STATUS "${LETTER}")
+ENDFOREACH()
+
+
 target_link_libraries(${PROJECT_NAME}_tests ${CONAN_LIBS})
