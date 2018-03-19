@@ -86,25 +86,12 @@ if (BUILD_LUNA_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 --coverage")
 endif()
 
-if (BUILD_LUNA_TESTS)
 
-    message(STATUS "Building Luna with Tests")
-    add_definitions(-DLUNA_TESTING)
-
-    enable_testing()
-    add_subdirectory(tests)
-    add_test(ALL_TESTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}_tests)
-
-endif ()
-
-
-if (BUILD_LUNA_EXAMPLES)
-    message(STATUS "Building Luna with Examples")
-
-    add_subdirectory(examples)
-endif ()
 
 ##### luna
+if (BUILD_LUNA_TESTS)
+    add_definitions(-DLUNA_TESTING)
+endif ()
 
 set(LIB_LUNA_SOURCE_FILES
         luna/private/safer_times.cpp
@@ -128,6 +115,28 @@ set(LIB_LUNA_SOURCE_FILES
         luna/private/router_impl.h
         )
 
-add_library(luna ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
+add_library(${PROJECT_NAME} ${LIB_LUNA_SOURCE_FILES} luna/luna.h)
 
-target_link_libraries(luna ${CONAN_LIBS})
+target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
+
+
+
+##### tests
+
+if (BUILD_LUNA_TESTS)
+    message(STATUS "Building Luna with Tests")
+
+    enable_testing()
+    add_subdirectory(tests)
+    add_test(ALL_TESTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}_tests)
+endif ()
+
+
+
+##### examples
+
+if (BUILD_LUNA_EXAMPLES)
+    message(STATUS "Building Luna with Examples")
+
+    add_subdirectory(examples)
+endif ()
