@@ -109,7 +109,7 @@ int main(void)
     // from here, everything is the same!
     // try reaching:
     // https://localhost:8442/hello_world
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(request_method::GET,
                           "/hello_world",
                           [](auto req) -> response

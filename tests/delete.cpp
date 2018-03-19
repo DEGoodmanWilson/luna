@@ -29,7 +29,7 @@ TEST(delete, default_404)
 TEST(delete, default_200)
 {
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::DELETE,
                           "/test",
                           [](auto req) -> luna::response

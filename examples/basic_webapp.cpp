@@ -80,7 +80,7 @@ int main(void)
 
     // Create a router for handling requests. We can add lots of routers if we like
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
 
     // Example 1: Let's serve some content on /hello_world using a function pointer.
     router->handle_request(request_method::GET, "/function_pointer", &hello_world_func);

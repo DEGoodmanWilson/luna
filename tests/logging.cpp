@@ -90,7 +90,7 @@ TEST(access_logging, integration_test)
 
     luna::server server;
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response

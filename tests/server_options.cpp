@@ -28,7 +28,7 @@ TEST(server_options, set_mime_type)
 {
     luna::server server{};
 
-    auto router{server.create_router()};
+    auto router = server.create_router();
     router->set_mime_type("howdyho");
 
     router->handle_request(luna::request_method::GET,
@@ -61,7 +61,7 @@ TEST(server_options, set_accept_policy_cb)
                                 }
     };
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
@@ -87,7 +87,7 @@ TEST(server_options, set_unescaper_cb)
                                 }
     };
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
@@ -110,7 +110,7 @@ TEST(server_options, set_thread_pool_size)
 
     luna::server server{luna::server::thread_pool_size{thread_pool_size}};
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
@@ -152,7 +152,7 @@ TEST(server_options, use_thread_per_connection)
 
     luna::server server{luna::server::use_thread_per_connection{true}};
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
@@ -195,7 +195,7 @@ TEST(server_options, set_connection_limit)
 
     luna::server server{luna::server::connection_limit{2}, luna::server::thread_pool_size{5}};
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
                           "/test",
                           [&count, &max_count, &mutex](auto req) -> luna::response

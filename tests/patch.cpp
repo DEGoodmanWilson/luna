@@ -30,7 +30,7 @@ TEST(patch, default_404)
 TEST(patch, default_200)
 {
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response
@@ -48,7 +48,7 @@ TEST(patch, default_200)
 TEST(patch, default_200_check_params)
 {
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response

@@ -30,7 +30,7 @@ TEST(options, default_200)
 {
     luna::server server;
 
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
     router->handle_request(luna::request_method::OPTIONS,
                           "/test",
                           [](auto req) -> luna::response

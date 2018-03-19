@@ -25,7 +25,7 @@ TEST(crashers, 1_logging)
                            });
 
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
 
     router->handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
@@ -45,7 +45,7 @@ TEST(crashers, 2_query_params_with_no_values)
 {
 
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
 
     router->handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
@@ -69,7 +69,7 @@ TEST(crashers, 2_query_params_with_no_values)
 TEST(crashers, 2_query_params_with_no_values_post)
 {
     luna::server server;
-    auto router{server.create_router("/")};
+    auto router = server.create_router("/");
 
     router->handle_request(luna::request_method::POST, "/hello", [](auto req) -> luna::response
     {
