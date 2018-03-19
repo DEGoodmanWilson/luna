@@ -28,16 +28,15 @@ TEST(delete, default_404)
 
 TEST(delete, default_200)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::DELETE,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::DELETE,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Delete(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{});

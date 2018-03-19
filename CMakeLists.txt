@@ -123,7 +123,6 @@ set(LIB_LUNA_SOURCE_FILES
         luna/router.cpp
         luna/router.h
         luna/optional.hpp
-        luna/private/router_impl.cpp
         luna/private/router_impl.h
         )
 

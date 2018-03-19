@@ -26,18 +26,18 @@ using namespace std::chrono_literals;
 
 TEST(server_options, set_mime_type)
 {
-    luna::router router;
-    router.set_mime_type("howdyho");
+    luna::server server{};
 
-    router.handle_request(luna::request_method::GET,
+    auto router{server.create_router()};
+    router->set_mime_type("howdyho");
+
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server{};
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -49,14 +49,6 @@ TEST(server_options, set_mime_type)
 
 TEST(server_options, set_accept_policy_cb)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::POST,
-                          "/test",
-                          [](auto req) -> luna::response
-                          {
-                              return {"hello"};
-                          });
-
     luna::server server{luna::server::accept_policy_cb
                                 {
                                         [](const struct sockaddr *add, socklen_t len) -> bool
@@ -68,7 +60,15 @@ TEST(server_options, set_accept_policy_cb)
                                         }
                                 }
     };
-    server.add_router(router);
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::POST,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              return {"hello"};
+                          });
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -77,15 +77,6 @@ TEST(server_options, set_accept_policy_cb)
 
 TEST(server_options, set_unescaper_cb)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
-                          "/test",
-                          [](auto req) -> luna::response
-                          {
-                              EXPECT_EQ("ugh", req.params["key"]);
-                              return {req.params["key"]};
-                          });
-
     luna::server server{luna::server::unescaper_cb
                                 {
                                         [](const std::string &text) -> std::string
@@ -95,7 +86,16 @@ TEST(server_options, set_unescaper_cb)
                                         }
                                 }
     };
-    server.add_router(router);
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
+                          "/test",
+                          [](auto req) -> luna::response
+                          {
+                              EXPECT_EQ("ugh", req.params["key"]);
+                              return {req.params["key"]};
+                          });
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -108,8 +108,10 @@ TEST(server_options, set_thread_pool_size)
     std::mutex mutex;
     const int thread_pool_size{5};
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::thread_pool_size{thread_pool_size}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
                           {
@@ -122,8 +124,6 @@ TEST(server_options, set_thread_pool_size)
                               return {"Hello"};
                           });
 
-    luna::server server{luna::server::thread_pool_size{thread_pool_size}};
-    server.add_router(router);
     server.start_async();
 
     const int thread_count{50};
@@ -150,8 +150,10 @@ TEST(server_options, use_thread_per_connection)
     std::map<std::thread::id, uint16_t> thread_counter;
     std::mutex mutex;
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::use_thread_per_connection{true}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [&thread_counter, &mutex](auto req) -> luna::response
                           {
@@ -164,8 +166,6 @@ TEST(server_options, use_thread_per_connection)
                               return {"Hello"};
                           });
 
-    luna::server server{luna::server::use_thread_per_connection{true}};
-    server.add_router(router);
     server.start_async();
 
     const int thread_count{50};
@@ -193,8 +193,10 @@ TEST(server_options, set_connection_limit)
     uint8_t max_count = 0;
     std::mutex mutex;
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::connection_limit{2}, luna::server::thread_pool_size{5}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [&count, &max_count, &mutex](auto req) -> luna::response
                           {
@@ -211,8 +213,6 @@ TEST(server_options, set_connection_limit)
                               return {"Hello"};
                           });
 
-    luna::server server{luna::server::connection_limit{2}, luna::server::thread_pool_size{5}};
-    server.add_router(router);
     server.start_async();
 
     std::thread threads[10];

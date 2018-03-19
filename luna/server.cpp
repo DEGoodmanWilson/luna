@@ -202,9 +202,11 @@ uint16_t server::get_port()
     return impl_->port_;
 }
 
-void server::add_router(const router &router)
+std::shared_ptr<router> server::create_router(std::string route_base)
 {
-    impl_->routers_.emplace_back(router);
+    std::shared_ptr<router> r{new router{route_base}};
+    impl_->routers_.emplace_back(r);
+    return r;
 }
 
 ///// options setting

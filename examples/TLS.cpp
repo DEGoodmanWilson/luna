@@ -109,15 +109,13 @@ int main(void)
     // from here, everything is the same!
     // try reaching:
     // https://localhost:8442/hello_world
-    router router{"/"};
-    router.handle_request(request_method::GET,
+    auto router{server.create_router("/")};
+    router->handle_request(request_method::GET,
                           "/hello_world",
                           [](auto req) -> response
                               {
                                   return {"<h1>Hello, World!</h1>"};
                               });
-
-    server.add_router(router);
 
     // Block until the server shuts down, which is never. We could also do other things with this thread as well.
     server.start(8443);

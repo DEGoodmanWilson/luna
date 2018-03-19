@@ -88,16 +88,16 @@ TEST(access_logging, integration_test)
                                error_log_str = message;
                            });
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     ASSERT_EQ("Luna server created on port 8080", error_log_str);

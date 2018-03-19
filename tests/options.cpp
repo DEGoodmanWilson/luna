@@ -28,16 +28,16 @@ TEST(options, default_404)
 
 TEST(options, default_200)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::OPTIONS,
+    luna::server server;
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::OPTIONS,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Options(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{});

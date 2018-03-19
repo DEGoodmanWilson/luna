@@ -19,16 +19,15 @@
 
 TEST(advanced_functioning, get_basic_regexes)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
                           [](auto req) -> luna::response
                           {
                               return {req.matches[1]};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     std::string path = "test";
@@ -39,16 +38,15 @@ TEST(advanced_functioning, get_basic_regexes)
 
 TEST(advanced_functioning, get_basic_regexes_2)
 {
-    luna::router router{"/api/v1"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/api/v1")};
+    router->handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
                           [](auto req) -> luna::response
                           {
                               return {req.matches[1]};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     std::string path = "test";
@@ -59,16 +57,15 @@ TEST(advanced_functioning, get_basic_regexes_2)
 
 TEST(advanced_functioning, post_basic_regexes)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::POST,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::POST,
                           "/([a-zA-Z0-9]*)",
                           [](auto req) -> luna::response
                           {
                               return {req.matches[1]};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     std::string path = "test";
@@ -81,9 +78,10 @@ TEST(advanced_functioning, post_basic_regexes)
 TEST(advanced_functioning, putting_it_together)
 {
     std::set<std::string> docs;
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::GET,
+    router->handle_request(luna::request_method::GET,
                           "/([a-zA-Z0-9]*)",
                           [&](auto req) -> luna::response
                           {
@@ -92,7 +90,7 @@ TEST(advanced_functioning, putting_it_together)
                               return {404};
                           });
 
-    router.handle_request(luna::request_method::POST,
+    router->handle_request(luna::request_method::POST,
                           "/([a-zA-Z0-9]*)",
                           [&](auto req) -> luna::response
                           {
@@ -100,8 +98,6 @@ TEST(advanced_functioning, putting_it_together)
                               return {201};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     std::string path{"foobar"};
@@ -117,22 +113,21 @@ TEST(advanced_functioning, putting_it_together)
 
 TEST(advanced_functioning, permanent_redirect)
 {
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::GET, "/redirect",
+    router->handle_request(luna::request_method::GET, "/redirect",
                           [](auto req) -> luna::response
                           {
                               return {301, luna::response::URI{"/foobar"}};
                           });
 
-    router.handle_request(luna::request_method::GET, "/foobar",
+    router->handle_request(luna::request_method::GET, "/foobar",
                           [](auto req) -> luna::response
                           {
                               return {"bazqux"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/redirect"});
@@ -142,22 +137,21 @@ TEST(advanced_functioning, permanent_redirect)
 
 TEST(advanced_functioning, temporary_redirect)
 {
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::GET, "/redirect",
+    router->handle_request(luna::request_method::GET, "/redirect",
                           [](auto req) -> luna::response
                           {
                               return {307, luna::response::URI{"/foobar"}};
                           });
 
-    router.handle_request(luna::request_method::GET, "/foobar",
+    router->handle_request(luna::request_method::GET, "/foobar",
                           [](auto req) -> luna::response
                           {
                               return {"bazqux"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/redirect"});
@@ -168,9 +162,10 @@ TEST(advanced_functioning, temporary_redirect)
 TEST(advanced_functioning, get_and_post)
 {
     // POST params prevent GET params from being parsed. Weirdly. They just go away.
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::POST,
+    router->handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -180,8 +175,6 @@ TEST(advanced_functioning, get_and_post)
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test?key1=1"}, cpr::Payload{{"key2", "2"}});
@@ -192,6 +185,7 @@ TEST(advanced_functioning, get_and_post)
 TEST(advanced_functioning, default_server_errors_404)
 {
     luna::server server;
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -201,16 +195,15 @@ TEST(advanced_functioning, default_server_errors_404)
 
 TEST(advanced_functioning, default_server_errors_500)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {500, "Foobar"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -220,8 +213,9 @@ TEST(advanced_functioning, default_server_errors_500)
 
 TEST(advanced_functioning, actual_server_errors)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -229,8 +223,6 @@ TEST(advanced_functioning, actual_server_errors)
                               return {}; //never hit
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -240,8 +232,9 @@ TEST(advanced_functioning, actual_server_errors)
 
 TEST(advanced_functioning, actual_server_errors2)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -249,8 +242,6 @@ TEST(advanced_functioning, actual_server_errors2)
                               return {}; //never hit
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -262,16 +253,15 @@ TEST(advanced_functioning, actual_server_errors2)
 
 TEST(advanced_functioning, check_arbitrary_headers)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("foo"));
         EXPECT_EQ("bar", req.headers.at("foo"));
         return {req.headers.at("foo")};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"foo", "bar"}});
@@ -281,8 +271,9 @@ TEST(advanced_functioning, check_arbitrary_headers)
 
 TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET, "/test", [](const luna::request &req) -> luna::response
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET, "/test", [](const luna::request &req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("heLLo"));
         EXPECT_EQ(1, req.headers.count("HELLO"));
@@ -292,8 +283,6 @@ TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
         return {200, luna::request_headers{{"gOOdbye", "yes"}}};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"heLLo", "yes"}});
@@ -305,16 +294,15 @@ TEST(advanced_functioning, check_arbitrary_headers_case_insensitive)
 
 TEST(advanced_functioning, response_headers)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET, "/test", [](auto req) -> luna::response
     {
         EXPECT_EQ(1, req.headers.count("foo"));
         EXPECT_EQ("bar", req.headers.at("foo"));
         return {req.headers};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Header{{"foo", "bar"}});
@@ -325,16 +313,15 @@ TEST(advanced_functioning, response_headers)
 //TODO NOTICE that this test behaves differently on Linux and non-Linux
 TEST(advanced_functioning, use_epoll)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::use_epoll_if_available{true}};
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server{luna::server::use_epoll_if_available{true}};
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -386,8 +373,9 @@ TEST(advanced_functioning, epoll_thread_per_connection_collision_2)
 
 TEST(advanced_functioning, non_null_server_string_version)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -395,8 +383,6 @@ TEST(advanced_functioning, non_null_server_string_version)
                           });
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
@@ -407,8 +393,9 @@ TEST(advanced_functioning, non_null_server_string_version)
 
 TEST(advanced_functioning, default_server_string)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -416,8 +403,6 @@ TEST(advanced_functioning, default_server_string)
                           });
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -429,8 +414,10 @@ TEST(advanced_functioning, default_server_string)
 
 TEST(advanced_functioning, custom_server_string)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::server_identifier{"foobar"}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -438,8 +425,6 @@ TEST(advanced_functioning, custom_server_string)
                           });
 
 
-    luna::server server{luna::server::server_identifier{"foobar"}};
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -448,8 +433,10 @@ TEST(advanced_functioning, custom_server_string)
 
 TEST(advanced_functioning, append_server_string)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::append_to_server_identifier{"foobar"}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -457,8 +444,6 @@ TEST(advanced_functioning, append_server_string)
                           });
 
 
-    luna::server server{luna::server::append_to_server_identifier{"foobar"}};
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -473,15 +458,16 @@ TEST(advanced_functioning, append_server_string)
 TEST(file_service, check_paths_1)
 {
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/.*",
                           [](auto req) -> luna::response
                           {
                               return {"first"};
                           });
 
-    router.handle_request(luna::request_method::GET,
+    router->handle_request(luna::request_method::GET,
                           "/second",
                           [](auto req) -> luna::response
                           {
@@ -489,8 +475,6 @@ TEST(file_service, check_paths_1)
                           });
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
@@ -505,15 +489,16 @@ TEST(file_service, check_paths_1)
 TEST(file_service, check_paths_2)
 {
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/second",
                           [](auto req) -> luna::response
                           {
                               return {"second"};
                           });
 
-    router.handle_request(luna::request_method::GET,
+    router->handle_request(luna::request_method::GET,
                           "/.*",
                           [](auto req) -> luna::response
                           {
@@ -521,8 +506,6 @@ TEST(file_service, check_paths_2)
                           });
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
@@ -538,13 +521,14 @@ TEST(file_service, check_paths_2)
 TEST(file_service, check_paths_4)
 {
 
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    router.serve_files("/", path + "/tests/public");
+    router->serve_files("/", path + "/tests/public");
 
 
-    router.handle_request(luna::request_method::GET,
+    router->handle_request(luna::request_method::GET,
                           "/second",
                           [](auto req) -> luna::response
                           {
@@ -552,8 +536,6 @@ TEST(file_service, check_paths_4)
                           });
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
@@ -568,8 +550,9 @@ TEST(file_service, check_paths_3)
 {
 
 
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/first",
                           [](auto req) -> luna::response
                           {
@@ -577,11 +560,9 @@ TEST(file_service, check_paths_3)
                           });
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    router.serve_files("/", path + "/tests/public");
+    router->serve_files("/", path + "/tests/public");
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});

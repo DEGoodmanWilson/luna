@@ -24,11 +24,10 @@
 TEST(file_service, serve_file_404)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/foobar.txt"});
@@ -38,11 +37,10 @@ TEST(file_service, serve_file_404)
 TEST(file_service, serve_text_file)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
@@ -54,11 +52,10 @@ TEST(file_service, serve_text_file_2)
 {
     std::string mount{"/"};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files(mount, path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files(mount, path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
@@ -69,11 +66,10 @@ TEST(file_service, serve_text_file_2)
 TEST(file_service, serve_html_file)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
@@ -84,11 +80,10 @@ TEST(file_service, serve_html_file)
 TEST(file_service, serve_binary_file)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/luna.jpg"});
@@ -100,8 +95,9 @@ TEST(file_service, serve_binary_file)
 
 TEST(file_service, self_serve_html_file)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
@@ -110,8 +106,6 @@ TEST(file_service, self_serve_html_file)
                               return luna::response::from_file(full_path);
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
@@ -121,8 +115,9 @@ TEST(file_service, self_serve_html_file)
 
 TEST(file_service, self_serve_html_file_override_mime_type)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
@@ -133,8 +128,6 @@ TEST(file_service, self_serve_html_file_override_mime_type)
                               return resp;
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.html"});
@@ -145,11 +138,10 @@ TEST(file_service, self_serve_html_file_override_mime_type)
 TEST(file_service, css_has_its_own_mime_issues)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.css"});
@@ -159,11 +151,10 @@ TEST(file_service, css_has_its_own_mime_issues)
 TEST(file_service, js_has_its_own_mime_issues)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.js"});
@@ -173,11 +164,10 @@ TEST(file_service, js_has_its_own_mime_issues)
 TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test/"});
@@ -189,11 +179,10 @@ TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 TEST(file_service, directory_is_alias_for_index_html)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
@@ -205,11 +194,10 @@ TEST(file_service, directory_is_alias_for_index_html)
 TEST(file_service, empty_dir_with_trailing_slash_throws_404)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/empty/"});
@@ -219,11 +207,10 @@ TEST(file_service, empty_dir_with_trailing_slash_throws_404)
 TEST(file_service, empty_dir_throws_404)
 {
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
-
     luna::server server;
-    server.add_router(router);
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
+
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/empty"});

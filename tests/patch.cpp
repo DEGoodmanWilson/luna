@@ -19,8 +19,8 @@
 
 TEST(patch, default_404)
 {
-
     luna::server server;
+
     server.start_async();
 
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/"});
@@ -29,16 +29,15 @@ TEST(patch, default_404)
 
 TEST(patch, default_200)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::PATCH,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{});
@@ -48,8 +47,9 @@ TEST(patch, default_200)
 
 TEST(patch, default_200_check_params)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::PATCH,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::PATCH,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -60,8 +60,6 @@ TEST(patch, default_200_check_params)
                                   return {"hello"};
                               });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Patch(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key2", ""}, {"key", "value"}});

@@ -125,7 +125,7 @@ public:
 
 
     // request handling and response generation
-    std::vector<router> routers_;
+    std::vector<std::shared_ptr<router>> routers_;
     response_renderer response_renderer_;
 };
 

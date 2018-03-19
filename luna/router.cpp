@@ -15,6 +15,7 @@
 #include "router.h"
 #include "luna/private/router_impl.h"
 #include "luna/config.h"
+#include "server.h"
 #include <mutex>
 
 namespace luna

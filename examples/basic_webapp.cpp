@@ -75,21 +75,24 @@ int main(void)
     set_access_logger(ex_access_log);
 
 
+    // Create the server
+    server server{server::enable_internal_file_cache{true}};
+
     // Create a router for handling requests. We can add lots of routers if we like
 
-    luna::router router{"/"};
+    auto router{server.create_router("/")};
 
     // Example 1: Let's serve some content on /hello_world using a function pointer.
-    router.handle_request(request_method::GET, "/function_pointer", &hello_world_func);
+    router->handle_request(request_method::GET, "/function_pointer", &hello_world_func);
 
     // Example 2: We can do the same thing with a class method
     hello_world_class instance;
-    router.handle_request(request_method::GET,
+    router->handle_request(request_method::GET,
                           "/class_method",
                           std::bind(&hello_world_class::method, &instance, std::placeholders::_1));
 
     // Example 3: We can even use lambdas, of course
-    router.handle_request(request_method::GET, "/lambda", [](const request &req) -> response
+    router->handle_request(request_method::GET, "/lambda", [](const request &req) -> response
     {
         return {"<h1>Hello, World</h1><p>from a lambda</p>"};
     });
@@ -98,7 +101,7 @@ int main(void)
     // Let's just use lambdas for this.
     // Also, you can see that a good templating engine will go a long way. Luna does not supply a templating engine.
     // http://localhost:8443/parameters?foo=bar&baz=qux
-    router.handle_request(request_method::GET, "/parameters", [](const request &req) -> response
+    router->handle_request(request_method::GET, "/parameters", [](const request &req) -> response
     {
         std::stringstream page;
         page << "<h1>Hello, World</h1>\n";
@@ -129,24 +132,19 @@ int main(void)
     // http://localhost:8443/static/luna.jpg
     // Let's out this on a different router, just to show how that works too
 
-    luna::router file_router{"/static"}; //serve everything relative to the path "/static"
-    file_router.add_header("static-files", "hell yes"); //add a header to all responses from this router.
-    file_router.serve_files("/", "tests/public");
+    auto file_router{server.create_router("/static")}; //serve everything relative to the path "/static"
+    file_router->add_header("static-files", "hell yes"); //add a header to all responses from this router->
+    file_router->serve_files("/", "tests/public");
 
 
     // Example 6: Serving up additional endpoints from a separate base URL
 
-    luna::router api_router{"/api"};
-    api_router.handle_request(luna::request_method::GET, "/user", [](const request &req) -> response {
+    auto api_router{server.create_router("/api")};
+    api_router->handle_request(luna::request_method::GET, "/user", [](const request &req) -> response {
         return {200, "{\"name\": \"Don\",\n\"ID\": \"123\"}"};
     });
 
     // Start the server on port 8443
-    server server{server::enable_internal_file_cache{true}};
-    server.add_router(router);
-    server.add_router(file_router);
-    server.add_router(api_router);
-
     // Block until the server shuts down, which is never. We could also do other things with this thread as well.
     server.start(8443);
 

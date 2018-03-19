@@ -103,16 +103,16 @@ inEd1GNE/Xh+75LqCFaFjZeY0Pd7RXQ2qYvTe3eG/3cpnTUJoC0aN7K3AU9XqK0L
 
 TEST(tls, set_up_https)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
+
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
 
-    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
-    server.add_router(router);
     server.start_async();
 
     ASSERT_TRUE(static_cast<bool>(server));

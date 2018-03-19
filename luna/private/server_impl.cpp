@@ -240,7 +240,7 @@ int server::server_impl::access_handler_callback_(struct MHD_Connection *connect
     std::unique_lock<std::mutex> ulock{lock_};
     for (auto &router : routers_)
     {
-        response = router.process_request(request);
+        response = router->process_request(request);
         if(response)
         {
             break;

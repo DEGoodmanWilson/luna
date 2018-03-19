@@ -29,16 +29,15 @@ TEST(put, default_404)
 
 TEST(put, default_200)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::PUT,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Put(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{});
@@ -48,8 +47,9 @@ TEST(put, default_200)
 
 TEST(put, default_200_check_params)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::PUT,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::PUT,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -60,8 +60,6 @@ TEST(put, default_200_check_params)
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Put(cpr::Url{"http://localhost:8080/test"},

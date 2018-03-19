@@ -24,15 +24,14 @@ TEST(crashers, 1_logging)
                                std::cout << mesg << std::endl;
                            });
 
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
+    router->handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
         return {"hello"};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"});
@@ -45,9 +44,10 @@ TEST(crashers, 1_logging)
 TEST(crashers, 2_query_params_with_no_values)
 {
 
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
+    router->handle_request(luna::request_method::GET, "/hello", [](auto req) -> luna::response
     {
         EXPECT_EQ(2, req.params.size());
         EXPECT_EQ(1, req.params.count("key1"));
@@ -57,8 +57,6 @@ TEST(crashers, 2_query_params_with_no_values)
         return {"hello"};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/hello"},
@@ -70,9 +68,10 @@ TEST(crashers, 2_query_params_with_no_values)
 
 TEST(crashers, 2_query_params_with_no_values_post)
 {
-    luna::router router{"/"};
+    luna::server server;
+    auto router{server.create_router("/")};
 
-    router.handle_request(luna::request_method::POST, "/hello", [](auto req) -> luna::response
+    router->handle_request(luna::request_method::POST, "/hello", [](auto req) -> luna::response
     {
         EXPECT_EQ(2, req.params.size());
         EXPECT_EQ(1, req.params.count("key1"));
@@ -82,8 +81,6 @@ TEST(crashers, 2_query_params_with_no_values_post)
         return {"hello"};
     });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/hello"},

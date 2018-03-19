@@ -53,16 +53,15 @@ TEST(basic_functioning, default_404)
 
 TEST(basic_functioning, default_200_with_get)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
@@ -71,16 +70,15 @@ TEST(basic_functioning, default_200_with_get)
 
 TEST(basic_functioning, default_200_with_get_complex_path)
 {
-    luna::router router{"/first"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/first")};
+    router->handle_request(luna::request_method::GET,
                           "/second",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/first/second"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
@@ -89,8 +87,9 @@ TEST(basic_functioning, default_200_with_get_complex_path)
 
 TEST(basic_functioning, default_200_with_get_check_params)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -98,8 +97,6 @@ TEST(basic_functioning, default_200_with_get_check_params)
                                   EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
@@ -108,15 +105,14 @@ TEST(basic_functioning, default_200_with_get_check_params)
 
 TEST(basic_functioning, default_201_with_post)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::POST,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
                               {
                                   return {"hello"};
                               });
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}});
     ASSERT_EQ(201, res.status_code);
@@ -126,8 +122,9 @@ TEST(basic_functioning, default_201_with_post)
 
 TEST(basic_functioning, default_201_with_post_check_params)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::POST,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::POST,
                           "/test",
                           [](auto req) -> luna::response
                               {
@@ -135,8 +132,6 @@ TEST(basic_functioning, default_201_with_post_check_params)
                                   EXPECT_EQ("value", req.params.at("key"));
                                   return {"hello"};
                               });
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Payload{{"key", "value"}});
     ASSERT_EQ(201, res.status_code);
@@ -146,14 +141,13 @@ TEST(basic_functioning, default_201_with_post_check_params)
 
 TEST(basic_functioning, default_201_with_post_json_in_body)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::POST, "/test", [](auto req) -> luna::response
         {
             EXPECT_EQ("{\"key\": \"value\"}", req.body);
             return {"hello"};
         });
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test"}, cpr::Body{"{\"key\": \"value\"}"}, cpr::Header{{"Content-Type", "application/json"}});
     ASSERT_EQ(201, res.status_code);

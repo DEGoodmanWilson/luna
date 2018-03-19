@@ -19,17 +19,16 @@
 
 TEST(headers, add_header)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
                               return {"hello"};
                           });
-    router.add_header("foo", "bar");
+    router->add_header("foo", "bar");
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
@@ -40,8 +39,9 @@ TEST(headers, add_header)
 
 TEST(headers, add_header_override)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -49,10 +49,8 @@ TEST(headers, add_header_override)
                               res.headers["foo"] = "nope";
                               return res;
                           });
-    router.add_header("foo", "bar");
+    router->add_header("foo", "bar");
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
@@ -63,8 +61,9 @@ TEST(headers, add_header_override)
 
 TEST(headers, add_header_500)
 {
-    luna::router router{"/"};
-    router.handle_request(luna::request_method::GET,
+    luna::server server;
+    auto router{server.create_router("/")};
+    router->handle_request(luna::request_method::GET,
                           "/test",
                           [](auto req) -> luna::response
                           {
@@ -72,11 +71,9 @@ TEST(headers, add_header_500)
                               return {}; //never hit
                           });
 
-    router.add_header("foo", "bar");
+    router->add_header("foo", "bar");
 
 
-    luna::server server;
-    server.add_router(router);
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});

@@ -120,7 +120,7 @@ public:
 
     uint16_t get_port();
 
-    void add_router(const router &router);
+    std::shared_ptr<router> create_router(std::string route_base = "/");
 
     explicit operator bool();
 

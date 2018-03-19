@@ -29,8 +29,6 @@ class server;
 class router
 {
 public:
-    router(std::string route_base = "/");
-
     void set_mime_type(std::string mime_type);
 
     using endpoint_handler_cb = std::function<response (const request &req)>;
@@ -50,11 +48,16 @@ public:
     void add_header(std::string &&key, std::string &&value);
 
 protected:
-    // for use by the Server object
-    friend ::luna::server;
+    friend luna::server;
+
+    // protected constructor means the only way to ger a router is through server::create_router
+    router(std::string route_base = "/");
+
+    // for use by the server object
     OPT_NS::optional<luna::response> process_request(request &request);
 
 private:
+
     class router_impl;
     std::shared_ptr<router_impl> impl_;
 };

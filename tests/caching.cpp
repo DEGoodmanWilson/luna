@@ -25,10 +25,9 @@ TEST(fd_cacheing, hit_the_fd_cache)
 {
     luna::server server{luna::server::enable_internal_file_cache{true}};
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
 
-    server.add_router(router);
     server.start_async();
 
     // We can only test this indirectly, through speedups. This might be very unreliable.
@@ -63,10 +62,9 @@ TEST(fd_cacheing, test_cache_timeout)
                         luna::server::internal_file_cache_keep_alive{std::chrono::milliseconds{500}}};
 
     std::string path{std::getenv("STATIC_ASSET_PATH")};
-    luna::router router{"/"};
-    router.serve_files("/", path + "/tests/public");
+    auto router{server.create_router("/")};
+    router->serve_files("/", path + "/tests/public");
 
-    server.add_router(router);
     server.start_async();
 
     // We can only test this indirectly, through speedups. This might be very unreliable.
