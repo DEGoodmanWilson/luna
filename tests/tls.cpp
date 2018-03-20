@@ -109,7 +109,7 @@ TEST(tls, set_up_https)
                            });
 
 
-    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
+    luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}, luna::server::debug_output{true}};
 
     auto router = server.create_router("/");
     router->handle_request(luna::request_method::GET,
