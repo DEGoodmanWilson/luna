@@ -103,6 +103,12 @@ inEd1GNE/Xh+75LqCFaFjZeY0Pd7RXQ2qYvTe3eG/3cpnTUJoC0aN7K3AU9XqK0L
 
 TEST(tls, set_up_https)
 {
+    luna::set_error_logger([&](luna::log_level level, const std::string& message)
+                           {
+                               std::cout << ">>>>> [" << to_string(level) << "] " << message << std::endl;
+                           });
+
+
     luna::server server{luna::server::https_mem_key{key_pem}, luna::server::https_mem_cert{cert_pem}};
 
     auto router = server.create_router("/");
@@ -114,6 +120,8 @@ TEST(tls, set_up_https)
                               });
 
     server.start_async();
+
+    luna::reset_error_logger();
 
     ASSERT_TRUE(static_cast<bool>(server));
 
