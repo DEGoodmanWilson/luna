@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     for build in builder.items:
         build.options["luna:build_luna_tests"] = True
-        if os.getenv("GENERATE_COVERAGE", False) == 1:
+        if os.getenv("GENERATE_COVERAGE") != None:
             build.options["luna:build_luna_coverage"] = True
 
     builder.run()

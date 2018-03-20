@@ -56,12 +56,13 @@ class LunaConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        shared = "-DBUILD_SHARED_LIBS=ON" if self.options.shared else "-DBUILD_SHARED_LIBS=OFF"
-        build_luna_tests = "-DBUILD_LUNA_TESTS=ON" if self.options.build_luna_tests else "-DBUILD_LUNA_TESTS=OFF"
-        build_luna_coverage = "-DBUILD_LUNA_COVERAGE=ON" if self.options.build_luna_coverage else "-DBUILD_LUNA_COVERAGE=OFF"
-        build_luna_examples = "-DBUILD_LUNA_EXAMPLES=ON" if self.options.build_luna_examples else "-DBUILD_LUNA_EXAMPLES=OFF"
-        self.run('cmake %s %s %s %s "%s" %s' % (shared, build_luna_tests, build_luna_coverage, build_luna_examples, self.source_folder, cmake.command_line))
-        self.run('cmake --build . %s' % cmake.build_config)
+        cmake.configure(defs={
+            "BUILD_LUNA_TESTS": "ON" if self.options.build_luna_tests else "OFF",
+            "BUILD_LUNA_COVERAGE": "ON" if self.options.build_luna_coverage else "OFF",
+            "BUILD_LUNA_EXAMPLES": "ON" if self.options.build_luna_examples else "OFF"
+            })
+        cmake.build()
+        self.run('ctest . --verbose')
 
     def package(self):
         self.copy(pattern="*.h", dst="include/luna", src="luna")
@@ -73,4 +74,4 @@ class LunaConan(ConanFile):
         self.copy(pattern="*.dylib", dst="lib", src="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.libs = ['luna']

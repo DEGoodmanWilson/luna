@@ -25,7 +25,7 @@ osx: &osx
 matrix:
    include:
       - <<: *linux
-        env: GENERATE_COVERAGE=1 CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
+        env: GENERATE_COVERAGE=ON CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
         env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 STATIC_ASSET_PATH=/home/travis/build/DEGoodmanWilson/luna
       - <<: *linux
