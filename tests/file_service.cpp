@@ -23,7 +23,7 @@
 
 TEST(file_service, serve_file_404)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -36,7 +36,7 @@ TEST(file_service, serve_file_404)
 
 TEST(file_service, serve_text_file)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -51,7 +51,7 @@ TEST(file_service, serve_text_file)
 TEST(file_service, serve_text_file_2)
 {
     std::string mount{"/"};
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files(mount, path + "/tests/public");
@@ -65,7 +65,7 @@ TEST(file_service, serve_text_file_2)
 
 TEST(file_service, serve_html_file)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -79,7 +79,7 @@ TEST(file_service, serve_html_file)
 
 TEST(file_service, serve_binary_file)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -101,7 +101,7 @@ TEST(file_service, self_serve_html_file)
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
-                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string path{STATIC_ASSET_PATH};
                               std::string full_path = path + "/tests/public/test.html";
                               return luna::response::from_file(full_path);
                           });
@@ -121,7 +121,7 @@ TEST(file_service, self_serve_html_file_override_mime_type)
                           "/test.html",
                           [=](auto req) -> luna::response
                           {
-                              std::string path{std::getenv("STATIC_ASSET_PATH")};
+                              std::string path{STATIC_ASSET_PATH};
                               std::string full_path = path + "/tests/public/test.html";
                               luna::response resp = luna::response::from_file(full_path);
                               resp.content_type = "text/foobar";
@@ -137,7 +137,7 @@ TEST(file_service, self_serve_html_file_override_mime_type)
 
 TEST(file_service, css_has_its_own_mime_issues)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -150,7 +150,7 @@ TEST(file_service, css_has_its_own_mime_issues)
 
 TEST(file_service, js_has_its_own_mime_issues)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -163,7 +163,7 @@ TEST(file_service, js_has_its_own_mime_issues)
 
 TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -178,7 +178,7 @@ TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 
 TEST(file_service, directory_is_alias_for_index_html)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -193,7 +193,7 @@ TEST(file_service, directory_is_alias_for_index_html)
 
 TEST(file_service, empty_dir_with_trailing_slash_throws_404)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");
@@ -206,7 +206,7 @@ TEST(file_service, empty_dir_with_trailing_slash_throws_404)
 
 TEST(file_service, empty_dir_throws_404)
 {
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     luna::server server;
     auto router = server.create_router("/");
     router->serve_files("/", path + "/tests/public");

@@ -73,7 +73,6 @@ if __name__ == "__main__":
     builder.add_common_builds(shared_option_name=name + ":shared")
 
     for build in builder.items:
-        build.env_vars["STATIC_ASSET_PATH"] = os.getenv("STATIC_ASSET_PATH")
         build.options["luna:build_luna_tests"] = True
         if os.getenv("GENERATE_COVERAGE") != None:
             build.options["luna:build_luna_coverage"] = True

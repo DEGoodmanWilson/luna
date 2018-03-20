@@ -91,6 +91,7 @@ endif()
 ##### luna
 if (BUILD_LUNA_TESTS)
     add_definitions(-DLUNA_TESTING)
+    add_definitions(-DSTATIC_ASSET_PATH="${PROJECT_SOURCE_DIR}")
 endif ()
 
 set(LIB_LUNA_SOURCE_FILES

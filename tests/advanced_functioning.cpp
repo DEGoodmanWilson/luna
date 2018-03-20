@@ -524,7 +524,7 @@ TEST(file_service, check_paths_4)
     luna::server server;
     auto router = server.create_router("/");
 
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     router->serve_files("/", path + "/tests/public");
 
 
@@ -559,7 +559,7 @@ TEST(file_service, check_paths_3)
                               return {"first"};
                           });
 
-    std::string path{std::getenv("STATIC_ASSET_PATH")};
+    std::string path{STATIC_ASSET_PATH};
     router->serve_files("/", path + "/tests/public");
 
 
