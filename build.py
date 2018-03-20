@@ -72,9 +72,9 @@ if __name__ == "__main__":
 
     builder.add_common_builds(shared_option_name=name + ":shared")
 
-    for build in builder.items:
-        build.options["luna:build_luna_tests"] = True
-        if os.getenv("GENERATE_COVERAGE") != None:
-            build.options["luna:build_luna_coverage"] = True
+    #Only run tests on first build, the remaining don't need it.
+    builder.items[0].options["luna:build_luna_tests"] = True
+    if os.getenv("GENERATE_COVERAGE") != None:
+        builder.items[0]["luna:build_luna_coverage"] = True
 
     builder.run()
