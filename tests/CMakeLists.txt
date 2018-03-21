@@ -29,7 +29,7 @@ add_executable(${PROJECT_NAME}_tests
         safer_times.cpp
         file_service.cpp
         validation.cpp
-        middleware.cpp
+#        middleware.cpp
         logging.cpp
         options.cpp
         server_impl.cpp

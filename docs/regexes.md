@@ -10,7 +10,7 @@ Sometimes you want to use a regex to capture a range of endpoints in one go. For
 ```cpp
 auto router = server.create_router();
 
-router->handle_response(request_method::GET,
+router->handle_request(request_method::GET,
     "^/documents/(i[0-9a-f]{6})", 
     [](auto request) -> response
     {
@@ -25,7 +25,7 @@ Let us suppose that in our filesystem, we have a flat folder full of documents n
 ```cpp
 auto router = server.create_router();
 
-router->handle_response(request_method::GET,
+router->handle_request(request_method::GET,
     "^/documents/([0-9a-f]{6})", 
     [](auto request) -> response
     {

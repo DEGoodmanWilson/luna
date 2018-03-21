@@ -26,28 +26,29 @@ For example, to log messages to `stdout`, we could write a lambda:
 
 # Server configuration options
 
-As `luna::server` is the object through which all interactions happen, configuration options are set via the `server` contructor. The most important option may well be the port that your `server` object will listen on:
+As `luna::server` is the object through which all interactions happen, configuration options are set via the `server` constructor.
 
 ```cpp
 using namespace luna;
-server server_1{server::port{8446}};
-auto server_2 = std::make_unique<server>({server::port{8447}});
+server server_1{server::debug_output{true}};
+auto server_2 = std::make_unique<server>(server::debug_output{true});
 ```
 
 ## Named configuration options and ordering
 
 All options are passed to the `server` constructor using the _named option_ pattern: Each option is set using the option name, and the order that options are passed does not matter. Any options not explicitly set are given sensible defaults.
 
-As an example of the _named option_ pattern, let's configure a server on port 7000 and a default MIME type of `"text/json"`:
+As an example of the _named option_ pattern, let's configure a server with a connection timeout of 1,000ms, and debug output enabled:
 
 ```cpp
-server my_server{server::mime_type{"text/json"}, server::port{8446}};
+server my_server{server::connection_timeout{1000}, server::debug_output{true}};
 ```
 
 Because with the _named option_ pattern order doesn't matter, we could have just as easily said
 
 ```cpp
-server my_server{server::port{8446}, server::mime_type{"text/json"}};
+server my_server{server::debug_output{true}, server::connection_timeout{1000}};
+
 ```
 
 ## Options that are callbacks
@@ -55,26 +56,18 @@ server my_server{server::port{8446}, server::mime_type{"text/json"}};
 Some options are for configuring callbacks that you provide. These are easy to set up with C++ lambdas, `std::bind`, or
 even plain old function pointers.
 
-For example, `error_handler_cb` is an option for rendering custom error pages on, _e.g._ `404` errors.
+For example, `accept_policy_cb` is an option deciding when to accept or reject a connection.
  
 ```cpp
-void my_error_handler(response &response, request_method method, const std::string &path)
+bool reject_all_connections(const struct sockaddr *add, socklen_t len)
 {
-    //we'll render some simple HTML
-    response.content_type = "text/html; charset=UTF-8";
-    switch (response.status_code)
-    {
-    case 404:
-        response.content = "<h1>OH NOES THERE IS NOTHING HERE</h1>";
-        break;
-    default:
-        response.content = "<h1>Yikes!</h1>";
-    }
+    // reject all connections, regardless of origin:
+    return false;
 }
 
 ...
 
-server my_server{server::handler{&my_error_handler}};
+server my_server{server::accept_policy_cb{&reject_all_connections}};
 
 ```
 
@@ -82,19 +75,11 @@ server my_server{server::handler{&my_error_handler}};
 
 ## Common options
 
-- `port`: The port to run the HTTPD server on.
-    
-    Default: `8080`
-
-- `mime_type`: The default MIME type to serve up.
-
-    Default: `"text/html"`
-    
 - `debug_output`: Enable libmicrohttpd debugging. Under the covers, Luna is a wrapper around libmicrohttpd, and sometimes
   it is useful to turn this option on to debug why a server won't start. Of course, this option does nothing unless you
   have specified a [logging callback](#logger).
   
-    Default: `false`
+  Default: `false`
 
 ## HTTPS / TLS options
 

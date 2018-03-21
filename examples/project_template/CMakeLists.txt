@@ -12,11 +12,9 @@
 #  Copyright © 2016–2018 D.E. Goodman-Wilson
 #
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 
-set(PROJECT_NAME awesomesauce)
-
-project(${PROJECT_NAME})
+project(awesomesauce)
 
 set(CMAKE_CXX_STANDARD 14)
 

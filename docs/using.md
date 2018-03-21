@@ -70,18 +70,16 @@ First, let's install all of Luna's dependencies. The first time you do this, it 
 The first step is to add the remote host containing Luna to Conan. You'll only need to do this once, ever.
  
 ```shell
-conan remote add bincrafters -i 0 https://api.bintray.com/conan/bincrafters/public-conan
-conan remote add DEGoodmanWilson -i 0 https://api.bintray.com/conan/degoodmanwilson/opensource
-
+conan remote add vthiery https://api.bintray.com/conan/vthiery/conan-packages
+conan remote add degoodmanwilson https://api.bintray.com/conan/degoodmanwilson/opensource
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 ```
 
-Then install and build the dependencies like this.
+Then install and build the dependencies like this. The additional option at the end also creates the optional Luna examples.
 
 ```shell
-conan install -o build_luna_examples=True --build=missing
+conan install . -o build_luna_examples=True
 ```
-
-Grab a book, or go to lunch 😉
 
 Rest assured that there are pre-built Docker images that you can use in the future to avoid this long step when it comes time to deploy. We'll come to that in the next section.
 
@@ -90,7 +88,7 @@ Rest assured that there are pre-built Docker images that you can use in the futu
 Once conan has done its thing, we can use conan to also build the project. From the the project directory run:
 
 ```shell
-conan build
+conan build .
 ```
 
 ## Trying it out

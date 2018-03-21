@@ -40,7 +40,9 @@ int main()
     api->handle_request(request_method::GET, "/endpoint",
                        [](auto request) -> response
                        {
-                           return {"{\"made_it\": true}"};
+                           nlohmann::json retval;
+                           retval["made_it"] = true;
+                           return retval.dump();
                        });
 
     // File serving example; serve files from the assets folder on /

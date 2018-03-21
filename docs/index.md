@@ -61,10 +61,10 @@ int main(void)
     // Handle GET requests to "localhost:8080/endpoint"
     // Respond with a tiny bit of fun JSON
     api->handle_request(request_method::GET, "/endpoint",
-                       [](auto request) -> response
-                       {
-                           return {"{\"made_it\": true}"};
-                       });
+                        [](auto request) -> response
+                        {
+                            return {"{\"made_it\": true}"};
+                        });
 
     //start a server on port 8080;
     std::cout << "curl -v http://localhost:8080/endpoint" << std::endl;

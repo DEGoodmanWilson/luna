@@ -56,6 +56,8 @@ Of course, we could have generated this response dynamically, rather than specif
 The type `luna::query_params` is simply an alias for a key-value hash stored as an `std::map`. The keys and the values both are just `std:strings`. So, we might rewrite our request handler as such:
 
 ```cpp
+#include <sstream>
+
 response hello_world(const request &req)
 {
     std::stringstream body;
@@ -81,7 +83,7 @@ When setting up your response handlers, you can pass in a vector of `validator` 
 Suppose your method at `/hello_world` has a required parameter `name`, and that you don't care what is passed in. You can achieve this with:
 
 ```cpp
-router.handle_request(request_method::GET,
+router->handle_request(request_method::GET,
                       "/hello_world",
                       &hello_world,
                       {
@@ -89,14 +91,14 @@ router.handle_request(request_method::GET,
                       });
 ```
 
-Perhaps you _do_ care what a valid name looks like. Suppose you will only accept names that contain alphanumeric characters, space, periods, commas, and hyphens—the usual sorts of things you might see in someone's name. But you'd like to exclude semi-colons and other things that might leads to SQL injections.
+Perhaps you _do_ care what a valid name looks like. Suppose you will only accept names that contain alphanumeric characters, space, periods, commas, and hyphens—the usual sorts of things you might see in a western name (please consider that names might include other characters in your production app!). But you'd like to exclude semi-colons and other things that might leads to SQL injections.
  
 To do this, you can pass in the result of the `parameter::validate()` helper method. This handy method takes as a first parameter a function that takes a string (the query parameter to validate), and returns true if the parameter is valid, and false otherwise. Any subsequent parameters are passed on directly to the validation function when the endpoint is hit.
 
 In this case, we'll use the built-in regex validator, as such:
 
 ```cpp
-router.handle_request(request_method::GET,
+router->handle_request(request_method::GET,
                       "/hello_world",
                       &hello_world,
                       {
@@ -112,7 +114,7 @@ Luna offers two other built-in validators: One that validates only exact matches
 Of course, you can also write your own validation functions. Suppose we wanted to validate that a parameter is no longer than 10 characters. We could do that with a lambda:
 
 ```cpp
-router.handle_request(request_method::GET,
+router->handle_request(request_method::GET,
                       "/hello_world",
                       &hello_world,
                       {
@@ -141,13 +143,13 @@ The response object contains the status code representing the success or failure
 Not all HTTP servers respond with HTML. Many respond with, for example JSON or XML. You can specify a default MIME type for all responses from a `router` object:
 
 ```cpp
-    router.set_mime_type("text/json");
+    router->set_mime_type("application/json");
 ```
 
 Or you can specify MIME types per response in the response constructor, inside of your response handler function:
 
 ```cpp
-    return {"text/json", "{\"error\":\"not found\""}};
+    return {"application/json", "{\"error\":\"not found\"}"};
 ```
 
 ## Setting response headers
@@ -155,10 +157,15 @@ Or you can specify MIME types per response in the response constructor, inside o
 If you want to return a custom response header, you can include that in the response object as well, inside of your response handler function.
 
 ```cpp
-    return {"Hello!", {
-        {"My Header", "My Value"},
-        {"Another Header", "Another Value"}
-    }};
+    return {
+    // first the headers
+            {
+                    {"My Header", "My Value"},
+                    {"Another Header", "Another Value"},
+            },
+    // then the response body
+            "Hello!"
+    };
 ```
 
 ----

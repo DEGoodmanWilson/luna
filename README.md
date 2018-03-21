@@ -29,20 +29,21 @@ using namespace luna;
 int main(void)
 {
     //start a server delivering JSON by default on the default port 8080
-    server server{
-        server::mime_type{"application/json"}, //the default is "text/html; charset=UTF-8"
-    };
+    server server;
 
     // Handle GET requests to "localhost:8080/endpoint"
     // Respond with a tiny bit of fun JSON
     auto router = server.create_router("/");
+
+    router->set_mime_type("application/json"); //the default is "text/html; charset=UTF-8"
+
     router->handle_request(request_method::GET, "/endpoint",
                           [](auto request) -> response
     {
         return {"{\"made_it\": true}"};
     });
 
-    server.await(); //run forever, basically, or until the server decides to kill itself.
+    server.start(); //run forever, basically, or until the server decides to kill itself.
 }
 ```
 

@@ -13,10 +13,18 @@ Let's build a project called `awesomesauce` (because I'm feeling super creative 
 
 First, copy the folder `examples/project_template` to its own folder, `foobar`, located somewhere handy.
 
-From a terminal window, let's install the dependencies.
+From a terminal window, let's install the dependencies. First, we need to set up the necessary repositories for conan to search:
 
 ```shell
-conan install --build=missing
+conan remote add vthiery https://api.bintray.com/conan/vthiery/conan-packages
+conan remote add degoodmanwilson https://api.bintray.com/conan/degoodmanwilson/opensource
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+```
+
+Then we can install the dependencies themselves. All of Luna's dependencies are pre-built for Linux and OSX.
+
+```shell
+conan install .
 ```
 
 This might take a while, that's OK. You only need to build the dependencies once.
