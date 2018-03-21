@@ -35,7 +35,8 @@ int main(void)
 
     // Handle GET requests to "localhost:8080/endpoint"
     // Respond with a tiny bit of fun JSON
-    server.handle_request(request_method::GET, "/endpoint",
+    auto router = server.create_router("/");
+    router->handle_request(request_method::GET, "/endpoint",
                           [](auto request) -> response
     {
         return {"{\"made_it\": true}"};

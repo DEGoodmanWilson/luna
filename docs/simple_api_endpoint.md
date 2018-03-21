@@ -34,14 +34,13 @@ Now, let's create a `luna::router` to route this request handler, and attach the
 ```cpp
 int main(void)
 {
-    router router;
+    server server;
+    auto router = server.create_router();
     
-    router.handle_request(request_method::GET,
+    router->handle_request(request_method::GET,
                           "/hello_world",
                           &hello_world);
 
-    server server;
-    server.add_router(router);
     server.start(8443); //run forever, basically, or until the server decides to kill itself.
 }
 ```

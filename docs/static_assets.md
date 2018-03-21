@@ -28,15 +28,14 @@ using namespace luna;
 
 int main(void)
 {
-    luna router assets{"/static"}; // set the base endpoint for all files to "/static"
+    luna::server server;
+
+    auto assets = server.create_router("/static"); // set the base endpoint for all files to "/static"
     
     // first param is the endpoint to serve from (relative to "/static")
     // second param is path in the filesystem to mount 
-    assets.serve_files("/", "/var/www/public");
+    assets->serve_files("/", "/var/www/public");
 
-    luna::server server;
-    server.add_router(assets);
-    
     server.start(8443);
 }
 ```
@@ -54,10 +53,12 @@ using namespace luna;
 
 int main(void)
 {
-    router assets;
+    server server;
+
+    auto assets = server.create_router();
 
     // Handle a request to load `ginormous.jpg`, which is too big to fit into memory
-    assets.handle_request(request_method::GET,
+    assets->handle_request(request_method::GET,
                           "/ginormous.jpg",
                           [](auto req) -> response
                           {
@@ -70,10 +71,6 @@ int main(void)
                               return resp;
                           });
                           
-    server server;
-    
-    server.add_router(assets);
-
     server.start(8443);
 }
 ```

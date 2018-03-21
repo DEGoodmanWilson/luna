@@ -132,14 +132,14 @@ int main(void)
     // http://localhost:8443/static/luna.jpg
     // Let's out this on a different router, just to show how that works too
 
-    auto file_router{server.create_router("/static")}; //serve everything relative to the path "/static"
+    auto file_router = server.create_router("/static"); //serve everything relative to the path "/static"
     file_router->add_header("static-files", "hell yes"); //add a header to all responses from this router->
     file_router->serve_files("/", "tests/public");
 
 
     // Example 6: Serving up additional endpoints from a separate base URL
 
-    auto api_router{server.create_router("/api")};
+    auto api_router = server.create_router("/api");
     api_router->handle_request(luna::request_method::GET, "/user", [](const request &req) -> response {
         return {200, "{\"name\": \"Don\",\n\"ID\": \"123\"}"};
     });

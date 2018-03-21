@@ -36,19 +36,17 @@ bazqux
 
 int main(void)
 {
-    router router;
+    // Naturally, this is where you pass the necessary TLS assets to Luna
+    server server{server::https_mem_key{key_pem}, server::https_mem_cert{cert_pem}};
+    
+    auto router = server.create_router();
    
-    router.handle_request(request_method::GET,
+    router->handle_request(request_method::GET,
                           "/hello_world",
                           [](auto req) -> response
                           {
                               return {"<h1>Hello, World!</h1>"};
                           });
-
-    // Naturally, this is where you pass the necessary TLS assets to Luna
-    server server{server::https_mem_key{key_pem}, server::https_mem_cert{cert_pem}};
-    
-    server.add_router(router);
 
     server.start();
 

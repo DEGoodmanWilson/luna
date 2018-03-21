@@ -31,25 +31,22 @@ int main()
         }
     }
 
+    // create a server
+    server server;
     // add endpoints
 
     // API example, served from /api
-    router api{"/api"};
-    api.handle_request(request_method::GET, "/endpoint",
+    auto api = server.create_router("/api");
+    api->handle_request(request_method::GET, "/endpoint",
                        [](auto request) -> response
                        {
                            return {"{\"made_it\": true}"};
                        });
 
     // File serving example; serve files from the assets folder on /
-    router static_assets{"/"};
-    static_assets.serve_files("/", "assets");
+    auto static_assets = server.create_router("/");
+    static_assets->serve_files("/", "assets");
 
-
-    // create a server
-    server server;
-    server.add_router(api);
-    server.add_router(static_assets);
 
     server.start(port);
 

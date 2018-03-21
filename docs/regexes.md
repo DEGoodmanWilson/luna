@@ -7,10 +7,10 @@ title: Defining endpoints with regexes
 
 Sometimes you want to use a regex to capture a range of endpoints in one go. For example: You have a document server, and you want to serve documents using an endpoint like `/documents/[document id]`, where a document id is an `i` followed by 6 hexidecimal digits. You could set up such an endpoint like this:
 
-```
-router router;
+```cpp
+auto router = server.create_router();
 
-router.handle_response(request_method::GET,
+router->handle_response(request_method::GET,
     "^/documents/(i[0-9a-f]{6})", 
     [](auto request) -> response
     {
@@ -23,7 +23,9 @@ This endpoint will only be invoked if the requested URL matches the regex provid
 Let us suppose that in our filesystem, we have a flat folder full of documents named `[document id].txt`, where a document id consists of a string of exactly 6 lower-case letters and digits. We could return the text documents as such:
 
 ```cpp
-router.handle_response(request_method::GET,
+auto router = server.create_router();
+
+router->handle_response(request_method::GET,
     "^/documents/([0-9a-f]{6})", 
     [](auto request) -> response
     {
