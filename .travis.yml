@@ -53,7 +53,3 @@ install:
 script:
   - chmod +x .travis/run.sh
   - ./.travis/run.sh
-
-after_success:
-  - if [ "$GENERATE_COVERAGE" == "ON" ]; then bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9; fi
-

@@ -68,15 +68,16 @@ if __name__ == "__main__":
         upload=upload,
         remotes=[upload, bincrafters, vthiery],
         upload_only_when_stable=True,
-        docker_entry_script='sudo apt-get -qq update && sudo apt-get -qq install -y curl',
+        # docker_entry_script='sudo apt-get -qq update && sudo apt-get -qq install -y curl',
         stable_branch_pattern="stable/*")
 
     builder.add_common_builds(shared_option_name=name + ":shared")
 
     for build in builder.items:
         build.options["luna:build_luna_tests"] = True
-        if os.getenv("GENERATE_COVERAGE") != None:
-            build.options["luna:build_luna_coverage"] = True
+        # TODO renable this at some point in the future
+        # if os.getenv("GENERATE_COVERAGE") != None:
+            # build.options["luna:build_luna_coverage"] = True
         break
 
     builder.run()
