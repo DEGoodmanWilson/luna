@@ -65,7 +65,7 @@ class LunaConan(ConanFile):
         if(self.options.build_luna_tests):
             self.run('ctest . --verbose')
             if(self.options.build_luna_coverage):
-                self.run("bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9")
+                self.run("curl -s https://codecov.io/bash > codecov.sh && chmod u+x codecov.sh && ./codecov.sh /usr/bin/gcov-4.9")
 
     def package(self):
         self.copy(pattern="*.h", dst="include/luna", src="luna")
