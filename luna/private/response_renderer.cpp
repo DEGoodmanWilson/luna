@@ -9,7 +9,7 @@
 // Luna
 // A web application and API framework in modern C++
 //
-// Copyright © 2016–2017 D.E. Goodman-Wilson
+// Copyright © 2016–2018 D.E. Goodman-Wilson
 //
 
 #include <sys/stat.h>
