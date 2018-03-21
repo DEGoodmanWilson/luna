@@ -62,7 +62,10 @@ class LunaConan(ConanFile):
             "BUILD_LUNA_EXAMPLES": "ON" if self.options.build_luna_examples else "OFF"
             })
         cmake.build()
-        self.run('ctest . --verbose')
+        if(self.options.build_luna_tests):
+            self.run('ctest . --verbose')
+            if(self.options.build_luna_coverage):
+                self.run("bash <(curl -s https://codecov.io/bash) -x /usr/bin/gcov-4.9")
 
     def package(self):
         self.copy(pattern="*.h", dst="include/luna", src="luna")
