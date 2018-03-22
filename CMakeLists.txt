@@ -44,6 +44,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 ##### External dependencies
 
 include(conanbuildinfo.cmake)
