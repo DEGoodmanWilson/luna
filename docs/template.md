@@ -27,9 +27,15 @@ Then we can install the dependencies themselves. All of Luna's dependencies are 
 conan install .
 ```
 
+*A note for users of gcc >= 5*: You will need to instruct conan explicitly to use `stdc++11` instead of conan's default `stdc++`, as Luna uses features from C++14.
+
+```shell
+conan install . -s compiler.libcxx=libstdc++11
+```
+
 This might take a while, that's OK. You only need to build the dependencies once.
 
-Building the sample code is easy. First, let's tell CMake to build the project files
+Building the sample code rquires CMake. First, let's tell CMake to build the project files
 
 ```shell
 cmake .
@@ -41,9 +47,14 @@ Then, we can build the project like this:
 cmake --build .
 ```
 
-Run the example with 
+Finally run the example with 
 ```shell
 ./bin/awesomesauce
+```
+
+and check that it works with
+```shell
+curl localhost:8080/api/endpoint
 ```
 
 ## Docker support

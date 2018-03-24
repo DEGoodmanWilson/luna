@@ -81,6 +81,13 @@ Then install and build the dependencies like this. The additional option at the 
 conan install . -o build_luna_examples=True
 ```
 
+*A note for users of gcc >= 5*: You will need to instruct conan explicitly to use `stdc++11` instead of conan's default `stdc++`, as Luna uses features from C++14.
+
+```shell
+conan install . -o build_luna_examples=True -s compiler.libcxx=libstdc++11
+```
+
+
 Rest assured that there are pre-built Docker images that you can use in the future to avoid this long step when it comes time to deploy. We'll come to that in the next section.
 
 ## Build the project
