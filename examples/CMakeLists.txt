@@ -12,7 +12,7 @@
 #  Copyright © 2016–2018 D.E. Goodman-Wilson
 #
 
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.6)
 
 # Examples from the documentation
 
