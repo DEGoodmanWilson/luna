@@ -57,7 +57,7 @@ if __name__ == "__main__":
     name = get_name_from_recipe()
     username, channel, version = get_env_vars()
     reference = "{0}/{1}".format(name, version)
-    upload = "https://api.bintray.com/conan/{0}/opensource".format(username)
+    upload = "https://api.bintray.com/conan/{0}/opensource".format(username.lower())
     bincrafters = "https://api.bintray.com/conan/bincrafters/public-conan"
     vthiery = "https://api.bintray.com/conan/vthiery/conan-packages"
 
