@@ -1,4 +1,4 @@
-FROM degoodmanwilson/luna:5.0.0
+FROM degoodmanwilson/luna:5.0.1
 
 MAINTAINER D.E. Goodman-Wilson
 
