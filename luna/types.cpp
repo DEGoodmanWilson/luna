@@ -69,7 +69,7 @@ basic_authorization get_basic_authorization(const request_headers &headers)
     }
 
     // Ensure that the header is of the form "Basic abc", and extract the encoded bit
-    std::regex basic_regex(R"(Basic ([a-zA-Z0-9\+\/=]+))")); // We should look into also accepting RFC 4648
+    std::regex basic_regex(R"(Basic ([a-zA-Z0-9\+\/=]+))"); // We should look into also accepting RFC 4648
     std::smatch basic_match;
     if (!std::regex_match(headers.at("Authorization"), basic_match, basic_regex) || (basic_match.size() != 2))
     {
