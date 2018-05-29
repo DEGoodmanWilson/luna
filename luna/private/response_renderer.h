@@ -53,6 +53,7 @@ public:
 
     // option setters
     void set_option(const server::server_identifier &value);
+    void set_option(const server::server_identifier_and_version &value);
     void set_option(const server::append_to_server_identifier &value); //TODO I am not fond of having this here.
     void set_option(server::enable_internal_file_cache value);
     void set_option(server::internal_file_cache_keep_alive value);

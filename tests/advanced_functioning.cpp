@@ -431,6 +431,25 @@ TEST(advanced_functioning, custom_server_string)
     ASSERT_EQ("foobar", res.header["Server"]);
 }
 
+TEST(advanced_functioning, custom_server_string_and_version)
+{
+    luna::server server{luna::server::server_identifier_and_version{"foobar", "1.0"}};
+
+    auto router = server.create_router("/");
+    router->handle_request(luna::request_method::GET,
+                           "/test",
+                           [](auto req) -> luna::response
+                           {
+                               return {"hello"};
+                           });
+
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
+    ASSERT_EQ("foobar/1.0", res.header["Server"]);
+}
+
 TEST(advanced_functioning, append_server_string)
 {
     luna::server server{luna::server::append_to_server_identifier{"foobar"}};

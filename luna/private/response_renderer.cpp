@@ -235,6 +235,11 @@ void response_renderer::set_option(const server::server_identifier &value)
     server_identifier_ = value;
 }
 
+void response_renderer::set_option(const server::server_identifier_and_version &value)
+{
+    server_identifier_ = value.first + "/" + value.second;
+}
+
 void response_renderer::set_option(const server::append_to_server_identifier &value)
 {
     server_identifier_ += " " + value;

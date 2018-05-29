@@ -158,13 +158,13 @@ bool server::start_async(uint16_t port)
 
     if (!impl_->daemon_)
     {
-        LOG_FATAL("Luna server failed to start (are you already running something on port " + std::to_string(impl_->port_) +
+        LOG_FATAL(impl_->server_name_ + " server failed to start (are you already running something on port " + std::to_string(impl_->port_) +
                   "?)"); //TODO set some real error flags perhaps?
         return false;
     }
     impl_->running_cv_.notify_all(); //impl_->daemon_ has changed value
 
-    LOG_INFO("Luna server created on port " + std::to_string(impl_->port_));
+    LOG_INFO(impl_->server_name_ + " server created on port " + std::to_string(impl_->port_));
 
     return true;
 }
@@ -180,7 +180,7 @@ void server::stop()
     if (impl_->daemon_)
     {
         MHD_stop_daemon(impl_->daemon_);
-        LOG_INFO("Luna server stopped");
+        LOG_INFO(impl_->server_name_ + " server stopped");
         impl_->daemon_ = nullptr;
         impl_->running_cv_.notify_all(); //impl_->daemon_ has changed value
     }
@@ -390,6 +390,13 @@ void server::set_option_(const server::https_key_password &value)
 void server::set_option_(const server::server_identifier &value)
 {
     impl_->response_renderer_.set_option(value);
+    impl_->server_name_ = value.substr(0, value.find("/"));
+}
+
+void server::set_option_(const server::server_identifier_and_version &value)
+{
+    impl_->response_renderer_.set_option(value);
+    impl_->server_name_ = value.first;
 }
 
 void server::set_option_(const server::append_to_server_identifier &value)

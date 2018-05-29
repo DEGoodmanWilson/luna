@@ -88,6 +88,8 @@ public:
 
     MAKE_STRING_LIKE(server_identifier);
 
+    using server_identifier_and_version = std::pair<std::string, std::string>;
+
     MAKE_STRING_LIKE(append_to_server_identifier);
 
     MAKE_BOOL_LIKE(enable_internal_file_cache);
@@ -208,6 +210,7 @@ private:
 //    void set_option_(notify_connection value); //TODO later
 
     void set_option_(const server_identifier &value);
+    void set_option_(const server_identifier_and_version &value);
 
     void set_option_(const append_to_server_identifier &value);
 

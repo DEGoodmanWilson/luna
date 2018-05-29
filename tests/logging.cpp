@@ -100,11 +100,95 @@ TEST(access_logging, integration_test)
 
     server.start_async();
 
-    ASSERT_EQ("Luna server created on port 8080", error_log_str);
+    ASSERT_EQ("luna server created on port 8080", error_log_str);
     ASSERT_TRUE(access_log_str.empty());
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("GET /test HTTP/1.1", access_log_str);
+
+    luna::reset_access_logger();
+    luna::reset_error_logger();
+}
+
+TEST(access_logging, logged_server_name_1)
+{
+    std::string access_log_str;
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
+                            {
+                                std::stringstream message;
+                                message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
+                                access_log_str = message.str();
+                            });
+
+
+    std::string error_log_str;
+    luna::log_level log_lvl{luna::log_level::INFO};
+    luna::set_error_logger([&](luna::log_level level, const std::string& message)
+                           {
+                               error_log_str = message;
+                           });
+
+    luna::server server{luna::server::server_identifier{"foo/1.0"}};
+
+    server.start_async();
+
+    ASSERT_EQ("foo server created on port 8080", error_log_str);
+
+    luna::reset_access_logger();
+    luna::reset_error_logger();
+}
+
+TEST(access_logging, logged_server_name_2)
+{
+    std::string access_log_str;
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
+                            {
+                                std::stringstream message;
+                                message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
+                                access_log_str = message.str();
+                            });
+
+
+    std::string error_log_str;
+    luna::log_level log_lvl{luna::log_level::INFO};
+    luna::set_error_logger([&](luna::log_level level, const std::string& message)
+                           {
+                               error_log_str = message;
+                           });
+
+    luna::server server{luna::server::server_identifier{"foo"}};
+
+    server.start_async();
+
+    ASSERT_EQ("foo server created on port 8080", error_log_str);
+
+    luna::reset_access_logger();
+    luna::reset_error_logger();
+}
+
+TEST(access_logging, logged_server_name_and_version)
+{
+    std::string access_log_str;
+    luna::set_access_logger([&](const luna::request &request, const luna::response &response)
+                            {
+                                std::stringstream message;
+                                message << luna::to_string(request.method) << " " << request.path << " " << request.http_version;
+                                access_log_str = message.str();
+                            });
+
+
+    std::string error_log_str;
+    luna::log_level log_lvl{luna::log_level::INFO};
+    luna::set_error_logger([&](luna::log_level level, const std::string& message)
+                           {
+                               error_log_str = message;
+                           });
+
+    luna::server server{luna::server::server_identifier_and_version{"foo", "1.0"}};
+
+    server.start_async();
+
+    ASSERT_EQ("foo server created on port 8080", error_log_str);
 
     luna::reset_access_logger();
     luna::reset_error_logger();

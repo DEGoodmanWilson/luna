@@ -127,6 +127,8 @@ public:
     // request handling and response generation
     std::vector<std::shared_ptr<router>> routers_;
     response_renderer response_renderer_;
+
+    std::string server_name_;
 };
 
 } //namespace luna

@@ -32,7 +32,8 @@ server::server_impl::server_impl() :
         use_epoll_if_available_{false},
         daemon_{nullptr},
         accept_policy_callback_{default_accept_policy_callback_},
-        port_{0}
+        port_{0},
+        server_name_{LUNA_NAME}
 { }
 
 
