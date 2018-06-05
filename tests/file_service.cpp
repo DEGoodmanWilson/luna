@@ -161,6 +161,19 @@ TEST(file_service, js_has_its_own_mime_issues)
     ASSERT_EQ("application/javascript; charset=utf-8", res.header["Content-Type"]);
 }
 
+TEST(file_service, crazy_mime_issues)
+{
+    std::string path{STATIC_ASSET_PATH};
+    luna::server server;
+    auto router = server.create_router("/");
+    router->serve_files("/", path + "/tests/public");
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.waaat"});
+    ASSERT_EQ("text/plain", res.header["Content-Type"]);
+}
+
 TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 {
     std::string path{STATIC_ASSET_PATH};

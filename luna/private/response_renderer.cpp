@@ -35,7 +35,16 @@ status_code default_success_code_(request_method method)
 
 std::string get_mime_type_(const std::string &file)
 {
-    return mime::content_type(mime::get_extension_from_path(file));
+    std::string retval;
+    try
+    {
+        retval = mime::content_type(mime::get_extension_from_path(file));
+    }
+    catch(std::out_of_range &e)
+    {
+        retval = "text/plain";
+    }
+    return retval;
 }
 
 //////////////////////////////////////////////////////////////////////////////
