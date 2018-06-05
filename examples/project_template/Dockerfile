@@ -1,4 +1,4 @@
-FROM degoodmanwilson/luna:5.0.2
+FROM degoodmanwilson/luna:latest
 
 MAINTAINER D.E. Goodman-Wilson
 
