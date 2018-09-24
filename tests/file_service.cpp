@@ -45,7 +45,7 @@ TEST(file_service, serve_text_file)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 }
 
 TEST(file_service, serve_text_file_2)
@@ -60,7 +60,7 @@ TEST(file_service, serve_text_file_2)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 }
 
 TEST(file_service, serve_html_file)
@@ -174,6 +174,20 @@ TEST(file_service, crazy_mime_issues)
     ASSERT_EQ("text/plain", res.header["Content-Type"]);
 }
 
+TEST(file_service, files_with_no_extension)
+{
+    std::string path{STATIC_ASSET_PATH};
+    luna::server server;
+    auto router = server.create_router("/");
+    router->serve_files("/", path + "/tests/public");
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/testnoext"});
+    ASSERT_EQ("text/plain", res.header["Content-Type"]);
+    ASSERT_EQ("hello\n", res.text);
+}
+
 TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
 {
     std::string path{STATIC_ASSET_PATH};
@@ -186,7 +200,7 @@ TEST(file_service, directory_with_trailing_slash_is_alias_for_index_html)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test/"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
-    ASSERT_EQ("hello html", res.text);
+    ASSERT_EQ("hello html\n", res.text);
 }
 
 TEST(file_service, directory_is_alias_for_index_html)
@@ -201,7 +215,7 @@ TEST(file_service, directory_is_alias_for_index_html)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("text/html; charset=utf-8", res.header["Content-Type"]);
-    ASSERT_EQ("hello html", res.text);
+    ASSERT_EQ("hello html\n", res.text);
 }
 
 TEST(file_service, empty_dir_with_trailing_slash_throws_404)

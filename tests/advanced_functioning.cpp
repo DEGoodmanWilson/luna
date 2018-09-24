@@ -172,14 +172,14 @@ TEST(advanced_functioning, get_and_post)
                               EXPECT_EQ(0, req.params.count("key1"));
                               EXPECT_EQ(1, req.params.count("key2"));
                               EXPECT_EQ("2", req.params.at("key2"));
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
     server.start_async();
 
     auto res = cpr::Post(cpr::Url{"http://localhost:8080/test?key1=1"}, cpr::Payload{{"key2", "2"}});
     ASSERT_EQ(201, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 }
 
 TEST(advanced_functioning, default_server_errors_404)
@@ -319,14 +319,14 @@ TEST(advanced_functioning, use_epoll)
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
     server.start_async();
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"}, cpr::Parameters{{"key", "value"}});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 }
 
 TEST(advanced_functioning, epoll_thread_per_connection_collision_1)
@@ -379,7 +379,7 @@ TEST(advanced_functioning, non_null_server_string_version)
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
 
@@ -399,7 +399,7 @@ TEST(advanced_functioning, default_server_string)
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
 
@@ -421,7 +421,7 @@ TEST(advanced_functioning, custom_server_string)
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
 
@@ -440,7 +440,7 @@ TEST(advanced_functioning, custom_server_string_and_version)
                            "/test",
                            [](auto req) -> luna::response
                            {
-                               return {"hello"};
+                               return {"hello\n"};
                            });
 
 
@@ -459,7 +459,7 @@ TEST(advanced_functioning, append_server_string)
                           "/test",
                           [](auto req) -> luna::response
                           {
-                              return {"hello"};
+                              return {"hello\n"};
                           });
 
 
@@ -559,7 +559,7 @@ TEST(file_service, check_paths_4)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 
     res = cpr::Get(cpr::Url{"http://localhost:8080/second"});
     ASSERT_EQ(404, res.status_code); //YUP THAT'S RIGHT!
@@ -586,7 +586,7 @@ TEST(file_service, check_paths_3)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test.txt"});
     ASSERT_EQ(200, res.status_code);
-    ASSERT_EQ("hello", res.text);
+    ASSERT_EQ("hello\n", res.text);
 
     res = cpr::Get(cpr::Url{"http://localhost:8080/first"});
     ASSERT_EQ(200, res.status_code);
