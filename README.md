@@ -4,7 +4,7 @@
 
 # Luna
 
-[Full Documentation](https://don.goodman-wilson.com/luna)
+[Full Documentation](https://luna.goodman-wilson.com/)
 
 ## A web application and API framework in modern C++
 
