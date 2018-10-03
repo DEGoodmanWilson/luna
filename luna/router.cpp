@@ -63,7 +63,10 @@ void router::handle_request(request_method method,
 }
 
 void router::serve_files(std::string mount_point, std::string path_to_files)
-{
+{   
+    std::regex parent_dir_pattern("(../)+");
+    path_to_files = std::regex_replace(path_to_files, parent_dir_pattern, "");
+
     std::regex route{mount_point + "(.*)"};
     std::string local_path{path_to_files + "/"};
     handle_request(request_method::GET, route, [=](const request &req) -> response
