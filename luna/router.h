@@ -43,6 +43,8 @@ public:
                         endpoint_handler_cb callback,
                         parameter::validators validations = {});
 
+    std::string sanitize_path(std::string path_to_files);
+    
     void serve_files(std::string mount_point, std::string path_to_files);
 
     void add_header(std::string &&key, std::string &&value);
