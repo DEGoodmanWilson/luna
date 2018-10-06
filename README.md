@@ -10,7 +10,7 @@
 
 A web application and API framework in modern C++, Luna is designed to be easy to use and integrate with any C++ project that needs to serve HTTP endpoints. Luna’s core philosophy is that it should be _easy to use correctly_ and _difficult to use incorrectly_. Of course, it should be robust as well.
 
-You are writing in C++ (because C++ is _awesome_), and your app needs to provide a lightweight HTTP server to communicate with other web services. `libmicrohttpd` is super-awesome, except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
+You are writing in C++ (because C++ is _awesome_ and and enables fast execution), and your app needs to provide a lightweight HTTP server to communicate with other web services. `libmicrohttpd` is super-awesome, except for that idiomatically C API. Luna is an idiomatically C++ wrapper for `libmicrohttpd` that leans on modern C++ programming concepts.
 
 HTTP server creation, start, shut down, and deletion are all handled behind the scenes with the magic of [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization). Starting a server is automatic with instantiating a `server` object, and allowing your `server` object to fall out of scope is all that is needed to cleanly shut it down. There is nothing else for you to keep track of, or allocate.
 
