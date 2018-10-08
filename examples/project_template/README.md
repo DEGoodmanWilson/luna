@@ -35,11 +35,11 @@ Run the example with
 
 ## Docker support
 
-There's a Dockerfile you can try out too, that will build and run the `awesomesauce` binary. (The port used by the demonstration code is 80.)
+There's a Dockerfile you can try out too, that will build and run the `awesomesauce` binary. (The port used by the demonstration code is 8080.)
 
 ```shell
 docker build -t awesomesauce .
-docker run -p 8080:80 awesomesauce
+docker run -p 8080:8080 awesomesauce
 ```
 
 Now visit [http://localhost:8080](http://localhost:8080) to see the app in action!
