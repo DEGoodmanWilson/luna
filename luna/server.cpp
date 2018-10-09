@@ -213,12 +213,12 @@ std::shared_ptr<router> server::create_router(std::string route_base)
 
 void server::set_option_(debug_output value)
 {
-    impl_->debug_output_ = static_cast<bool>(value);
+    impl_->debug_output_ = value.get();
 }
 
 void server::set_option_(use_thread_per_connection value)
 {
-    impl_->use_thread_per_connection_ = static_cast<bool>(value);
+    impl_->use_thread_per_connection_ = value.get();
     if (impl_->use_epoll_if_available_)
     {
         LOG_ERROR(
@@ -229,7 +229,7 @@ void server::set_option_(use_thread_per_connection value)
 
 void server::set_option_(use_epoll_if_available value)
 {
-    impl_->use_epoll_if_available_ = static_cast<bool>(value);
+    impl_->use_epoll_if_available_ = value.get();
     if (impl_->use_thread_per_connection_)
     {
         LOG_ERROR(
@@ -246,17 +246,17 @@ void server::set_option_(accept_policy_cb value)
 void server::set_option_(connection_memory_limit value)
 {
     //this is a narrowing cast, so ugly! What to do, though?
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_LIMIT, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_LIMIT, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(connection_limit value)
 {
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_LIMIT, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(connection_timeout value)
 {
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, static_cast<intptr_t>(value.get()), NULL});
 }
 
 //void server::set_option_(notify_completed value)
@@ -266,7 +266,7 @@ void server::set_option_(connection_timeout value)
 
 void server::set_option_(per_ip_connection_limit value)
 {
-    impl_->options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(const sockaddr_ptr value)
@@ -284,7 +284,7 @@ void server::set_option_(const sockaddr_ptr value)
 void server::set_option_(const server::https_mem_key &value)
 {
     // we must make a durable copy of these strings before tossing around char pointers to their internals
-    impl_->https_mem_key_.emplace_back(value);
+    impl_->https_mem_key_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0,
                                const_cast<char *>(impl_->https_mem_key_.back().c_str())});
     impl_->ssl_mem_key_set_ = true;
@@ -292,7 +292,7 @@ void server::set_option_(const server::https_mem_key &value)
 
 void server::set_option_(const server::https_mem_cert &value)
 {
-    impl_->https_mem_cert_.emplace_back(value);
+    impl_->https_mem_cert_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0,
                                const_cast<char *>(impl_->https_mem_cert_.back().c_str())});
     impl_->ssl_mem_cert_set_ = true;
@@ -305,19 +305,19 @@ void server::set_option_(const server::https_mem_cert &value)
 
 void server::set_option_(const server::https_priorities &value)
 {
-    impl_->https_priorities_.emplace_back(value);
+    impl_->https_priorities_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0,
                                const_cast<char *>(impl_->https_priorities_.back().c_str())});
 }
 
 void server::set_option_(listen_socket value)
 {
-    impl_->options_.push_back({MHD_OPTION_LISTEN_SOCKET, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_LISTEN_SOCKET, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(thread_pool_size value)
 {
-    impl_->options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(unescaper_cb value)
@@ -333,24 +333,24 @@ void server::set_option_(unescaper_cb value)
 
 void server::set_option_(nonce_nc_size value)
 {
-    impl_->options_.push_back({MHD_OPTION_NONCE_NC_SIZE, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_NONCE_NC_SIZE, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(thread_stack_size value)
 {
-    impl_->options_.push_back({MHD_OPTION_THREAD_STACK_SIZE, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_THREAD_STACK_SIZE, static_cast<intptr_t>(value.get()), NULL});
 }
 
 void server::set_option_(const server::https_mem_trust &value)
 {
-    impl_->https_mem_trust_.emplace_back(value);
+    impl_->https_mem_trust_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0,
                                const_cast<char *>(impl_->https_mem_trust_.back().c_str())});
 }
 
 void server::set_option_(connection_memory_increment value)
 {
-    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_INCREMENT, static_cast<intptr_t>(value), NULL});
+    impl_->options_.push_back({MHD_OPTION_CONNECTION_MEMORY_INCREMENT, static_cast<intptr_t>(value.get()), NULL});
 }
 
 //void server::set_option_(https_cert_callback value)
@@ -365,7 +365,7 @@ void server::set_option_(connection_memory_increment value)
 
 void server::set_option_(const server::https_mem_dhparams &value)
 {
-    impl_->https_mem_dhparams_.emplace_back(value);
+    impl_->https_mem_dhparams_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0,
                                const_cast<char *>(impl_->https_mem_dhparams_.back().c_str())});
 }
@@ -377,7 +377,7 @@ void server::set_option_(const server::https_mem_dhparams &value)
 
 void server::set_option_(const server::https_key_password &value)
 {
-    impl_->https_key_password_.emplace_back(value);
+    impl_->https_key_password_.emplace_back(value.get());
     impl_->options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0,
                                const_cast<char *>(impl_->https_key_password_.back().c_str())});
 }
@@ -390,7 +390,7 @@ void server::set_option_(const server::https_key_password &value)
 void server::set_option_(const server::server_identifier &value)
 {
     impl_->response_renderer_.set_option(value);
-    impl_->server_name_ = value.substr(0, value.find("/"));
+    impl_->server_name_ = value.get().substr(0, value.get().find("/"));
 }
 
 void server::set_option_(const server::server_identifier_and_version &value)

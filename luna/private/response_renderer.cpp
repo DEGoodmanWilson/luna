@@ -241,7 +241,7 @@ response_renderer::from_file_(const request &request, response &response)
 
 void response_renderer::set_option(const server::server_identifier &value)
 {
-    server_identifier_ = value;
+    server_identifier_ = value.get();
 }
 
 void response_renderer::set_option(const server::server_identifier_and_version &value)
@@ -251,12 +251,12 @@ void response_renderer::set_option(const server::server_identifier_and_version &
 
 void response_renderer::set_option(const server::append_to_server_identifier &value)
 {
-    server_identifier_ += " " + value;
+    server_identifier_ += " " + value.get();
 }
 
 void response_renderer::set_option(server::enable_internal_file_cache value)
 {
-    use_fd_cache_ = static_cast<bool>(value);
+    use_fd_cache_ = value.get();
 }
 
 void response_renderer::set_option(server::internal_file_cache_keep_alive value)

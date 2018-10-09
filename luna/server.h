@@ -30,13 +30,13 @@ class server
 public:
 
     // configuration parameters
-    MAKE_BOOL_LIKE(debug_output);
+    MAKE_LIKE(bool, debug_output);
 
-    MAKE_BOOL_LIKE(use_ssl);
+    MAKE_LIKE(bool, use_ssl);
 
-    MAKE_BOOL_LIKE(use_thread_per_connection);
+    MAKE_LIKE(bool, use_thread_per_connection);
 
-    MAKE_BOOL_LIKE(use_epoll_if_available);
+    MAKE_LIKE(bool, use_epoll_if_available);
 
     using accept_policy_cb = std::function<bool(const struct sockaddr *add, socklen_t len)>;
 
@@ -45,54 +45,54 @@ public:
 
     using unescaper_cb = std::function<std::string(const std::string &text)>;
 
-    MAKE_INT_LIKE(size_t, connection_memory_limit);
+    MAKE_LIKE(size_t, connection_memory_limit);
 
-    MAKE_INT_LIKE(unsigned int, connection_limit);
+    MAKE_LIKE(unsigned int, connection_limit);
 
-    MAKE_INT_LIKE(unsigned int, connection_timeout);
+    MAKE_LIKE(unsigned int, connection_timeout);
 
-    MAKE_INT_LIKE(unsigned int, per_ip_connection_limit);
+    MAKE_LIKE(unsigned int, per_ip_connection_limit);
 
     using sockaddr_ptr = ::sockaddr *;
     // struct sockaddr * is a configuration option here! Just letting you know.
 
-    MAKE_STRING_LIKE(https_mem_key);
+    MAKE_LIKE(std::string, https_mem_key);
 
-    MAKE_STRING_LIKE(https_mem_cert);
+    MAKE_LIKE(std::string, https_mem_cert);
 
-//    MAKE_INT_LIKE(gnutls_credentials_type_t, https_cred_type); //TODO probably don't need to define this one.
+//    MAKE_LIKE(gnutls_credentials_type_t, https_cred_type); //TODO probably don't need to define this one.
 
-    MAKE_STRING_LIKE(https_priorities);
+    MAKE_LIKE(std::string, https_priorities);
 
-    MAKE_INT_LIKE(int, listen_socket);
+    MAKE_LIKE(int, listen_socket);
 
-    MAKE_INT_LIKE(unsigned int, thread_pool_size);
+    MAKE_LIKE(unsigned int, thread_pool_size);
 
-//    MAKE_INT_LIKE(unsigned int, digest_auth_random); //TODO unsure how best to support this one
+//    MAKE_LIKE(unsigned int, digest_auth_random); //TODO unsure how best to support this one
 
-    MAKE_INT_LIKE(unsigned int, nonce_nc_size);
+    MAKE_LIKE(unsigned int, nonce_nc_size);
 
-    MAKE_INT_LIKE(size_t, thread_stack_size);
+    MAKE_LIKE(size_t, thread_stack_size);
 
-    MAKE_STRING_LIKE(https_mem_trust);
+    MAKE_LIKE(std::string, https_mem_trust);
 
-    MAKE_INT_LIKE(size_t, connection_memory_increment);
+    MAKE_LIKE(size_t, connection_memory_increment);
 
-    MAKE_INT_LIKE(unsigned int, tcp_fastopen_queue_size);
+    MAKE_LIKE(unsigned int, tcp_fastopen_queue_size);
 
-    MAKE_STRING_LIKE(https_mem_dhparams);
+    MAKE_LIKE(std::string, https_mem_dhparams);
 
-    MAKE_INT_LIKE(unsigned int, listening_address_reuse);
+    MAKE_LIKE(unsigned int, listening_address_reuse);
 
-    MAKE_STRING_LIKE(https_key_password);
+    MAKE_LIKE(std::string, https_key_password);
 
-    MAKE_STRING_LIKE(server_identifier);
+    MAKE_LIKE(std::string, server_identifier);
 
     using server_identifier_and_version = std::pair<std::string, std::string>;
 
-    MAKE_STRING_LIKE(append_to_server_identifier);
+    MAKE_LIKE(std::string, append_to_server_identifier);
 
-    MAKE_BOOL_LIKE(enable_internal_file_cache);
+    MAKE_LIKE(bool, enable_internal_file_cache);
 
     using internal_file_cache_keep_alive = std::chrono::milliseconds;
 
