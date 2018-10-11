@@ -17,6 +17,9 @@
 #include "luna/config.h"
 #include "server.h"
 #include <mutex>
+#include <vector>
+#include <stack>
+#include <algorithm> 
 
 namespace luna
 {
@@ -62,8 +65,82 @@ void router::handle_request(request_method method,
                                                     validations));
 }
 
+std::string router::sanitize_path(std::string path_to_files) 
+{       
+    std::vector<std::string> url_comps;
+    std::string delimeter = "/";
+    std::string final_path = "";
+    std::string working_path = path_to_files;
+    size_t pos = 0;
+    int num_front_slash = 0, num_back_slash = 0;
+
+    // path can contain many / as prefix or suffix
+    // we want to preserve that in the final path
+    while (pos < path_to_files.size() and path_to_files[pos++] == '/') {
+        ++num_front_slash;
+    } 
+
+    pos = path_to_files.size() - 1;
+    while (int(pos) - 1 >= 0 and path_to_files[pos--] == '/') {
+        ++num_back_slash;
+    }
+
+    // Now, split by '/' to get URL components
+    while ((pos = working_path.find(delimeter)) != std::string::npos) {
+        std::string comp =  working_path.substr(0, pos);
+        if (not comp.empty()) {
+            url_comps.push_back(comp);
+        }
+        working_path.erase(0, pos + delimeter.length());
+    }
+
+    std::string last_comp = working_path.substr(0, pos);
+    if (not last_comp.empty()) {
+        url_comps.push_back(last_comp);
+    }
+
+    if (url_comps.empty()) {
+        // nothing to sanitize
+        return path_to_files;
+    }
+
+    std::stack<std::string> stk;
+    for (auto& comp : url_comps) {
+        if (comp == ".." and stk.empty()) {
+            // trying to access a file outside cwd
+            // Return empty string which would result in 404
+            return "";
+        } else if (comp == "..") {
+            stk.pop();
+        } else {
+            stk.push(comp);
+        }
+    }
+
+    // Build final path from stack
+    while (not stk.empty()) {
+        final_path = stk.top() + delimeter + final_path;
+        stk.pop();
+    }
+
+    // remove trailing '/' added by previous stmt
+    final_path.pop_back();
+
+    // add back the /s in 
+    while (num_front_slash--) {
+        final_path = "/" + final_path;
+    }
+
+    while (num_back_slash--) {
+        final_path += "/";
+    }
+
+    return final_path;
+}
+
 void router::serve_files(std::string mount_point, std::string path_to_files)
-{
+{   
+    path_to_files = router::sanitize_path(path_to_files);
     std::regex route{mount_point + "(.*)"};
     std::string local_path{path_to_files + "/"};
     handle_request(request_method::GET, route, [=](const request &req) -> response

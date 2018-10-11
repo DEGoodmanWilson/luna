@@ -34,6 +34,63 @@ TEST(file_service, serve_file_404)
     ASSERT_EQ(404, res.status_code);
 }
 
+
+TEST(file_service, serve_file_malicious)
+{
+    luna::server server;
+    auto router = server.create_router("/");
+
+    // ** Invalid cases **
+    std::string path {"../../foo/confidential.txt"};
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "");
+
+    path = "foo/bar/../../../confidential.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "");
+
+
+    path = "/foo/bar/../../../confidential.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "");
+
+
+    path = "foo/bar/../../../confidential.txt/";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "");
+
+    path = "/foo/bar/../../../confidential.txt/";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "");
+
+    // ** Valid cases ** 
+    path = "/foo/bar/../../test.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "/test.txt");
+
+    // check if path was cleaned
+    path = "/////////foo/bar/../../test.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "/////////test.txt");
+
+    path = "foo/bar/../../test.txt/";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "test.txt/");
+
+    path = "/foo/bar/../../test.txt/";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "/test.txt/");
+
+    path = "/foo/bar/../test.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "/foo/test.txt");
+
+    // check if path was unchanged
+    path = "foo/bar/test.txt";
+    path = router->sanitize_path(path);
+    ASSERT_TRUE(path == "foo/bar/test.txt");
+}
+
 TEST(file_service, serve_text_file)
 {
     std::string path{STATIC_ASSET_PATH};
