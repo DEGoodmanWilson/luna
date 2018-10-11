@@ -21,7 +21,7 @@ Let's begin by writing a simple function to act as a request handler (nevermind 
 #include <luna/luna.h>
 
 using namespace luna;
-response hello_world(const request &req)
+response hello_world(auto request)
 {
     return {"<h1>Hello, World!</h1>"};
 }
