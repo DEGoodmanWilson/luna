@@ -32,7 +32,6 @@ Find.find('./') do |path|
     next unless File.file?(path)
     next if /\.git/.match File.dirname(path)
     next if /\.idea/.match File.dirname(path)
-    puts path
     `sed -i '' 's/#{version}/#{new_version}/g' "#{path}"`
 end
 
