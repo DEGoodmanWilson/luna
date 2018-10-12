@@ -61,4 +61,4 @@ assets—the server certificate and private key—even simpler. Watch this space
 
 ----
 
-### < [Prev—Serving static assets](static_assets.html) | [Next—Configuration reference](configuration.html) >
+### < [Prev—Serving static assets](static_assets.md) | [Next—Configuration reference](configuration.md) >

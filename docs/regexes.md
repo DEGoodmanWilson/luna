@@ -38,4 +38,4 @@ router->handle_request(request_method::GET,
 
 ----
 
-### < [Prev—Simple API endpoints](simple_api_endpoint.html) | [Next—Serving static assets](static_assets.html) >
+### < [Prev—Simple API endpoints](simple_api_endpoint.md) | [Next—Serving static assets](static_assets.md) >

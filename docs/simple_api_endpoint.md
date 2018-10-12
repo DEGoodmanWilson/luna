@@ -170,4 +170,4 @@ If you want to return a custom response header, you can include that in the resp
 
 ----
 
-### < [Prev—Getting started](using.html) | [Next—Defining endpoints with regexs](regexes.html) >
+### < [Prev—Getting started](using.md) | [Next—Defining endpoints with regexs](regexes.md) >

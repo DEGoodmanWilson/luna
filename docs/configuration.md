@@ -173,4 +173,4 @@ server my_server{server::accept_policy_cb{&reject_all_connections}};
  
 ----
 
-### < [Prev—TLS/HTTPS](https.html) | [Next—Using the project template](template.html) >
+### < [Prev—TLS/HTTPS](https.md) | [Next—Using the project template](template.md) >
