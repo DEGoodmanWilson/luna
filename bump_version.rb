@@ -21,5 +21,10 @@ g.branch("testing/#{new_version}").checkout
 
 # update all the files
 Find.find('./') do |path|
+    next unless FileTest.file?(path)
+    next if /\.git/.match File.dirname(path)
+    next if /\.idea/.match File.dirname(path)
     `sed -i '' 's/#{version}/#{new_version}/g' #{path}`
 end
+
+# git.commit_all("Bump version to #{new_version}")

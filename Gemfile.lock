@@ -1,0 +1,22 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    clap (1.0.0)
+    git (1.5.0)
+    json (2.1.0)
+    semantic (1.6.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  clap
+  git
+  json
+  semantic
+
+RUBY VERSION
+   ruby 2.5.1p57
+
+BUNDLED WITH
+   1.16.5
