@@ -3,7 +3,7 @@ layout: default
 title: Serving static assets
 ---
 
-# {{ page.title }}
+# Serving static assets
 
 In addition to all the lovely dynamic content you want to serve up, you might well also have some static file that require serving as well—stylesheets, JavaScript, web fonts, images, and so on. Luna, naturally, can help you.
 
@@ -77,4 +77,4 @@ int main(void)
 
 ----
 
-### < [Prev—Defining endpoints with regexs](regexes.html) | [Next—TLS/HTTPS](https.html) >
+### < [Prev—Defining endpoints with regexs](regexes.md) | [Next—TLS/HTTPS](https.md) >

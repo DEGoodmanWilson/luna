@@ -112,4 +112,4 @@ In the next section, we'll look at how the code that drives this page works, so 
 
 ----
 
-### < [Prev—Home](index.html) | [Next—Simple API endpoints](simple_api_endpoint.html) >
+### < [Prev—Home](index.md) | [Next—Simple API endpoints](simple_api_endpoint.md) >

@@ -70,4 +70,4 @@ Now visit [http://localhost:8080](http://localhost:8080) to see the app in actio
 
 ----
 
-### < [Prev—Configuration reference](configuration.html)
+### < [Prev—Configuration reference](configuration.md)
