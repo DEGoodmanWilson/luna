@@ -7,6 +7,8 @@ from bincrafters import build_shared
 if __name__ == "__main__":
     name = build_shared.get_name_from_recipe()
     username, channel, version, login_username = build_shared.get_conan_vars()
+    channel = channel or "unstable"
+    is_unstable = (channel=="unstable")
     reference = "{0}/{1}".format(name, version)
     upload = "https://api.bintray.com/conan/{0}/opensource".format(username.lower())
     bincrafters = "https://api.bintray.com/conan/bincrafters/public-conan"
@@ -18,7 +20,7 @@ if __name__ == "__main__":
         reference=reference,
         upload=upload,
         remotes=[upload, bincrafters, vthiery],
-        # upload_only_when_stable=True,
+        upload_only_when_stable=is_unstable,
         # docker_entry_script='sudo apt-get -qq update && sudo apt-get -qq install -y curl',
         stable_branch_pattern="stable/*")
 
