@@ -110,6 +110,10 @@ public:
 
     ~server();
 
+    server(const server&) = delete;
+    server& operator=(server&&); // move constructor defined in the implementation file
+    server& operator=(const server&) = delete;
+
     bool start(uint16_t port = 8080);
 
     bool start_async(uint16_t port = 8080);
@@ -129,12 +133,13 @@ public:
 private:
     class server_impl;
 
+    // we have to define the deleter here, because we have to inline the constructors above, because templates.
     struct server_impl_deleter
     {
         void operator()(server_impl *) const;
     };
 
-    // using a unique pointer here means we can't have multiple copies of a server
+//    std::experimental::propagate_const<std::unique_ptr<server_impl>> impl_;
     std::unique_ptr<server_impl, server_impl_deleter> impl_;
 
     void initialize_();

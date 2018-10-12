@@ -18,6 +18,28 @@
 namespace luna
 {
 
+
+#define LOG_FATAL(mesg) \
+{ \
+    error_log(log_level::FATAL, mesg); \
+}
+
+#define LOG_ERROR(mesg) \
+{ \
+    error_log(log_level::ERROR, mesg); \
+}
+
+#define LOG_INFO(mesg) \
+{ \
+    error_log(log_level::INFO, mesg); \
+}
+
+#define LOG_DEBUG(mesg) \
+{ \
+    error_log(log_level::DEBUG, mesg); \
+}
+
+
 const server::accept_policy_cb default_accept_policy_callback_ = [](const struct sockaddr *addr,
                                                                     socklen_t len) -> bool
 {
@@ -36,6 +58,345 @@ server::server_impl::server_impl() :
         server_name_{LUNA_NAME}
 { }
 
+
+//////// public functions
+
+bool server::server_impl::start(uint16_t port)
+{
+    auto result = start_async(port);
+
+    if (!result) return result;
+
+    // TODO would be better to find a way to run MHD in _impl_ thread...
+    await();
+
+    return true;
+}
+
+bool server::server_impl::start_async(uint16_t port)
+{
+    port_ = port;
+
+    MHD_OptionItem options[options_.size() + 1];
+    uint16_t idx = 0;
+    for (const auto &opt : options_)
+    {
+        options[idx++] = opt; //copy it in, whee.
+    }
+    options[idx] = {MHD_OPTION_END, 0, nullptr};
+
+    unsigned int flags = MHD_NO_FLAG;
+
+    if (debug_output_)
+    {
+        LOG_DEBUG("Enabling debug output");
+        flags |= MHD_USE_DEBUG;
+    }
+
+    if (ssl_mem_cert_set_ && ssl_mem_key_set_)
+    {
+        LOG_DEBUG("Enabling SSL");
+        flags |= MHD_USE_SSL;
+    }
+    else if (ssl_mem_cert_set_ || ssl_mem_key_set_)
+    {
+        LOG_FATAL("Please provide both server::https_mem_key AND server::https_mem_cert");
+        return false;
+    }
+
+    if (use_thread_per_connection_)
+    {
+        LOG_DEBUG("Will use one thread per connection")
+        flags |= MHD_USE_THREAD_PER_CONNECTION | MHD_USE_POLL;
+    }
+    else if (use_epoll_if_available_)
+    {
+#if defined(__linux__)
+        LOG_DEBUG("Will use epoll");
+        flags |= MHD_USE_EPOLL_INTERNALLY;
+#else
+        LOG_DEBUG("Will use poll");
+        flags |= MHD_USE_POLL_INTERNALLY;
+#endif
+    }
+    else
+    {
+        LOG_DEBUG("No threading options set, will use select");
+        flags |= MHD_USE_SELECT_INTERNALLY;
+    }
+
+    daemon_ = MHD_start_daemon(flags,
+                                      port_,
+                                      access_policy_callback_shim_, this,
+                                      access_handler_callback_shim_, this,
+                                      MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback_shim_, this,
+                                      MHD_OPTION_EXTERNAL_LOGGER, logger_callback_shim_, nullptr,
+                                      MHD_OPTION_URI_LOG_CALLBACK, uri_logger_callback_shim_, nullptr,
+                                      MHD_OPTION_ARRAY, options,
+                                      MHD_OPTION_END);
+
+    if (!daemon_)
+    {
+        LOG_FATAL(server_name_ + " server failed to start (are you already running something on port " + std::to_string(port_) +
+                  "?)"); //TODO set some real error flags perhaps?
+        return false;
+    }
+    running_cv_.notify_all(); //daemon_ has changed value
+
+    LOG_INFO(server_name_ + " server created on port " + std::to_string(port_));
+
+    return true;
+}
+
+
+bool server::server_impl::is_running()
+{
+    return (daemon_ != nullptr);
+}
+
+void server::server_impl::stop()
+{
+    if (daemon_)
+    {
+        MHD_stop_daemon(daemon_);
+        LOG_INFO(server_name_ + " server stopped");
+        daemon_ = nullptr;
+        running_cv_.notify_all(); //daemon_ has changed value
+    }
+}
+
+void server::server_impl::await()
+{
+    std::mutex m;
+    {
+        std::unique_lock<std::mutex> lk(m);
+        running_cv_.wait(lk, [this]
+        { return daemon_ == nullptr; });
+    }
+}
+
+
+uint16_t server::server_impl::get_port()
+{
+    return port_;
+}
+
+std::shared_ptr<router> server::server_impl::create_router(std::string route_base)
+{
+    std::shared_ptr<router> r{new router{route_base}};
+    routers_.emplace_back(r);
+    return r;
+}
+
+
+//////// option setters
+
+void server::server_impl::set_option_(debug_output value)
+{
+    debug_output_ = static_cast<bool>(value);
+}
+
+void server::server_impl::set_option_(use_thread_per_connection value)
+{
+    use_thread_per_connection_ = static_cast<bool>(value);
+    if (use_epoll_if_available_)
+    {
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_epoll_if_available");
+        use_epoll_if_available_ = false; //not compatible!
+    }
+}
+
+void server::server_impl::set_option_(use_epoll_if_available value)
+{
+    use_epoll_if_available_ = static_cast<bool>(value);
+    if (use_thread_per_connection_)
+    {
+        LOG_ERROR(
+                "Cannot combine use_thread_per_connection with use_epoll_if_available. Disabling use_thread_per_connection");
+        use_thread_per_connection_ = false; //not compatible!
+    }
+}
+
+void server::server_impl::set_option_(accept_policy_cb value)
+{
+    accept_policy_callback_ = value;
+}
+
+void server::server_impl::set_option_(connection_memory_limit value)
+{
+    //this is a narrowing cast, so ugly! What to do, though?
+    options_.push_back({MHD_OPTION_CONNECTION_MEMORY_LIMIT, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(connection_limit value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(connection_timeout value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_TIMEOUT, static_cast<intptr_t>(value), NULL});
+}
+
+//void server::server_impl::set_option_(notify_completed value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option_(per_ip_connection_limit value)
+{
+    options_.push_back({MHD_OPTION_PER_IP_CONNECTION_LIMIT, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(const sockaddr_ptr value)
+{
+    //why are we casting away the constness? Because MHD isn'T going to modify this, and I want the caller
+    // to be assured of this fact.
+    options_.push_back({MHD_OPTION_SOCK_ADDR, 0, const_cast<sockaddr *>(value)});
+}
+
+//void server::server_impl::set_option_(uri_log_callback value)
+//{
+//    options_.push_back({MHD_OPTION_URI_LOG_CALLBACK, value, NULL});
+//}
+
+void server::server_impl::set_option_(const server::https_mem_key &value)
+{
+    // we must make a durable copy of these strings before tossing around char pointers to their internals
+    https_mem_key_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_KEY, 0,
+                               const_cast<char *>(https_mem_key_.back().c_str())});
+    ssl_mem_key_set_ = true;
+}
+
+void server::server_impl::set_option_(const server::https_mem_cert &value)
+{
+    https_mem_cert_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_CERT, 0,
+                               const_cast<char *>(https_mem_cert_.back().c_str())});
+    ssl_mem_cert_set_ = true;
+}
+
+//void server::server_impl::set_option_(https_cred_type value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option_(const server::https_priorities &value)
+{
+    https_priorities_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_PRIORITIES, 0,
+                               const_cast<char *>(https_priorities_.back().c_str())});
+}
+
+void server::server_impl::set_option_(listen_socket value)
+{
+    options_.push_back({MHD_OPTION_LISTEN_SOCKET, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(thread_pool_size value)
+{
+    options_.push_back({MHD_OPTION_THREAD_POOL_SIZE, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(unescaper_cb value)
+{
+    unescaper_callback_ = value;
+    options_.push_back({MHD_OPTION_UNESCAPE_CALLBACK, (intptr_t) &(unescaper_callback_shim_), this});
+}
+
+//void server::server_impl::set_option_(digest_auth_random value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option_(nonce_nc_size value)
+{
+    options_.push_back({MHD_OPTION_NONCE_NC_SIZE, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(thread_stack_size value)
+{
+    options_.push_back({MHD_OPTION_THREAD_STACK_SIZE, static_cast<intptr_t>(value), NULL});
+}
+
+void server::server_impl::set_option_(const server::https_mem_trust &value)
+{
+    https_mem_trust_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_TRUST, 0,
+                               const_cast<char *>(https_mem_trust_.back().c_str())});
+}
+
+void server::server_impl::set_option_(connection_memory_increment value)
+{
+    options_.push_back({MHD_OPTION_CONNECTION_MEMORY_INCREMENT, static_cast<intptr_t>(value), NULL});
+}
+
+//void server::server_impl::set_option_(https_cert_callback value)
+//{
+//    //TODO
+//}
+
+//void server::server_impl::set_option_(tcp_fastopen_queue_size value)
+//{
+//    options_.push_back({MHD_OPTION_TCP_FASTOPEN_QUEUE_SIZE, value, NULL});
+//}
+
+void server::server_impl::set_option_(const server::https_mem_dhparams &value)
+{
+    https_mem_dhparams_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_MEM_DHPARAMS, 0,
+                               const_cast<char *>(https_mem_dhparams_.back().c_str())});
+}
+
+//void server::server_impl::set_option_(listening_address_reuse value)
+//{
+//    options_.push_back({MHD_OPTION_LISTENING_ADDRESS_REUSE, value, NULL});
+//}
+
+void server::server_impl::set_option_(const server::https_key_password &value)
+{
+    https_key_password_.emplace_back(value);
+    options_.push_back({MHD_OPTION_HTTPS_KEY_PASSWORD, 0,
+                               const_cast<char *>(https_key_password_.back().c_str())});
+}
+
+//void server::server_impl::set_option_(notify_connection value)
+//{
+//    //TODO
+//}
+
+void server::server_impl::set_option_(const server::server_identifier &value)
+{
+    response_renderer_.set_option(value);
+    std::string id = value; //because it is not really a string
+    server_name_ = id.substr(0, id.find("/"));
+}
+
+void server::server_impl::set_option_(const server::server_identifier_and_version &value)
+{
+    response_renderer_.set_option(value);
+    server_name_ = value.first;
+}
+
+void server::server_impl::set_option_(const server::append_to_server_identifier &value)
+{
+    response_renderer_.set_option(value);
+}
+
+void server::server_impl::set_option_(enable_internal_file_cache value)
+{
+    response_renderer_.set_option(value);
+}
+
+void server::server_impl::set_option_(internal_file_cache_keep_alive value)
+{
+    response_renderer_.set_option(value);
+}
+
+
+//////// private methods setters
 
 struct connection_info_struct
 {

@@ -34,6 +34,7 @@ namespace luna
     {} \
     T get() const { return value_; } \
     T value_; \
+    operator T() const { return value_; } \
 };
 
 using status_code = uint16_t;
