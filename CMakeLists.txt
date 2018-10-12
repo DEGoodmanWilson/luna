@@ -116,6 +116,7 @@ set(LIB_LUNA_SOURCE_FILES
         ${PROJECT_SOURCE_DIR}/luna/router.h
         ${PROJECT_SOURCE_DIR}/luna/optional.hpp
         ${PROJECT_SOURCE_DIR}/luna/private/router_impl.h
+        ${PROJECT_SOURCE_DIR}/luna/private/router_impl.cpp
         )
 
 add_library(${PROJECT_NAME} ${LIB_LUNA_SOURCE_FILES} luna/luna.h)

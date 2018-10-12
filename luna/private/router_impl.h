@@ -27,16 +27,30 @@ namespace luna
 class router::router_impl
 {
 public:
-    router_impl(std::string route_base) :
-            route_base_{std::move(route_base)},
-            mime_type_{"text/html; charset=UTF-8"}
-    {
-        //remove trailing slashes
-        if (route_base_.back() == '/')
-        {
-            route_base_.pop_back();
-        }
-    }
+    router_impl(std::string route_base);
+
+
+    void set_mime_type(std::string mime_type);
+
+    using endpoint_handler_cb = std::function<response (const request &req)>;
+
+    void handle_request(request_method method,
+                        std::regex route,
+                        endpoint_handler_cb callback,
+                        parameter::validators validations = {});
+
+    void handle_request(request_method method,
+                        std::string route,
+                        endpoint_handler_cb callback,
+                        parameter::validators validations = {});
+
+    void serve_files(std::string mount_point, std::string path_to_files);
+
+    void add_header(std::string &&key, std::string &&value);
+
+    OPT_NS::optional<luna::response> process_request(request &request);
+
+private:
 
     std::string route_base_;
     std::mutex lock_;
