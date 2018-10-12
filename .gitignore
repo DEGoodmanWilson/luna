@@ -7,5 +7,6 @@ bin/
 *.cmake
 *.pyc
 conaninfo.txt
+conanbuildinfo.txt
 lib/
 luna.cbp

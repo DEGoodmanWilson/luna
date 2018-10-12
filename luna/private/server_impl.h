@@ -35,6 +35,94 @@ class server::server_impl
 public:
     server_impl();
 
+    bool start(uint16_t port = 8080);
+
+    bool start_async(uint16_t port = 8080);
+
+    bool is_running();
+
+    void stop();
+
+    void await();
+
+    uint16_t get_port();
+
+    std::shared_ptr<router> create_router(std::string route_base = "/");
+
+    explicit operator bool();
+
+protected:
+    friend class server;
+
+    void set_option_(debug_output value);
+
+    void set_option_(use_thread_per_connection value);
+
+    void set_option_(use_epoll_if_available value);
+
+    void set_option_(accept_policy_cb handler);
+
+    //MHD options
+    void set_option_(connection_memory_limit value);
+
+    void set_option_(connection_limit value);
+
+    void set_option_(connection_timeout value);
+
+//    void set_option_(notify_completed value);
+
+    void set_option_(per_ip_connection_limit value);
+
+    void set_option_(const sockaddr_ptr value);
+
+    void set_option_(const https_mem_key &value);
+
+    void set_option_(const https_mem_cert &value);
+
+//    void set_option_(const https_cred_type &value); //TODO later
+
+    void set_option_(const https_priorities &value);
+
+    void set_option_(listen_socket value);
+
+    void set_option_(thread_pool_size value);
+
+    void set_option_(unescaper_cb value);
+
+//    void set_option_(digest_auth_random value); //TODO later
+
+    void set_option_(nonce_nc_size value);
+
+    void set_option_(thread_stack_size value);
+
+    void set_option_(const https_mem_trust &value);
+
+    void set_option_(connection_memory_increment value);
+
+//    void set_option_(https_cert_callback value); //TODO later
+
+//    void set_option_(tcp_fastopen_queue_size value);
+
+    void set_option_(const https_mem_dhparams &value);
+
+//    void set_option_(listening_address_reuse value);
+
+    void set_option_(const https_key_password &value);
+
+//    void set_option_(notify_connection value); //TODO later
+
+    void set_option_(const server_identifier &value);
+    void set_option_(const server_identifier_and_version &value);
+
+    void set_option_(const append_to_server_identifier &value);
+
+    // internally-provided static asset caching
+    void set_option_(enable_internal_file_cache value);
+
+    void set_option_(internal_file_cache_keep_alive value);
+
+private:
+
     std::mutex lock_;
 
     bool debug_output_;
