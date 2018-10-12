@@ -29,6 +29,12 @@ class server;
 class router
 {
 public:
+    router(router && op) noexcept;              // movable
+    router& operator=(router && op) noexcept;   //
+
+    ~router();
+
+
     void set_mime_type(std::string mime_type);
 
     using endpoint_handler_cb = std::function<response (const request &req)>;
@@ -61,7 +67,7 @@ protected:
 private:
 
     class router_impl;
-    std::shared_ptr<router_impl> impl_;
+    std::unique_ptr<router_impl> impl_;
 };
 
 

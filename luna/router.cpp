@@ -24,15 +24,15 @@
 namespace luna
 {
 
-router::router(std::string route_base)
+router::router(std::string route_base) : impl_{std::make_unique<router_impl>(route_base)}
 {
-    //remove trailing slashes
-    if (route_base.back() == '/')
-    {
-        route_base.pop_back();
-    }
-    impl_ = std::make_shared<router_impl>(route_base);
 }
+
+// move constructor and operator
+router::router(router &&) noexcept = default;
+router& router::operator=(router &&) noexcept = default;
+
+router::~router() = default;
 
 void router::set_mime_type(std::string mime_type)
 {

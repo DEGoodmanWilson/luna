@@ -30,7 +30,13 @@ public:
     router_impl(std::string route_base) :
             route_base_{std::move(route_base)},
             mime_type_{"text/html; charset=UTF-8"}
-    {}
+    {
+        //remove trailing slashes
+        if (route_base_.back() == '/')
+        {
+            route_base_.pop_back();
+        }
+    }
 
     std::string route_base_;
     std::mutex lock_;
