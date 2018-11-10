@@ -4,6 +4,7 @@
 #include "logger.h"
 #include <string>
 #include <vector>
+#include <experimental/array>
 
 using namespace luna;
 
@@ -67,16 +68,24 @@ int main()
 
     // File serving example; serve files from the assets folder on /
     // index pages
-    auto index = server.create_router("/");
-    index->serve_files("/", "assets");
 
-    // about pages
-    auto about = server.create_router("/about");
-    about->serve_files("/", "assets");
+    auto router = server.create_router("/");
 
-    // contact pages
-    auto contact = server.create_router("/contact");
-    contact->serve_files("/", "assets");
+    auto routers = std::experimental::make_array("/", "/about", "/contact");
+
+    for(auto&& r : routers)
+        router->handle_request(request_method::GET, 
+                            r, 
+                            [](auto request) -> response { 
+                                response res = response::from_file("./assets/index.html");
+                            return res;
+                        });
+
+    router->handle_request(request_method::GET, "/webpack/index.js",[] (auto req) -> response {
+            response res = response::from_file("./assets/webpack/index.js");
+            res.content_type = "text/javascript";
+            return res;
+    });
 
     server.start(port);
 
