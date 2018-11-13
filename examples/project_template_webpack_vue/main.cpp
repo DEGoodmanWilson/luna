@@ -41,15 +41,17 @@ int main()
     // add endpoints
 
     // API example, served from /api
-    auto api = server.create_router("/api");
+    auto api = server.create_router("/api/");
     api->handle_request(request_method::GET, "/endpoint",
                        [&](auto request) -> response
                        {
                             nlohmann::json retval;
-                            for(decltype(container)::iterator itr; itr != std::end(container); itr++)
-                                retval[std::distance(std::begin(container), itr)] = *itr;
                             
-                           return retval.dump();
+                            for(std::size_t i = 0; i < container.size(); i++) {
+                                retval[std::to_string(i)] = container[i];
+                            }
+                            
+                            return retval.dump();
                        });
 
     auto post = server.create_router("/api/");
