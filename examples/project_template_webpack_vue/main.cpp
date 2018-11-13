@@ -4,7 +4,7 @@
 #include "logger.h"
 #include <string>
 #include <vector>
-#include <experimental/array>
+#include <array>
 
 using namespace luna;
 
@@ -71,7 +71,7 @@ int main()
 
     auto router = server.create_router("/");
 
-    auto routers = std::experimental::make_array("/", "/about", "/contact");
+    std::array<std::string, 3> routers = {"/", "/about", "/contact"};
 
     for(auto&& r : routers)
         router->handle_request(request_method::GET, 
