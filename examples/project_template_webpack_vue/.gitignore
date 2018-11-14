@@ -1,0 +1,10 @@
+conanbuildinfo.cmake
+conanbuildinfo.txt
+conaninfo.txt
+cmake_install.cmake
+CMakeCache.txt
+/CMakeFiles
+/bin
+Makefile
+/assets/node_modules
+/assets/node_modules/.yarn-integrity
