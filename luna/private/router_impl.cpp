@@ -138,7 +138,7 @@ std::string sanitize_path_(std::string path_to_files)
     return final_path;
 }
 
-void router::router_impl::serve_files(std::string mount_point, std::string path_to_files)
+void router::router_impl::serve_files(std::string mount_point, std::string path_to_files, bool generate_index_for_empty_dirs)
 {
     path_to_files = sanitize_path_(path_to_files);
     std::regex route{mount_point + "(.*)"};
@@ -150,7 +150,7 @@ void router::router_impl::serve_files(std::string mount_point, std::string path_
         error_log(log_level::DEBUG, std::string{"File requested:  "} + req.matches[1]);
         error_log(log_level::DEBUG, std::string{"Serve from    :  "} + path);
 
-        return response::from_file(path);
+        return response::from_file(path, generate_index_for_empty_dirs);
     });
 }
 

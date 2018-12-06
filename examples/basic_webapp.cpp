@@ -134,7 +134,7 @@ int main(void)
 
     auto file_router = server.create_router("/static"); //serve everything relative to the path "/static"
     file_router->add_header("static-files", "hell yes"); //add a header to all responses from this router->
-    file_router->serve_files("/", "tests/public");
+    file_router->serve_files("/", "tests/public", true);
 
 
     // Example 6: Serving up additional endpoints from a separate base URL

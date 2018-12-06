@@ -304,3 +304,44 @@ TEST(file_service, empty_dir_throws_404)
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/empty"});
     ASSERT_EQ(404, res.status_code);
 }
+
+TEST(file_service, dir_throws_404)
+{
+    std::string path{STATIC_ASSET_PATH};
+    luna::server server;
+    auto router = server.create_router("/");
+    router->serve_files("/", path + "/tests/public");
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080"});
+    ASSERT_EQ(404, res.status_code);
+}
+
+TEST(file_service, dir_generates_index_when_requested)
+{
+    std::string path{STATIC_ASSET_PATH};
+    luna::server server;
+    auto router = server.create_router("/");
+    router->serve_files("/", path + "/tests/public", true);
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_GE(res.text.size(), 1);
+}
+
+TEST(file_service, dir_does_not_generates_index_when_requested_and_index_exists)
+{
+    std::string path{STATIC_ASSET_PATH};
+    luna::server server;
+    auto router = server.create_router("/");
+    router->serve_files("/", path + "/tests/public/test", true);
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080"});
+    ASSERT_EQ(200, res.status_code);
+    ASSERT_GE(res.text.size(), 1);
+}

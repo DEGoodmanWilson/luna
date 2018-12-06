@@ -105,6 +105,7 @@ struct response
     std::string content_type;
     std::string content;
     std::string file;
+    bool generate_index_for_empty_dirs;
 
     struct URI
     {
@@ -117,10 +118,11 @@ struct response
     response() : status_code{404}, headers{}, content_type{}, content{}, file{}
     { }
 
-    static response from_file(std::string filename)
+    static response from_file(std::string filename, bool generate_index_for_empty_dirs=false)
     {
         response r;
         r.file = filename;
+        r.generate_index_for_empty_dirs = generate_index_for_empty_dirs;
         return r;
     }
 

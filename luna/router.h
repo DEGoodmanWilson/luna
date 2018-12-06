@@ -49,7 +49,7 @@ public:
                         endpoint_handler_cb callback,
                         parameter::validators validations = {});
 
-    void serve_files(std::string mount_point, std::string path_to_files);
+    void serve_files(std::string mount_point, std::string path_to_files, bool generate_index_for_empty_dirs=false);
 
     void add_header(std::string &&key, std::string &&value);
 

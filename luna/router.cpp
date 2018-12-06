@@ -50,9 +50,9 @@ void router::handle_request(request_method method,
     impl_->handle_request(method, route, callback, validations);
 }
 
-void router::serve_files(std::string mount_point, std::string path_to_files)
+void router::serve_files(std::string mount_point, std::string path_to_files, bool generate_index_for_empty_dirs)
 {
-    impl_->serve_files(mount_point, path_to_files);
+    impl_->serve_files(mount_point, path_to_files, generate_index_for_empty_dirs);
 }
 
 void router::add_header(std::string &&key, std::string &&value)
