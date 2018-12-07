@@ -40,7 +40,7 @@ std::string get_mime_type_(const std::string &file)
     {
         retval = mime::content_type(mime::get_extension_from_path(file));
     }
-    catch(std::out_of_range &e)
+    catch (std::out_of_range &e)
     {
         retval = "text/plain";
     }
@@ -114,40 +114,37 @@ response_renderer::from_file_(const request &request, response &response)
 {
     std::shared_ptr<cacheable_response> response_mhd;
 
-    if (!response_mhd) // TODO always false! What was this here for?
+    // look for the file in our local fd cache
+    if (use_fd_cache_ && fd_cache_.count(response.file))
     {
-        // look for the file in our local fd cache
-        if (use_fd_cache_ && fd_cache_.count(response.file))
+        SHARED_LOCK<SHARED_MUTEX> lock{response_renderer::fd_cache_mutex_};
+
+        response_mhd = fd_cache_[response.file];
+        // has the cache expired?
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now() - response_mhd->time_cached);
+        if (duration.count() <= cache_keep_alive_.count())
         {
-            SHARED_LOCK<SHARED_MUTEX> lock{response_renderer::fd_cache_mutex_};
-
-            response_mhd = fd_cache_[response.file];
-            // has the cache expired?
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now() - response_mhd->time_cached);
-            if (duration.count() <= cache_keep_alive_.count())
-            {
-                response_mhd->cached = true;
-                error_log(log_level::DEBUG, "File cache: HIT");
+            response_mhd->cached = true;
+            error_log(log_level::DEBUG, "File cache: HIT");
 #ifdef LUNA_TESTING
-                auto header = MHD_get_response_header(response_mhd->mhd_response, "X-LUNA-CACHE");
-                if (header == nullptr)
-                {
-                    MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
-                }
-                else if (header[0] == 'M')
-                {
-                    MHD_del_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
-                    MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
-                }
-#endif
-                return response_mhd; // we can jump out early.
+            auto header = MHD_get_response_header(response_mhd->mhd_response, "X-LUNA-CACHE");
+            if (header == nullptr)
+            {
+                MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
             }
-
-            // else lets invalidate the cache
-            fd_cache_.erase(response.file);
-            response_mhd = nullptr; //delete our copy too
+            else if (header[0] == 'M')
+            {
+                MHD_del_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "MISS");
+                MHD_add_response_header(response_mhd->mhd_response, "X-LUNA-CACHE", "HIT");
+            }
+#endif
+            return response_mhd; // we can jump out early.
         }
+
+        // else lets invalidate the cache
+        fd_cache_.erase(response.file);
+        response_mhd = nullptr; //delete our copy too
     }
 
 
