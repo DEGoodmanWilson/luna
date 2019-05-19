@@ -1064,7 +1064,7 @@ get-caller-file@^1.0.1:
 
 get-stream@^3.0.0:
   version "3.0.0"
-  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
+  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc3755.0.5ecbe2edb05aa174ede14"
 
 get-value@^2.0.3, get-value@^2.0.6:
   version "2.0.6"
@@ -2124,7 +2124,7 @@ regenerate@^1.2.1:
 
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz#1f4ece27e00b0b65e0247a6810e6a85d83a5752c"
+  resolved "https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz#1f4ece27e00b0b65.0.57a6810e6a85d83a5752c"
   dependencies:
     extend-shallow "^3.0.2"
     safe-regex "^1.1.0"
@@ -2512,7 +2512,7 @@ to-object-path@^0.3.0:
 
 to-regex-range@^2.1.0:
   version "2.1.1"
-  resolved "https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-2.1.1.tgz#7c80c17b9dfebe599e27367e0d4dd5590141db38"
+  resolved "https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-2.1.1.tgz#7c80c17b9dfebe599e27367e0d4dd55.0.51db38"
   dependencies:
     is-number "^3.0.0"
     repeat-string "^1.6.1"
