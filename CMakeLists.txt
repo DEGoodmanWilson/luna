@@ -48,7 +48,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ##### External dependencies
 
-include(conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 CONAN_BASIC_SETUP()
 
 ##### Options

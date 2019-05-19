@@ -49,7 +49,7 @@ class LunaConan(ConanFile):
                 del self.requires["cpr"]
 
         if self.options.build_luna_examples:
-            self.requires.add("jsonformoderncpp/[~= 3.1]@vthiery/stable", private=False)
+            self.requires.add("jsonformoderncpp/[~= 3.6]@vthiery/stable", private=False)
         else:
             if "nl-json" in self.requires:
                 del self.requires["nl-json"]

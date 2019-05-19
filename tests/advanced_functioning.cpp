@@ -592,3 +592,19 @@ TEST(file_service, check_paths_3)
     ASSERT_EQ(200, res.status_code);
     ASSERT_EQ("first", res.text);
 }
+
+TEST(advanced_functioning, custom_not_found_renderer)
+{
+    luna::server server{
+        [](const luna::request &req, luna::response &res)
+{
+            res.content = "NOPE!";
+}
+    };
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/missing"});
+    ASSERT_EQ(404, res.status_code);
+    ASSERT_EQ("NOPE!", res.text);
+}

@@ -96,6 +96,9 @@ public:
 
     using internal_file_cache_keep_alive = std::chrono::milliseconds;
 
+    using not_found_handler_cb = std::function<void(const request &req, response &res)>;
+
+
     server()
     {
         initialize_();
@@ -223,6 +226,9 @@ private:
     void set_option_(enable_internal_file_cache value);
 
     void set_option_(internal_file_cache_keep_alive value);
+
+    // Allow custom 404 handlers
+    void set_option_(not_found_handler_cb value);
 };
 
 } //namespace luna
