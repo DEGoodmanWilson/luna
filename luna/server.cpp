@@ -275,4 +275,10 @@ void server::set_option_(internal_file_cache_keep_alive value)
     impl_->set_option_(value);
 }
 
+void server::set_option_(not_found_handler_cb value)
+{
+    impl_->set_option_(value);
+}
+
+
 } // namespace luna

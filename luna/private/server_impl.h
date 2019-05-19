@@ -121,6 +121,8 @@ protected:
 
     void set_option_(internal_file_cache_keep_alive value);
 
+    void set_option_(not_found_handler_cb value);
+
 private:
 
     std::mutex lock_;
@@ -217,6 +219,9 @@ private:
     response_renderer response_renderer_;
 
     std::string server_name_;
+
+    // custom 404 renderer
+    not_found_handler_cb not_found_handler_;
 };
 
 } //namespace luna

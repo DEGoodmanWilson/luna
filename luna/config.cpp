@@ -75,5 +75,4 @@ void error_log(luna::log_level level, const std::string &message)
         error_logger_(level, message);
 }
 
-
 } //namespace luna
