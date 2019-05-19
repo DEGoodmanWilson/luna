@@ -57,6 +57,7 @@ public:
     void set_option(const server::append_to_server_identifier &value); //TODO I am not fond of having this here.
     void set_option(server::enable_internal_file_cache value);
     void set_option(server::internal_file_cache_keep_alive value);
+    void set_option(server::not_found_handler_cb value);
 
 private:
     std::shared_ptr<cacheable_response> from_file_(const luna::request &request, luna::response &response);
@@ -69,6 +70,9 @@ private:
     static SHARED_MUTEX fd_cache_mutex_;
     std::unordered_map<std::string, std::shared_ptr<cacheable_response> > fd_cache_;
     std::chrono::milliseconds cache_keep_alive_;
+
+    // custom user-supplied 404 renderer
+    server::not_found_handler_cb not_found_handler_;
 };
 
 

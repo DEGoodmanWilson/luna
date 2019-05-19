@@ -220,8 +220,8 @@ private:
 
     std::string server_name_;
 
-    // custom user-supplied 404 renderer
-    server::not_found_handler_cb not_found_handler_;
+    // custom 404 renderer
+    not_found_handler_cb not_found_handler_;
 };
 
 } //namespace luna

@@ -35,7 +35,7 @@ int main(void)
     // Respond with a tiny bit of fun JSON
     auto router = server.create_router("/");
 
-    router->set_mime_type("application/json"); //the default is "text/html; charset=UTF-8"
+    router->set_mime_type("application/json"); //the default is "text/html; charset=utf-8"
 
     router->handle_request(request_method::GET, "/endpoint",
                           [](auto request) -> response

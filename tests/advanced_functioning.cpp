@@ -190,7 +190,7 @@ TEST(advanced_functioning, default_server_errors_404)
 
     auto res = cpr::Get(cpr::Url{"http://localhost:8080/test"});
     ASSERT_EQ(404, res.status_code);
-    ASSERT_EQ("Not found", res.text);
+    ASSERT_EQ("<html><h1>404 Not Found</h1></html>", res.text);
 }
 
 TEST(advanced_functioning, default_server_errors_500)
@@ -601,6 +601,26 @@ TEST(advanced_functioning, custom_not_found_renderer)
             res.content = "NOPE!";
 }
     };
+
+    server.start_async();
+
+    auto res = cpr::Get(cpr::Url{"http://localhost:8080/missing"});
+    ASSERT_EQ(404, res.status_code);
+    ASSERT_EQ("NOPE!", res.text);
+}
+
+TEST(advanced_functioning, custom_not_found_renderer_file)
+{
+    luna::server server{
+            [](const luna::request &req, luna::response &res)
+            {
+                res.content = "NOPE!";
+            }
+    };
+
+    auto router = server.create_router("/");
+    std::string path{STATIC_ASSET_PATH};
+    router->serve_files("/", path + "/tests/public");
 
     server.start_async();
 

@@ -25,7 +25,7 @@ namespace luna
 
 router::router_impl::router_impl(std::string route_base) :
         route_base_{std::move(route_base)},
-        mime_type_{"text/html; charset=UTF-8"}
+        mime_type_{"text/html; charset=utf-8"}
 {
     //remove trailing slashes
     if (route_base_.back() == '/')

@@ -26,7 +26,7 @@ int main(void)
     // set up an endpoint that serves some JSON on /endpoint
     auto api{server.create_router("/")};
 
-    api->set_mime_type("application/json"); //the default is "text/html; charset=UTF-8"
+    api->set_mime_type("application/json"); //the default is "text/html; charset=utf-8"
 
     // Handle GET requests to "localhost:8080/endpoint"
     // Respond with a tiny bit of fun JSON

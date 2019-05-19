@@ -59,7 +59,6 @@ response_renderer::response_renderer() :
         cache_keep_alive_{std::chrono::minutes{30}}
 {}
 
-
 std::shared_ptr<cacheable_response>
 response_renderer::render(const request &request, response &response)
 {
@@ -71,7 +70,6 @@ response_renderer::render(const request &request, response &response)
         response.status_code = default_success_code_(request.method);
     }
 
-
     // First we need to decide if this response object represents a file on disk, or a buffer in memory.
     if (!response.file.empty())
     {
@@ -80,9 +78,6 @@ response_renderer::render(const request &request, response &response)
 
     else
     {
-        // if we got an error, we need to fill it out with some content, etc.
-//        finish_rendering_error_response_(request, response);
-
         // Now, create the MHD_Response object
         // TODO it would be nice if we could cache this!
         response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(response.content.length(),
@@ -98,6 +93,13 @@ response_renderer::render(const request &request, response &response)
         for (const auto &header : response.headers)
         {
             MHD_add_response_header(response_mhd->mhd_response, header.first.c_str(), header.second.c_str());
+        }
+
+        // Add default content type, if missing
+        // TODO IS THIS NECESSARY?
+        if(response.content_type.empty())
+        {
+            response.content_type = "text/html; charset=utf-8";
         }
         MHD_add_response_header(response_mhd->mhd_response,
                                 MHD_HTTP_HEADER_CONTENT_TYPE,
@@ -183,9 +185,12 @@ response_renderer::from_file_(const request &request, response &response)
 
     if (stat_ret != 0)
     {
-        // The file doesn't exist
-        // TODO where do we get this 404 from? We need the router that generated this response! Ugh.
-        response.status_code = 404;
+        // The file doesn't exist, 404
+        response = luna::response{404, "text/html; charset=utf-8", "<html><h1>404 Not Found</h1></html>"};
+        if(not_found_handler_)
+        {
+            not_found_handler_(request, response);
+        }
 
         response_mhd = std::make_shared<cacheable_response>(MHD_create_response_from_buffer(response.content.length(),
                                                                                             (void *) response.content.c_str(),
@@ -262,6 +267,11 @@ void response_renderer::set_option(server::enable_internal_file_cache value)
 void response_renderer::set_option(server::internal_file_cache_keep_alive value)
 {
     cache_keep_alive_ = value;
+}
+
+void response_renderer::set_option(server::not_found_handler_cb value)
+{
+    not_found_handler_ = value;
 }
 
 } //namespace luna
